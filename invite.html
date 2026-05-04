@@ -39,9 +39,9 @@
 
         <footer class="security-footer">
             <div id="google-login-area" style="display: none; margin-bottom: 20px;">
-                <button class="cta-button-google" onclick="handleGoogleLogin()" style="cursor:pointer; padding: 10px 20px; border-radius: 20px; border: 1px solid #ddd; background: white; display: flex; align-items: center; gap: 10px; margin: 0 auto;">
+                <button class="cta-button-google" onclick="handleGoogleLogin()" style="cursor:pointer; padding: 12px 25px; border-radius: 25px; border: 1px solid #ddd; background: white; display: flex; align-items: center; gap: 10px; margin: 0 auto; font-family: inherit; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                    <span>Entrar com Google</span>
+                    <span>ENTRAR NA LINHAGEM</span>
                 </button>
             </div>
 
@@ -56,34 +56,37 @@
         </footer>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script src="auth.js"></script>
+
     <script>
         const inputs = document.querySelectorAll('.code-box');
         const loginArea = document.getElementById('google-login-area');
         const codeEntryArea = document.querySelector('.code-entry');
         const instructionText = document.querySelector('.encrypted-text');
         
-        const MASTER_CODE = "131213"; 
+        let typedCode = "";
 
         inputs.forEach((input, index) => {
-            // Lógica para digitar e pular de campo
             input.addEventListener('input', (e) => {
                 if (e.target.value.length === 1 && index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
                 
-                // Validação do código completo
-                let typedCode = "";
+                typedCode = "";
                 inputs.forEach(i => typedCode += i.value);
                 
                 if (typedCode.length === 6) {
-                    if (typedCode === MASTER_CODE) {
-                        // SUCESSO: Troca a interface do código pelo botão de login
+                    // MASTER_CODE definido no seu auth.js
+                    if (typedCode === "131213") {
                         codeEntryArea.style.display = 'none';
                         loginArea.style.display = 'block';
                         instructionText.innerHTML = "CÓDIGO ACEITO. BEM-VINDO À ORDEM.";
                         instructionText.style.color = "#2ecc71";
                     } else {
-                        // ERRO: Alerta e limpa os campos
                         alert("CÓDIGO DESCONHECIDO.");
                         inputs.forEach(i => i.value = "");
                         inputs[0].focus();
@@ -91,7 +94,6 @@
                 }
             });
 
-            // Lógica para apagar e voltar o cursor
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace' && !input.value && index > 0) {
                     inputs[index - 1].focus();
@@ -99,12 +101,30 @@
             });
         });
 
-        function handleGoogleLogin() {
-            console.log("Iniciando fluxo de login do Google...");
-            // Insira aqui sua lógica de autenticação Firebase
+        // FUNÇÃO QUE ESTAVA VAZIA - AGORA CONECTADA AO FIREBASE
+        async function handleGoogleLogin() {
+            const btn = document.querySelector('.cta-button-google');
+            btn.disabled = true;
+            btn.innerHTML = "VALIDANDO...";
+
+            const provider = new firebase.auth.GoogleAuthProvider();
+
+            try {
+                // Abre o pop-up do Google
+                const result = await firebase.auth().signInWithPopup(provider);
+                const user = result.user;
+
+                // Chama a função de cadastro inicial que está no seu auth.js
+                // Passamos o typedCode ("131213") que o usuário digitou
+                await finalizarCadastroPombito(user, typedCode);
+
+            } catch (error) {
+                console.error("Erro na autenticação:", error);
+                alert("A Ordem recusou sua entrada: " + error.message);
+                btn.disabled = false;
+                btn.innerHTML = "Entrar com Google";
+            }
         }
     </script>
-<script src="auth.js"></script>
-
 </body>
 </html>
