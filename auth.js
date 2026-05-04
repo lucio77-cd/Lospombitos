@@ -1,5 +1,5 @@
 // auth.js
-// Coloquei var para garantir que seja lido em qualquer lugar
+// Configuração global do Firebase
 var firebaseConfig = {
   apiKey: "AIzaSyDuAp97sXt63-JKeRRVpT6AYhGqWjrDb-s",
   authDomain: "los-pombitos.firebaseapp.com",
@@ -10,19 +10,22 @@ var firebaseConfig = {
   measurementId: "G-3YL5YL7MKK"
 };
 
-// Inicializa o Firebase
+// Inicializa o Firebase apenas se não houver um app ativo
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Atalhos globais
+// Atalhos globais para facilitar o uso nos outros arquivos
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// Função que cria o registro no banco
+/**
+ * FUNÇÃO 1: Usada no invite.html logo após o login do Google
+ * Cria o rascunho do usuário no banco.
+ */
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
-        console.log("Criando documento para o UID:", user.uid);
+        console.log("Criando registro inicial para:", user.uid);
         await db.collection("usuarios").doc(user.uid).set({
             uid: user.uid,
             nome: user.displayName || "Pombino Anonimo",
@@ -32,12 +35,38 @@ async function finalizarCadastroPombito(user, codigoUsado) {
             perfil_completo: false,
             pombcoins: 10,
             data_adesao: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true });
         
-        console.log("Sucesso! Indo para o setup...");
+        console.log("Registro inicial OK! Redirecionando para setup...");
         window.location.href = "setup-perfil.html";
     } catch (error) {
         console.error("Erro ao salvar no Firestore:", error);
         alert("Erro de permissão no banco: " + error.message);
+    }
+}
+
+/**
+ * FUNÇÃO 2: Usada no setup-perfil.html
+ * Finaliza o perfil com as informações de gostos e gera o avatar.
+ */
+async function germinarEsalvarPombito(dadosFicha, user) {
+    try {
+        console.log("Germinando perfil para:", user.uid);
+        
+        // Gera o avatar pixel-art baseado no ID único do usuário
+        const pombitoUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.uid}`;
+        
+        // Atualiza o documento com os novos dados da ficha
+        await db.collection("usuarios").doc(user.uid).set({
+            ...dadosFicha,
+            foto_perfil: pombitoUrl,
+            perfil_completo: true,
+            data_germina: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return true;
+    } catch (e) {
+        console.error("Erro técnico no Firestore:", e);
+        return false;
     }
 }
