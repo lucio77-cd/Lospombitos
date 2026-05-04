@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Germinando... | Los Pombitos</title>
+    <link rel="stylesheet" href="style-setup.css">
+    <style>
+        .egg-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            background: #fff;
+        }
+        .pixel-pigeon-anim {
+            width: 80px;
+            height: 80px;
+            background-color: #0B57D0;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite ease-in-out;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .status-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            color: #555;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="egg-container">
+        <div class="pixel-pigeon-anim"></div>
+        <p class="status-text" id="status">Lendo seus rastros...</p>
+        <p style="font-size: 10px; color: #aaa; margin-top: 10px;">A Ordem está germinando seu perfil 8-bit.</p>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="germinador.js"></script>
+
+    <script>
+        // Função para buscar dados e iniciar a mágica
+        async function iniciarGerminacao() {
+            const status = document.getElementById('status');
+            const db = firebase.firestore();
+
+            // Verificamos se o usuário está logado
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (user) {
+                    try {
+                        // 1. Busca os dados que acabamos de salvar no setup-perfil
+                        const doc = await db.collection("usuarios").doc(user.uid).get();
+                        
+                        if (doc.exists) {
+                            const dadosUsuario = doc.data();
+                            
+                            // 2. Chama a função do germinador.js passando os dados reais
+                            const sucesso = await iniciarProcessoDeArte(dadosUsuario);
+
+                            if (sucesso) {
+                                window.location.href = "feed.html";
+                            }
+                        } else {
+                            status.innerText = "Perfil não encontrado...";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao buscar dados:", error);
+                        status.innerText = "Erro na conexão com a Ordem.";
+                    }
+                } else {
+                    // Se não estiver logado, volta para o início
+                    window.location.href = "invite.html";
+                }
+            });
+        }
+
+        // Inicia assim que a página carregar
+        window.onload = iniciarGerminacao;
+    </script>
+</body>
+</html>

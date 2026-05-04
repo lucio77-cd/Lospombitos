@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Los Pombitos | Feed</title>
+    <link rel="stylesheet" href="style-feed.css">
+    <style>
+        /* CSS de fallback para garantir estrutura mínima caso o style-feed.css demore a carregar */
+        body { font-family: 'Courier New', Courier, monospace; margin: 0; background: #f4f4f4; }
+        .app-container { padding-bottom: 70px; }
+        .section { display: none; padding: 20px; }
+        .active { display: block; }
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 60px;
+            background: #fff; display: flex; justify-content: space-around;
+            align-items: center; border-top: 1px solid #ddd;
+            z-index: 1000;
+        }
+        .nav-item { font-size: 10px; text-align: center; color: #888; text-decoration: none; }
+        .nav-item.active-link { color: #0B57D0; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <h1>LOS POMBITOS</h1>
+    </header>
+
+    <div class="app-container">
+        <section id="timeline" class="section active">
+            <h2>Timeline</h2>
+            <div class="post-box">
+                <textarea id="post-text" maxlength="500" placeholder="O que você está pensando? (Máx 500 caracteres)"></textarea>
+                <button onclick="postarMensagem()">Postar</button>
+            </div>
+            
+            <div id="feed-lista">
+                </div>
+        </section>
+
+        <section id="praia" class="section">
+            <h2>Arte na Praia</h2>
+            <div id="arte-do-dia-container">
+                <p>Aguardando a maré trazer a arte...</p>
+            </div>
+        </section>
+
+        <section id="galeria" class="section">
+            <h2>Sua Galeria</h2>
+            <div class="grid-galeria" id="minha-galeria">
+                </div>
+        </section>
+
+        <section id="saldo" class="section">
+            <h2>Sua Carteira</h2>
+            <div class="balance-card">
+                <p>Saldo Atual:</p>
+                <h1 id="pombcoin-balance">0 <span>$POMB</span></h1>
+            </div>
+            <div class="wallet-actions">
+                <button>Mandar Presente</button>
+                <button>Comprar $POMB</button>
+            </div>
+        </section>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active-link" onclick="showSection('timeline', this)">TIMELINE</a>
+        <a href="#" class="nav-item" onclick="showSection('praia', this)">PRAIA</a>
+        <a href="#" class="nav-item" onclick="showSection('galeria', this)">GALERIA</a>
+        <a href="#" class="nav-item" onclick="showSection('saldo', this)">SALDO</a>
+    </nav>
+
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+    <script src="auth.js"></script>
+    
+    <script>
+        // Alternância entre as Seções (Abas)
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-link'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            element.classList.add('active-link');
+        }
+
+        // Lógica de Mineração por Tempo (10 minutos = 1 Pombcoin)
+        let tempoSegundos = 0;
+        setInterval(() => {
+            tempoSegundos++;
+            if (tempoSegundos >= 600) {
+                console.log("Recompensa: 1 Pombcoin gerado por presença!");
+                tempoSegundos = 0;
+            }
+        }, 1000);
+
+        // FUNÇÃO DE POSTAR (Conectada ao Firestore)
+        async function postarMensagem() {
+            const textoArea = document.getElementById('post-text');
+            const texto = textoArea.value.trim();
+            const user = firebase.auth().currentUser;
+
+            if (!texto) {
+                alert("Sua mensagem está vazia, irmão pombino!");
+                return;
+            }
+
+            try {
+                // Busca dados do autor para o post
+                const userDoc = await firebase.firestore().collection("usuarios").doc(user.uid).get();
+                const userData = userDoc.data();
+
+                // Grava o post na coleção global 'posts'
+                await firebase.firestore().collection("posts").add({
+                    uid: user.uid,
+                    username: userData.username || "Irmão Anônimo",
+                    foto_perfil: userData.foto_perfil || "https://via.placeholder.com/50",
+                    texto: texto,
+                    data_post: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                textoArea.value = "";
+                console.log("Mensagem ecoada na Ordem!");
+            } catch (error) {
+                console.error("Erro ao postar:", error);
+                alert("A maré não está favorável. Tente postar novamente.");
+            }
+        }
+
+        // CARREGAR TIMELINE (Listener em tempo real)
+        function carregarTimeline() {
+            const feedLista = document.getElementById('feed-lista');
+            const db = firebase.firestore();
+
+            db.collection("posts")
+              .orderBy("data_post", "desc")
+              .limit(50)
+              .onSnapshot((snapshot) => {
+                  feedLista.innerHTML = "";
+                  snapshot.forEach((doc) => {
+                      const post = doc.data();
+                      const tempo = post.data_post ? new Date(post.data_post.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
+
+                      feedLista.innerHTML += `
+                        <div class="post-card">
+                            <img src="${post.foto_perfil}" class="post-avatar" alt="Avatar">
+                            <div class="post-content">
+                                <div class="post-info">
+                                    <span class="post-author">@${post.username}</span>
+                                    <span class="post-date">· ${tempo}</span>
+                                </div>
+                                <p class="post-text">${post.texto}</p>
+                                <div class="post-actions">
+                                    <button class="action-btn" onclick="compartilharPost('${doc.id}')">🔄 Compartilhar</button>
+                                </div>
+                            </div>
+                        </div>
+                      `;
+                  });
+              });
+        }
+
+        // Inicialização ao carregar a página
+        window.onload = () => {
+            // Verifica se as funções existem antes de chamar para evitar erros de console
+            if (typeof iniciarGerminacao === "function") iniciarGerminacao();
+            carregarTimeline();
+        };
+
+        // Placeholder para função de compartilhar
+        function compartilharPost(postId) {
+            console.log("Compartilhando post:", postId);
+        }
+    </script>
+        <script src="auth.js"></script> <script>
+        // --- COLOQUE AQUI A FUNÇÃO DE POSTAR ---
+        async function postarMensagem() {
+            const textoArea = document.getElementById('post-text');
+            const texto = textoArea.value.trim();
+            const user = firebase.auth().currentUser;
+
+            if (!texto) return;
+
+            try {
+                const userDoc = await firebase.firestore().collection("usuarios").doc(user.uid).get();
+                const userData = userDoc.data();
+
+                await firebase.firestore().collection("posts").add({
+                    uid: user.uid,
+                    username: userData.username || "Irmão Pombino",
+                    foto_perfil: userData.foto_perfil || "pombo-padrao.png",
+                    texto: texto,
+                    data_post: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                textoArea.value = "";
+            } catch (e) { console.error(e); }
+        }
+
+        // --- COLOQUE AQUI A FUNÇÃO DE CARREGAR TIMELINE ---
+        function carregarTimeline() {
+            const feedLista = document.getElementById('feed-lista');
+            firebase.firestore().collection("posts")
+                .orderBy("data_post", "desc")
+                .limit(50)
+                .onSnapshot((snapshot) => {
+                    feedLista.innerHTML = "";
+                    snapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const tempo = post.data_post ? new Date(post.data_post.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
+
+                        feedLista.innerHTML += `
+                            <div class="post-card">
+                                <img src="${post.foto_perfil}" class="post-avatar">
+                                <div class="post-content">
+                                    <div class="post-info">
+                                        <span class="post-author">@${post.username}</span>
+                                        <span class="post-date">· ${tempo}</span>
+                                    </div>
+                                    <p class="post-text">${post.texto}</p>
+                                    <div class="post-actions">
+                                        <button class="action-btn">🔄 Compartilhar</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                });
+        }
+
+        // --- ATIVA TUDO AO CARREGAR ---
+        window.onload = () => {
+            carregarTimeline();
+        };
+    </script>
+</body>
+</html>
+
+</body>
+</html>

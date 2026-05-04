@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Ninho Secreto | Los Pombitos</title>
+    <link rel="stylesheet" href="style-invite.css">
+</head>
+<body>
+
+    <div class="secret-container">
+        <div class="mason-symbol">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4L3 19H21L12 4Z" stroke="#0B57D0" stroke-width="1" stroke-linejoin="round"/>
+                <rect x="10" y="11" width="4" height="4" fill="#4285F4"/>
+                <rect x="11" y="12" width="2" height="2" fill="black"/>
+                <rect x="12" y="12" width="1" height="1" fill="white"/>
+                <rect x="11" y="8" width="2" height="1" fill="#0B57D0"/>
+                <rect x="11" y="16" width="2" height="1" fill="#0B57D0"/>
+            </svg>
+        </div>
+
+        <header class="secret-header">
+            <h2>A ORDEM DOS POMBITOS</h2>
+            <p class="encrypted-text">Decifre o segredo para entrar no ninho.</p>
+        </header>
+
+        <div class="code-entry">
+            <div class="input-group">
+                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <span class="separator">-</span>
+                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <input type="text" maxlength="1" class="code-box" placeholder="0">
+            </div>
+        </div>
+
+        <footer class="security-footer">
+            <div id="google-login-area" style="display: none; margin-bottom: 20px;">
+                <button class="cta-button-google" onclick="handleGoogleLogin()" style="cursor:pointer; padding: 10px 20px; border-radius: 20px; border: 1px solid #ddd; background: white; display: flex; align-items: center; gap: 10px; margin: 0 auto;">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                    <span>Entrar com Google</span>
+                </button>
+            </div>
+
+            <p>Conexão Criptografada via Praia-Protocol</p>
+            <div class="security-lock">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#bdc3c7">
+                    <path d="M12 17a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/>
+                </svg>
+                <span>SÓ PARA INICIADOS</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.code-box');
+        const loginArea = document.getElementById('google-login-area');
+        const codeEntryArea = document.querySelector('.code-entry');
+        const instructionText = document.querySelector('.encrypted-text');
+        
+        const MASTER_CODE = "131213"; 
+
+        inputs.forEach((input, index) => {
+            // Lógica para digitar e pular de campo
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                
+                // Validação do código completo
+                let typedCode = "";
+                inputs.forEach(i => typedCode += i.value);
+                
+                if (typedCode.length === 6) {
+                    if (typedCode === MASTER_CODE) {
+                        // SUCESSO: Troca a interface do código pelo botão de login
+                        codeEntryArea.style.display = 'none';
+                        loginArea.style.display = 'block';
+                        instructionText.innerHTML = "CÓDIGO ACEITO. BEM-VINDO À ORDEM.";
+                        instructionText.style.color = "#2ecc71";
+                    } else {
+                        // ERRO: Alerta e limpa os campos
+                        alert("CÓDIGO DESCONHECIDO.");
+                        inputs.forEach(i => i.value = "");
+                        inputs[0].focus();
+                    }
+                }
+            });
+
+            // Lógica para apagar e voltar o cursor
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        function handleGoogleLogin() {
+            console.log("Iniciando fluxo de login do Google...");
+            // Insira aqui sua lógica de autenticação Firebase
+        }
+    </script>
+<script src="auth.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+:root {
+    --primary: #FF6B35; /* Laranja Sunset */
+    --secondary: #1A6CCB; /* Azul Oceano */
+    --bg: #FAFAFA;
+    --text: #2D3436;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-font-smoothing: antialiased;
+}
+
+.app {
+    width: 100%;
+    max-width: 380px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+/* Logo Mark em CSS Puro */
+.logo-mark {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--secondary), #64B5F6);
+    margin: 0 auto 20px;
+    border-radius: 18px;
+    position: relative;
+    transform: rotate(-10deg);
+}
+
+.pigeon-wing {
+    position: absolute;
+    width: 30px;
+    height: 15px;
+    background: white;
+    bottom: 15px;
+    left: 15px;
+    border-radius: 0 0 30px 30px;
+}
+
+.branding h1 {
+    font-size: 24px;
+    letter-spacing: -1px;
+    font-weight: 300;
+}
+
+.branding h1 span {
+    font-weight: 800;
+    color: var(--secondary);
+}
+
+.manifesto {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #636E72;
+    margin-bottom: 40px;
+}
+
+/* Botão Moderno com Efeito Glass */
+.glass-button {
+    display: flex;
+    align-items: center;
+    background: var(--primary);
+    padding: 12px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 15px 30px rgba(255, 107, 53, 0.25);
+    transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(255, 107, 53, 0.4);
+}
+
+.btn-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.btn-avatar svg { width: 20px; height: 20px; color: white; }
+
+.btn-label {
+    flex-grow: 1;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-arrow { font-size: 18px; margin-right: 10px; }
+
+/* Status de Convites */
+.footer-info {
+    font-size: 12px;
+    font-weight: 600;
+    color: #B2BEC3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #00B894;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 184, 148, 0.5);
+}

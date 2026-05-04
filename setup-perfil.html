@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sua Identidade | Los Pombitos</title>
+    <link rel="stylesheet" href="style-setup.css">
+</head>
+<body>
+
+    <div class="setup-container">
+        <header class="setup-header">
+            <div class="pigeon-pixel-icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                    <rect x="10" y="4" width="4" height="2" fill="#424242"/>
+                    <rect x="8" y="6" width="8" height="4" fill="#90A4AE"/>
+                    <rect x="16" y="7" width="2" height="2" fill="#FFB74D"/>
+                </svg>
+            </div>
+            <h1>A Ordem vai te Identificar</h1>
+            <p class="subtitle">Seu perfil 8-bit único será germinado a partir dos seus gostos.</p>
+        </header>
+
+        <form id="setup-form">
+            <div class="input-box">
+                <label>Seu primeiro nome</label>
+                <input type="text" id="nome" placeholder="Ex: Josemar." required>
+            </div>
+
+            <div class="input-box">
+                <label>Seu @username único</label>
+                <input type="text" id="username" placeholder="@pombito" required>
+            </div>
+
+            <div class="row-inputs">
+                <div class="input-box">
+                    <label>Invernos (Idade)</label>
+                    <input type="number" id="idade" placeholder="00" required>
+                </div>
+                <div class="input-box">
+                    <label>Sexo</label>
+                    <select id="sexo">
+                        <option value="F">Feminino</option>
+                        <option value="M">Masculino</option>
+                        <option value="O">Outro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-box">
+                <label>A música da sua alma</label>
+                <input type="text" id="musica" placeholder="Artista - Música" required>
+            </div>
+
+            <div class="input-box">
+                <label>Um filme inesquecível</label>
+                <input type="text" id="filme" placeholder="Nome do filme" required>
+            </div>
+
+            <div class="input-box">
+                <label>Sua cor (Fundo do seu pombito)</label>
+                <input type="text" id="cor" placeholder="Ex: Azul Celeste" required>
+            </div>
+
+            <button type="submit" class="finish-button">
+                GERMINAR MEU PERFIL 8-BIT
+            </button>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+    <script src="auth.js"></script>
+
+    <script>
+        const setupForm = document.getElementById('setup-form');
+        const finishButton = document.querySelector('.finish-button');
+
+        if (setupForm) {
+            setupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                finishButton.disabled = true;
+                finishButton.innerText = "GERMINANDO...";
+
+                const dadosFicha = {
+                    nome: document.getElementById('nome').value,
+                    username: document.getElementById('username').value.trim().toLowerCase(),
+                    idade: document.getElementById('idade').value,
+                    sexo: document.getElementById('sexo').value,
+                    musica: document.getElementById('musica').value,
+                    filme: document.getElementById('filme').value,
+                    cor: document.getElementById('cor').value
+                };
+
+                try {
+                    // O 'auth' aqui vem do seu auth.js que inicializa o Firebase
+                    const user = auth.currentUser;
+
+                    if (user) {
+                        // Chama a função que melhoramos no auth.js
+                        const sucesso = await germinarEsalvarPombito(dadosFicha, user);
+
+                        if (sucesso) {
+                            console.log("Sucesso! Redirecionando para o feed...");
+                            window.location.href = "feed.html";
+                        } else {
+                            // Se cair aqui, a função germinarEsalvarPombito retornou false
+                            finishButton.disabled = false;
+                            finishButton.innerText = "GERMINAR MEU PERFIL 8-BIT";
+                        }
+                    } else {
+                        alert("Sessão expirada. Faça login novamente.");
+                        window.location.href = "invite.html";
+                    }
+                } catch (error) {
+                    console.error("Erro no processo de germinação:", error);
+                    alert("A maré está agitada. Tente novamente.");
+                    finishButton.disabled = false;
+                    finishButton.innerText = "GERMINAR MEU PERFIL 8-BIT";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

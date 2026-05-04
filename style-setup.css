@@ -1,0 +1,103 @@
+:root {
+    --pombo-blue: #0B57D0;
+    --pombo-orange: #FF5722;
+    --text-gray: #444;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #ffffff;
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.setup-container {
+    width: 100%;
+    max-width: 400px; /* Largura ideal para celular */
+    padding-bottom: 40px;
+}
+
+.setup-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-size: 1.2rem;
+    color: var(--pombo-blue);
+    margin: 15px 0 5px;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.4;
+    padding: 0 10px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.row-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+label {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--text-gray);
+    text-transform: uppercase;
+}
+
+input, select {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: #fdfdfd;
+}
+
+input:focus {
+    border-color: var(--pombo-blue);
+    outline: none;
+    background: #fff;
+}
+
+.finish-button {
+    margin-top: 20px;
+    background-color: var(--pombo-orange);
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+    cursor: pointer;
+}
+
+.finish-button:active {
+    transform: scale(0.98);
+}
+

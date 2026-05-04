@@ -1,0 +1,102 @@
+:root {
+    --primary-blue: #4285F4;
+    --dark-blue: #0B57D0;
+    --orange-action: #ff6600;
+    --bg-white: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-white);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #2d3436;
+    overflow: hidden;
+}
+
+.container {
+    width: 100%;
+    max-width: 380px; /* Um pouco mais estreito */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.hero { margin-bottom: 30px; }
+.pixel-pigeon-main { margin-bottom: 15px; }
+
+h1 { font-size: 26px; font-weight: 400; color: var(--primary-blue); }
+h1 span { font-weight: 700; color: var(--dark-blue); }
+
+.divider {
+    width: 80%;
+    border: 0;
+    border-top: 1px solid #dfe6e9;
+    margin-bottom: 25px;
+}
+
+.manifesto {
+    font-style: italic;
+    color: #2d3436;
+    font-size: 15px;
+    margin-bottom: 50px;
+}
+
+/* Botão Laranja (MENOR E COMPACTO) */
+.cta-button {
+    background: var(--orange-action);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    width: 90%; /* Menor largura */
+    padding: 8px 15px; /* Padding reduzido para altura menor */
+    border-radius: 18px; /* Bordas mais suaves */
+    box-shadow: 0 6px 15px rgba(255, 102, 0, 0.25);
+    transition: 0.2s ease;
+    margin-bottom: 70px;
+}
+
+.cta-button:active { transform: scale(0.97); }
+
+.avatar-box {
+    width: 36px; /* Círculo cinza menor */
+    height: 36px;
+    background: #f1f2f6;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.cta-text {
+    color: white;
+    font-size: 13.5px; /* Fonte menor */
+    font-weight: 500;
+    flex-grow: 1;
+    text-align: left;
+}
+
+.cta-arrow {
+    color: white;
+    font-size: 24px;
+    font-weight: 200;
+}
+
+/* Contador e Progresso */
+.counter-section { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.progress-bar { width: 55%; height: 10px; background: #ecf0f1; border-radius: 10px; margin-bottom: 10px; }
+.progress-fill { height: 100%; width: 0%; background: #bdc3c7; }
+.counter-label { font-family: monospace; font-size: 12px; color: #636e72; }
+.status-dot { display: inline-block; width: 7px; height: 7px; background: #2ecc71; border-radius: 50%; margin-left: 5px; }
