@@ -21,7 +21,6 @@ const auth = firebase.auth();
 
 /**
  * FUNÇÃO 1: Usada no invite.html logo após o login do Google
- * Cria o rascunho do usuário no banco.
  */
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
@@ -47,14 +46,13 @@ async function finalizarCadastroPombito(user, codigoUsado) {
 
 /**
  * FUNÇÃO 2: Usada no setup-perfil.html
- * Finaliza o perfil com as informações de gostos e gera o avatar.
  */
 async function germinarEsalvarPombito(dadosFicha, user) {
     try {
         console.log("Germinando perfil para:", user.uid);
         
-        // Gera o avatar pixel-art baseado no ID único do usuário
-        const pombitoUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.uid}`;
+        // NOVO CÓDIGO DE AVATAR APLICADO AQUI:
+        const pombitoUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.uid}&primaryColor=607d8b`;
         
         // Atualiza o documento com os novos dados da ficha
         await db.collection("usuarios").doc(user.uid).set({
@@ -70,6 +68,7 @@ async function germinarEsalvarPombito(dadosFicha, user) {
         return false;
     }
 }
+
 // Função para deslogar da Ordem
 async function sairDaOrdem() {
     try {
