@@ -70,3 +70,16 @@ async function germinarEsalvarPombito(dadosFicha, user) {
         return false;
     }
 }
+// Função para deslogar da Ordem
+async function sairDaOrdem() {
+    try {
+        const confirmacao = confirm("Deseja realmente sair do Ninho?");
+        if (confirmacao) {
+            await firebase.auth().signOut();
+            window.location.href = "invite.html";
+        }
+    } catch (error) {
+        console.error("Erro ao sair:", error);
+        alert("A maré está agitada e não permitiu sua saída.");
+    }
+}
