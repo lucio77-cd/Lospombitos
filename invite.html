@@ -55,6 +55,7 @@
             </div>
         </footer>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
@@ -66,10 +67,9 @@
         const loginArea = document.getElementById('google-login-area');
         const codeEntryArea = document.querySelector('.code-entry');
         const instructionText = document.querySelector('.encrypted-text');
-        
         let typedCode = "";
 
-        // Focar no primeiro campo ao carregar
+        // Focar automaticamente
         window.onload = () => inputs[0].focus();
 
         inputs.forEach((input, index) => {
@@ -82,7 +82,6 @@
                 inputs.forEach(i => typedCode += i.value);
                 
                 if (typedCode.length === 6) {
-                    // O código mestre que você definiu
                     if (typedCode === "131213") {
                         codeEntryArea.style.display = 'none';
                         loginArea.style.display = 'block';
@@ -106,11 +105,14 @@
         async function handleGoogleLogin() {
             const btn = document.querySelector('.cta-button-google');
             
-            // GARANTIA: Se o Firebase não inicializou pelo auth.js, inicializamos aqui de novo
-            // Isso evita o erro de "[DEFAULT] not created"
+            // Reforço de Inicialização: 
+            // Se o auth.js ainda não carregou o config, definimos aqui para evitar o erro de '[DEFAULT]'
             if (!firebase.apps.length) {
-                console.log("Reinicializando Firebase por segurança...");
-                firebase.initializeApp(firebaseConfig); 
+                // firebaseConfig deve estar declarado como const ou var no seu auth.js
+                // Se der erro aqui, mova a declaração da 'const firebaseConfig' para dentro deste bloco temporariamente.
+                if (typeof firebaseConfig !== 'undefined') {
+                    firebase.initializeApp(firebaseConfig);
+                }
             }
 
             btn.disabled = true;
@@ -119,23 +121,22 @@
             const provider = new firebase.auth.GoogleAuthProvider();
 
             try {
-                // Forçamos o uso do firebase.auth() global
+                // Usando a instância global
                 const result = await firebase.auth().signInWithPopup(provider);
                 const user = result.user;
 
-                console.log("Autenticado:", user.displayName);
+                console.log("Acesso autorizado para:", user.displayName);
 
-                // Chama a função que está no seu auth.js
+                // Função definida no seu auth.js
                 await finalizarCadastroPombito(user, typedCode);
 
             } catch (error) {
-                console.error("Erro detalhado:", error);
+                console.error("Erro na autenticação:", error);
                 alert("A Ordem recusou sua entrada: " + error.message);
                 btn.disabled = false;
-                btn.innerHTML = "ENTRAR COM GOOGLE";
+                btn.innerHTML = "ENTRAR NA LINHAGEM";
             }
         }
     </script>
-
 </body>
 </html>
