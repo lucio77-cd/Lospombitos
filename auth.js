@@ -1,7 +1,6 @@
 // auth.js
-
-// 1. Suas chaves (Não mexa aqui, estão corretas)
-const firebaseConfig = {
+// Coloquei var para garantir que seja lido em qualquer lugar
+var firebaseConfig = {
   apiKey: "AIzaSyDuAp97sXt63-JKeRRVpT6AYhGqWjrDb-s",
   authDomain: "los-pombitos.firebaseapp.com",
   projectId: "los-pombitos",
@@ -11,26 +10,22 @@ const firebaseConfig = {
   measurementId: "G-3YL5YL7MKK"
 };
 
-// 2. A CORREÇÃO: Inicialização Forçada
-// Se o Firebase ainda não foi iniciado, inicia agora.
+// Inicializa o Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
-    console.log("Firebase da Ordem Inicializado!");
 }
 
-// 3. Definição das variáveis globais
+// Atalhos globais
 const db = firebase.firestore();
 const auth = firebase.auth();
-const MASTER_CODE = "131213";
 
-// --- Suas funções (finalizarCadastroPombito e germinarEsalvarPombito) seguem abaixo ---
-// Mantenha o restante do código que já tínhamos...
-
+// Função que cria o registro no banco
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
+        console.log("Criando documento para o UID:", user.uid);
         await db.collection("usuarios").doc(user.uid).set({
             uid: user.uid,
-            nome: user.displayName || "Novo Pombino",
+            nome: user.displayName || "Pombino Anonimo",
             email: user.email,
             status: "Membro Alpha",
             convites_restantes: 3,
@@ -38,42 +33,11 @@ async function finalizarCadastroPombito(user, codigoUsado) {
             pombcoins: 10,
             data_adesao: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        await db.collection("convites").doc(codigoUsado).set({
-            status: "usado",
-            usado_por: user.uid,
-            data_uso: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        const batch = db.batch();
-        for (let i = 0; i < 3; i++) {
-            const novoCodigo = Math.floor(100000 + Math.random() * 900000).toString();
-            batch.set(db.collection("convites").doc(novoCodigo), {
-                codigo: novoCodigo,
-                status: "pendente",
-                gerado_por: user.uid
-            });
-        }
-        await batch.commit();
-
+        
+        console.log("Sucesso! Indo para o setup...");
         window.location.href = "setup-perfil.html";
     } catch (error) {
-        console.error("Erro no cadastro:", error);
-    }
-}
-
-async function germinarEsalvarPombito(dadosFicha, user) {
-    try {
-        const pombitoUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.uid}`;
-        await db.collection("usuarios").doc(user.uid).set({
-            ...dadosFicha,
-            username: dadosFicha.username.toLowerCase().replace(/\s/g, ''),
-            foto_perfil: pombitoUrl,
-            perfil_completo: true
-        }, { merge: true });
-        return true;
-    } catch (error) {
-        console.error("Erro na germinação:", error);
-        return false;
+        console.error("Erro ao salvar no Firestore:", error);
+        alert("Erro de permissão no banco: " + error.message);
     }
 }
