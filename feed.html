@@ -30,6 +30,15 @@
     <header class="app-header">
         <h1>LOS POMBITOS</h1>
     </header>
+    <header class="feed-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+    <span style="font-weight: bold; letter-spacing: 2px;">LOS POMBITOS</span>
+
+    <div class="user-avatar-container" onclick="sairDaOrdem()" style="cursor: pointer;">
+        <img id="user-avatar-top" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Pombito" 
+             style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #0B57D0; background: #eee;">
+    </div>
+</header>
+
 
     <div class="app-container">
         <section id="timeline" class="section active">
@@ -237,6 +246,31 @@
         window.onload = () => {
             carregarTimeline();
         };
+            <script>
+    // Função para carregar os dados do usuário logado
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            try {
+                // Busca o documento do usuário no Firestore
+                const doc = await firebase.firestore().collection("usuarios").doc(user.uid).get();
+                
+                if (doc.exists) {
+                    const dados = doc.data();
+                    // Se ele tiver foto_perfil salva, a gente coloca no círculo
+                    if (dados.foto_perfil) {
+                        document.getElementById('user-avatar-top').src = dados.foto_perfil;
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao carregar avatar:", error);
+            }
+        } else {
+            // Se não estiver logado, volta pro início
+            window.location.href = "invite.html";
+        }
+    });
+</script>
+
     </script>
 </body>
 </html>
