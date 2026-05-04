@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>O Ninho Secreto | Los Pombitos</title>
     <link rel="stylesheet" href="style-invite.css">
 </head>
@@ -69,7 +69,7 @@
         const instructionText = document.querySelector('.encrypted-text');
         let typedCode = "";
 
-        // Focar automaticamente
+        // Focar automaticamente no primeiro campo
         window.onload = () => inputs[0].focus();
 
         inputs.forEach((input, index) => {
@@ -105,14 +105,9 @@
         async function handleGoogleLogin() {
             const btn = document.querySelector('.cta-button-google');
             
-            // Reforço de Inicialização: 
-            // Se o auth.js ainda não carregou o config, definimos aqui para evitar o erro de '[DEFAULT]'
+            // Garantia de inicialização
             if (!firebase.apps.length) {
-                // firebaseConfig deve estar declarado como const ou var no seu auth.js
-                // Se der erro aqui, mova a declaração da 'const firebaseConfig' para dentro deste bloco temporariamente.
-                if (typeof firebaseConfig !== 'undefined') {
-                    firebase.initializeApp(firebaseConfig);
-                }
+                firebase.initializeApp(firebaseConfig);
             }
 
             btn.disabled = true;
@@ -121,18 +116,27 @@
             const provider = new firebase.auth.GoogleAuthProvider();
 
             try {
-                // Usando a instância global
+                // Tenta o login por Pop-up
                 const result = await firebase.auth().signInWithPopup(provider);
                 const user = result.user;
 
-                console.log("Acesso autorizado para:", user.displayName);
+                console.log("Sucesso na autenticação:", user.displayName);
 
-                // Função definida no seu auth.js
+                // Chama a função global no auth.js para salvar no Firestore e redirecionar
                 await finalizarCadastroPombito(user, typedCode);
 
             } catch (error) {
-                console.error("Erro na autenticação:", error);
-                alert("A Ordem recusou sua entrada: " + error.message);
+                console.error("Erro detalhado:", error);
+                
+                // Tratamento de erros comuns na Vercel
+                if (error.code === 'auth/unauthorized-domain') {
+                    alert("DOMÍNIO NÃO AUTORIZADO: Adicione o link da Vercel no Console do Firebase (Authentication > Settings > Authorized Domains).");
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    alert("ERRO: O provedor Google não foi ativado no Firebase.");
+                } else {
+                    alert("A maré recusou: " + error.message);
+                }
+
                 btn.disabled = false;
                 btn.innerHTML = "ENTRAR NA LINHAGEM";
             }
