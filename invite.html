@@ -55,7 +55,6 @@
             </div>
         </footer>
     </div>
-
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
@@ -70,6 +69,9 @@
         
         let typedCode = "";
 
+        // Focar no primeiro campo ao carregar
+        window.onload = () => inputs[0].focus();
+
         inputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
                 if (e.target.value.length === 1 && index < inputs.length - 1) {
@@ -80,7 +82,7 @@
                 inputs.forEach(i => typedCode += i.value);
                 
                 if (typedCode.length === 6) {
-                    // MASTER_CODE definido no seu auth.js
+                    // O código mestre que você definiu
                     if (typedCode === "131213") {
                         codeEntryArea.style.display = 'none';
                         loginArea.style.display = 'block';
@@ -101,30 +103,39 @@
             });
         });
 
-        // FUNÇÃO QUE ESTAVA VAZIA - AGORA CONECTADA AO FIREBASE
         async function handleGoogleLogin() {
             const btn = document.querySelector('.cta-button-google');
+            
+            // GARANTIA: Se o Firebase não inicializou pelo auth.js, inicializamos aqui de novo
+            // Isso evita o erro de "[DEFAULT] not created"
+            if (!firebase.apps.length) {
+                console.log("Reinicializando Firebase por segurança...");
+                firebase.initializeApp(firebaseConfig); 
+            }
+
             btn.disabled = true;
-            btn.innerHTML = "VALIDANDO...";
+            btn.innerHTML = "VALIDANDO LINHAGEM...";
 
             const provider = new firebase.auth.GoogleAuthProvider();
 
             try {
-                // Abre o pop-up do Google
+                // Forçamos o uso do firebase.auth() global
                 const result = await firebase.auth().signInWithPopup(provider);
                 const user = result.user;
 
-                // Chama a função de cadastro inicial que está no seu auth.js
-                // Passamos o typedCode ("131213") que o usuário digitou
+                console.log("Autenticado:", user.displayName);
+
+                // Chama a função que está no seu auth.js
                 await finalizarCadastroPombito(user, typedCode);
 
             } catch (error) {
-                console.error("Erro na autenticação:", error);
+                console.error("Erro detalhado:", error);
                 alert("A Ordem recusou sua entrada: " + error.message);
                 btn.disabled = false;
-                btn.innerHTML = "Entrar com Google";
+                btn.innerHTML = "ENTRAR COM GOOGLE";
             }
         }
     </script>
+
 </body>
 </html>
