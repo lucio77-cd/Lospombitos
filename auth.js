@@ -11,7 +11,7 @@ var firebaseConfig = {
   measurementId: "G-3YL5YL7MKK"
 };
 
-// 2. INICIALIZAÇÃO IMEDIATA (Evita o erro de App [DEFAULT])
+// 2. INICIALIZAÇÃO IMEDIATA (Resolve o erro de App [DEFAULT])
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -21,24 +21,23 @@ const auth = firebase.auth();
 
 /**
  * FUNÇÃO: finalizarCadastroPombito
- * Chamada no invite.html após o login do Google.
- * Gerencia veteranos, novos membros e gera os 3 códigos iniciais.
+ * Gerencia a entrada de novos membros e veteranos.
+ * Corrigido para tratar 'exists' como propriedade.
  */
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
-        console.log("Iniciando verificação de linhagem...");
+        console.log("Verificando linhagem...");
         const docRef = db.collection("usuarios").doc(user.uid);
         const docSnap = await docRef.get();
 
-        // Se já completou o perfil, pula o setup
-        if (docSnap.exists() && docSnap.data().perfil_completo === true) {
-            console.log("Veterano identificado!");
+        // CORREÇÃO: 'exists' é uma propriedade booleana no SDK Compat, não uma função.
+        if (docSnap.exists && docSnap.data().perfil_completo === true) {
+            console.log("Veterano identificado.");
             window.location.href = "feed.html";
             return;
         }
 
-        // Se for NOVO, gera 3 códigos de convite únicos
-        console.log("Novo Pombito! Gerando 3 sementes de convite...");
+        console.log("Gerando novos convites...");
         const codigosGerados = [];
         for (let i = 0; i < 3; i++) {
             const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -54,7 +53,7 @@ async function finalizarCadastroPombito(user, codigoUsado) {
             });
         }
 
-        // Salva rascunho do usuário com os códigos
+        // Salva o rascunho do usuário com os 3 códigos gerados
         await docRef.set({
             uid: user.uid,
             nome: user.displayName || "Pombino Anonimo",
@@ -78,11 +77,11 @@ async function finalizarCadastroPombito(user, codigoUsado) {
 
 /**
  * FUNÇÃO: germinarEsalvarPombito
- * Chamada no setup-perfil.html para finalizar a ficha.
+ * Finaliza a ficha do usuário com o avatar geométrico.
  */
 async function germinarEsalvarPombito(dadosFicha, user) {
     try {
-        // Gera o avatar geométrico (identicon) para evitar rostos humanos
+        // Gera o avatar identicon para manter o estilo visual da Ordem
         const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
 
         await db.collection("usuarios").doc(user.uid).set({
@@ -100,7 +99,7 @@ async function germinarEsalvarPombito(dadosFicha, user) {
 }
 
 /**
- * Função global para sair da Ordem
+ * Função global para logout
  */
 async function sairDaOrdem() {
     try {
@@ -112,3 +111,4 @@ async function sairDaOrdem() {
         console.error("Erro ao sair:", error);
     }
 }
+
