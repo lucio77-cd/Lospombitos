@@ -19,7 +19,7 @@
         .nav-item.active-link { color: #0B57D0; font-weight: bold; }
         
         .post-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; display: flex; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .post-avatar { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #eee; }
+        .post-avatar { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #eee; object-fit: cover; }
         .post-author { font-weight: bold; color: #0B57D0; }
         .post-date { color: #aaa; font-size: 12px; }
         .post-text { margin-top: 5px; font-size: 14px; color: #333; }
@@ -43,11 +43,11 @@
 </head>
 <body>
 
-    <header class="feed-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee;">
+    <header class="feed-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1001;">
         <span style="font-weight: bold; letter-spacing: 2px; color: #0B57D0;">LOS POMBITOS</span>
 
         <div class="user-avatar-container" onclick="sairDaOrdem()" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
-            <img id="user-avatar-top" src="" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #0B57D0; background: #eee; display: none;">
+            <img id="user-avatar-top" src="" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #0B57D0; background: #eee; object-fit: cover;">
             <span style="font-size: 10px; color: #ff4757; font-weight: bold;">SAIR</span>
         </div>
     </header>
@@ -95,6 +95,15 @@
     <script src="auth.js"></script>
 
     <script>
+        // FUNÇÃO PARA COPIAR CÓDIGO (Importante!)
+        function copiarCodigo(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                alert("Código de Convite copiado: " + texto);
+            }).catch(err => {
+                console.error('Erro ao copiar: ', err);
+            });
+        }
+
         // 1. CARREGAR DADOS DO USUÁRIO
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
@@ -103,5 +112,100 @@
                     if (doc.exists) {
                         const dados = doc.data();
                         
-                        // Atualiza Foto do Topo
-                        const imgTopo = document.getElementById('user-
+                        // Atualiza Foto do Topo (Identicon pixelado ou foto real)
+                        const imgTopo = document.getElementById('user-avatar-top');
+                        imgTopo.src = dados.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
+                        imgTopo.style.display = 'block';
+
+                        // Atualiza Saldo $POMB
+                        document.getElementById('pombcoin-balance').innerHTML = `${dados.pombcoins || 0} <span style="font-size: 16px;">$POMB</span>`;
+
+                        // Renderiza os Códigos de Convite com botão de copiar
+                        const areaConvites = document.getElementById('lista-convites');
+                        if (dados.meus_codigos && dados.meus_codigos.length > 0) {
+                            areaConvites.innerHTML = dados.meus_codigos.map(cod => `
+                                <div class="convite-item">
+                                    <span class="convite-codigo">${cod}</span>
+                                    <button class="btn-copiar" onclick="copiarCodigo('${cod}')">COPIAR</button>
+                                </div>
+                            `).join('');
+                        } else {
+                            areaConvites.innerHTML = "<p style='font-size:12px; color:#aaa;'>Nenhum código disponível.</p>";
+                        }
+                    }
+                    carregarTimeline();
+                } catch (error) { console.error("Erro ao carregar perfil:", error); }
+            } else {
+                window.location.href = "invite.html";
+            }
+        });
+
+        // 2. ALTERNAR SEÇÕES
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-link'));
+            document.getElementById(sectionId).classList.add('active');
+            element.classList.add('active-link');
+        }
+
+        // 3. POSTAR MENSAGEM
+        async function postarMensagem() {
+            const textoArea = document.getElementById('post-text');
+            const btn = document.querySelector('.post-box button');
+            const texto = textoArea.value.trim();
+            const user = firebase.auth().currentUser;
+
+            if (!texto) return;
+            btn.disabled = true;
+            btn.innerText = "ECOANDO...";
+
+            try {
+                const userDoc = await db.collection("usuarios").doc(user.uid).get();
+                const userData = userDoc.data();
+
+                await db.collection("posts").add({
+                    uid: user.uid,
+                    username: userData.username || userData.nome.split(' ')[0] || "Pombito",
+                    foto_perfil: userData.foto_perfil,
+                    texto: texto,
+                    data_post: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                textoArea.value = "";
+            } catch (e) { 
+                alert("A maré bloqueou seu post.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "POSTAR";
+            }
+        }
+
+        // 4. CARREGAR TIMELINE
+        function carregarTimeline() {
+            const feedLista = document.getElementById('feed-lista');
+            db.collection("posts")
+                .orderBy("data_post", "desc")
+                .limit(50)
+                .onSnapshot((snapshot) => {
+                    feedLista.innerHTML = "";
+                    snapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const tempo = post.data_post ? new Date(post.data_post.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
+
+                        feedLista.innerHTML += `
+                            <div class="post-card">
+                                <img src="${post.foto_perfil}" class="post-avatar">
+                                <div class="post-content">
+                                    <div class="post-info">
+                                        <span class="post-author">@${post.username}</span>
+                                        <span class="post-date">· ${tempo}</span>
+                                    </div>
+                                    <p class="post-text">${post.texto}</p>
+                                </div>
+                            </div>`;
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
