@@ -21,26 +21,37 @@ const auth = firebase.auth();
 
 /**
  * FUNÇÃO 1: Usada no invite.html logo após o login do Google
+ * Agora com verificação de veterano para evitar repetir o setup.
  */
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
-        console.log("Criando registro inicial para:", user.uid);
-        await db.collection("usuarios").doc(user.uid).set({
-            uid: user.uid,
-            nome: user.displayName || "Pombino Anonimo",
-            email: user.email,
-            status: "Membro Alpha",
-            convites_restantes: 3,
-            perfil_completo: false,
-            pombcoins: 10,
-            data_adesao: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        
-        console.log("Registro inicial OK! Redirecionando para setup...");
-        window.location.href = "setup-perfil.html";
+        console.log("Verificando se o Pombito já existe...");
+        const docRef = db.collection("usuarios").doc(user.uid);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists() && docSnap.data().perfil_completo === true) {
+            // JÁ EXISTE E TEM PERFIL? Vai direto pro Feed!
+            console.log("Pombito veterano! Voando para o feed...");
+            window.location.href = "feed.html";
+        } else {
+            // É NOVO? Cria o rascunho e manda pro Setup
+            console.log("Novo Pombito detectado. Iniciando germinação...");
+            await docRef.set({
+                uid: user.uid,
+                nome: user.displayName || "Pombino Anonimo",
+                email: user.email,
+                status: "Membro Alpha",
+                convites_restantes: 3,
+                perfil_completo: false, // Ainda não completou o setup
+                pombcoins: 10,
+                data_adesao: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            window.location.href = "setup-perfil.html";
+        }
     } catch (error) {
-        console.error("Erro ao salvar no Firestore:", error);
-        alert("Erro de permissão no banco: " + error.message);
+        console.error("Erro na portaria:", error);
+        alert("A maré bloqueou sua entrada: " + error.message);
     }
 }
 
@@ -51,9 +62,8 @@ async function germinarEsalvarPombito(dadosFicha, user) {
     try {
         console.log("Germinando perfil para:", user.uid);
         
-        // NOVO CÓDIGO DE AVATAR APLICADO AQUI:
-        // Isso vai gerar um ícone pixelado que lembra muito mais um pássaro/pombo
-const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
+        // Isso gera um ícone pixelado/abstrato
+        const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
 
         // Atualiza o documento com os novos dados da ficha
         await db.collection("usuarios").doc(user.uid).set({
@@ -70,7 +80,9 @@ const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&
     }
 }
 
-// Função para deslogar da Ordem
+/**
+ * Função para deslogar da Ordem
+ */
 async function sairDaOrdem() {
     try {
         const confirmacao = confirm("Deseja realmente sair do Ninho?");
