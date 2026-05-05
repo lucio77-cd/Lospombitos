@@ -1,5 +1,6 @@
-// auth.js
-// Configuração global do Firebase
+// auth.js - O Cérebro da Ordem
+
+// 1. CONFIGURAÇÃO (Sempre no topo)
 var firebaseConfig = {
   apiKey: "AIzaSyDuAp97sXt63-JKeRRVpT6AYhGqWjrDb-s",
   authDomain: "los-pombitos.firebaseapp.com",
@@ -10,76 +11,104 @@ var firebaseConfig = {
   measurementId: "G-3YL5YL7MKK"
 };
 
-// Inicializa o Firebase apenas se não houver um app ativo
+// 2. INICIALIZAÇÃO IMEDIATA (Evita o erro de App [DEFAULT])
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Atalhos globais para facilitar o uso nos outros arquivos
 const db = firebase.firestore();
 const auth = firebase.auth();
 
 /**
- * FUNÇÃO 1: Usada no invite.html
- * Verifica veterano e gera 3 códigos de convite para a sua rede.
+ * FUNÇÃO: finalizarCadastroPombito
+ * Chamada no invite.html após o login do Google.
+ * Gerencia veteranos, novos membros e gera os 3 códigos iniciais.
  */
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
-        console.log("Verificando se o Pombito já existe...");
+        console.log("Iniciando verificação de linhagem...");
         const docRef = db.collection("usuarios").doc(user.uid);
         const docSnap = await docRef.get();
 
-        // Se o perfil já existe e está completo, vai direto para a timeline
+        // Se já completou o perfil, pula o setup
         if (docSnap.exists() && docSnap.data().perfil_completo === true) {
-            console.log("Veterano identificado. Voando para o feed...");
+            console.log("Veterano identificado!");
             window.location.href = "feed.html";
-        } else {
-            console.log("Novo Pombito! Gerando convites para sua rede...");
-            
-            // Geração dos 3 códigos de convite exclusivos
-            const codigosGerados = [];
-            for (let i = 0; i < 3; i++) {
-                const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-                const novoCodigo = `POMB-${randomId}`;
-                codigosGerados.push(novoCodigo);
-
-                // Registra o código na coleção 'convites' do banco
-                await db.collection("convites").doc(novoCodigo).set({
-                    gerado_por: user.uid,
-                    usado: false,
-                    quem_usou: null,
-                    data_criacao: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-
-            // Cria o registro inicial com os códigos salvos no campo 'meus_codigos'
-            await docRef.set({
-                uid: user.uid,
-                nome: user.displayName || "Pombino Anonimo",
-                email: user.email,
-                status: "Membro Alpha",
-                convites_restantes: 3,
-                meus_codigos: codigosGerados, 
-                perfil_completo: false,
-                pombcoins: 10,
-                data_adesao: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-            
-            console.log("Convites gerados! Indo para o setup do perfil...");
-            window.location.href = "setup-perfil.html";
+            return;
         }
+
+        // Se for NOVO, gera 3 códigos de convite únicos
+        console.log("Novo Pombito! Gerando 3 sementes de convite...");
+        const codigosGerados = [];
+        for (let i = 0; i < 3; i++) {
+            const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const novoCodigo = `POMB-${randomId}`;
+            codigosGerados.push(novoCodigo);
+
+            // Registra o código na coleção global de convites
+            await db.collection("convites").doc(novoCodigo).set({
+                gerado_por: user.uid,
+                usado: false,
+                quem_usou: null,
+                data_criacao: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        // Salva rascunho do usuário com os códigos
+        await docRef.set({
+            uid: user.uid,
+            nome: user.displayName || "Pombino Anonimo",
+            email: user.email,
+            status: "Membro Alpha",
+            convites_restantes: 3,
+            meus_codigos: codigosGerados, 
+            perfil_completo: false,
+            pombcoins: 10,
+            data_adesao: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        console.log("Registro inicial OK. Indo para Setup.");
+        window.location.href = "setup-perfil.html";
+
     } catch (error) {
         console.error("Erro na portaria:", error);
-        alert("Erro ao processar entrada ou gerar convites: " + error.message);
+        alert("A maré bloqueou sua entrada: " + error.message);
     }
 }
 
 /**
- * FUNÇÃO 2: Usada no setup-perfil.html
+ * FUNÇÃO: germinarEsalvarPombito
+ * Chamada no setup-perfil.html para finalizar a ficha.
  */
 async function germinarEsalvarPombito(dadosFicha, user) {
     try {
-        console.log("Germinando perfil para:", user.uid);
-        
-        // Gera o avatar no estilo identicon (pixelado/abstrato)
-        const pombitoUrl = `
+        // Gera o avatar geométrico (identicon) para evitar rostos humanos
+        const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
+
+        await db.collection("usuarios").doc(user.uid).set({
+            ...dadosFicha,
+            foto_perfil: pombitoUrl,
+            perfil_completo: true,
+            data_germina: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return true;
+    } catch (e) {
+        console.error("Erro técnico ao germinar:", e);
+        return false;
+    }
+}
+
+/**
+ * Função global para sair da Ordem
+ */
+async function sairDaOrdem() {
+    try {
+        if (confirm("Deseja realmente sair do Ninho?")) {
+            await auth.signOut();
+            window.location.href = "invite.html";
+        }
+    } catch (error) {
+        console.error("Erro ao sair:", error);
+    }
+}
