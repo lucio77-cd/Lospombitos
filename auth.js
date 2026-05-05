@@ -11,7 +11,7 @@ var firebaseConfig = {
   measurementId: "G-3YL5YL7MKK"
 };
 
-// 2. INICIALIZAÇÃO IMEDIATA (Resolve o erro de App [DEFAULT])
+// 2. INICIALIZAÇÃO IMEDIATA
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -21,68 +21,65 @@ const auth = firebase.auth();
 
 /**
  * FUNÇÃO: finalizarCadastroPombito
- * Gerencia a entrada de novos membros e veteranos.
- * Corrigido para tratar 'exists' como propriedade.
+ * Aplica a lógica de linhagem: Gera 3 códigos únicos para cada novo membro.
  */
-async function finalizarCadastroPombito(user, codigoUsado) {
+async function finalizarCadastroPombito(user) {
     try {
-        console.log("Verificando linhagem...");
         const docRef = db.collection("usuarios").doc(user.uid);
         const docSnap = await docRef.get();
 
-        // CORREÇÃO: 'exists' é uma propriedade booleana no SDK Compat, não uma função.
+        // Se já for veterano (perfil completo), vai direto para o feed
         if (docSnap.exists && docSnap.data().perfil_completo === true) {
-            console.log("Veterano identificado.");
             window.location.href = "feed.html";
             return;
         }
 
-        console.log("Gerando novos convites...");
-        const codigosGerados = [];
+        console.log("Gerando a linhagem: 3 sementes únicas...");
+        const novosCodigos = [];
+        
         for (let i = 0; i < 3; i++) {
+            // Gera um código aleatório (ex: POMB-X8R2)
             const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-            const novoCodigo = `POMB-${randomId}`;
-            codigosGerados.push(novoCodigo);
+            const codigo = `POMB-${randomId}`;
+            novosCodigos.push(codigo);
 
-            // Registra o código na coleção global de convites
-            await db.collection("convites").doc(novoCodigo).set({
+            // Salva na coleção mestre de convites para que outros possam usar para entrar
+            await db.collection("convites").doc(codigo).set({
                 gerado_por: user.uid,
                 usado: false,
-                quem_usou: null,
                 data_criacao: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
 
-        // Salva o rascunho do usuário com os 3 códigos gerados
+        // Salva os dados iniciais no perfil do usuário
         await docRef.set({
             uid: user.uid,
-            nome: user.displayName || "Pombino Anonimo",
+            nome: user.displayName || "Novo Pombito",
             email: user.email,
-            status: "Membro Alpha",
-            convites_restantes: 3,
-            meus_codigos: codigosGerados, 
-            perfil_completo: false,
-            pombcoins: 10,
+            meus_codigos: novosCodigos, // Os 3 códigos que aparecerão no feed
+            pombcoins: 10,               // Saldo inicial bônus
+            perfil_completo: false,      // Ainda precisa escolher o @username
             data_adesao: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
-        console.log("Registro inicial OK. Indo para Setup.");
+        console.log("Sementes plantadas. Indo para Setup de Perfil.");
         window.location.href = "setup-perfil.html";
 
-    } catch (error) {
-        console.error("Erro na portaria:", error);
-        alert("A maré bloqueou sua entrada: " + error.message);
+    } catch (e) {
+        console.error("Erro técnico na portaria:", e);
+        alert("A maré bloqueou sua entrada: " + e.message);
     }
 }
 
 /**
  * FUNÇÃO: germinarEsalvarPombito
- * Finaliza a ficha do usuário com o avatar geométrico.
+ * Finaliza o perfil do usuário (Username e Avatar).
  */
 async function germinarEsalvarPombito(dadosFicha, user) {
     try {
-        // Gera o avatar identicon para manter o estilo visual da Ordem
-        const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
+        // Usa a foto do Google se existir, senão gera um identicon
+        const fotoPadrao = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
+        const pombitoUrl = user.photoURL || fotoPadrao;
 
         await db.collection("usuarios").doc(user.uid).set({
             ...dadosFicha,
@@ -93,7 +90,7 @@ async function germinarEsalvarPombito(dadosFicha, user) {
 
         return true;
     } catch (e) {
-        console.error("Erro técnico ao germinar:", e);
+        console.error("Erro ao salvar perfil final:", e);
         return false;
     }
 }
@@ -111,4 +108,3 @@ async function sairDaOrdem() {
         console.error("Erro ao sair:", error);
     }
 }
-
