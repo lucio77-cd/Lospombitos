@@ -20,8 +20,8 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 /**
- * FUNÇÃO 1: Usada no invite.html logo após o login do Google
- * Agora com verificação de veterano para evitar repetir o setup.
+ * FUNÇÃO 1: Usada no invite.html
+ * Verifica veterano e gera 3 códigos de convite para a sua rede.
  */
 async function finalizarCadastroPombito(user, codigoUsado) {
     try {
@@ -29,29 +29,48 @@ async function finalizarCadastroPombito(user, codigoUsado) {
         const docRef = db.collection("usuarios").doc(user.uid);
         const docSnap = await docRef.get();
 
+        // Se o perfil já existe e está completo, vai direto para a timeline
         if (docSnap.exists() && docSnap.data().perfil_completo === true) {
-            // JÁ EXISTE E TEM PERFIL? Vai direto pro Feed!
-            console.log("Pombito veterano! Voando para o feed...");
+            console.log("Veterano identificado. Voando para o feed...");
             window.location.href = "feed.html";
         } else {
-            // É NOVO? Cria o rascunho e manda pro Setup
-            console.log("Novo Pombito detectado. Iniciando germinação...");
+            console.log("Novo Pombito! Gerando convites para sua rede...");
+            
+            // Geração dos 3 códigos de convite exclusivos
+            const codigosGerados = [];
+            for (let i = 0; i < 3; i++) {
+                const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+                const novoCodigo = `POMB-${randomId}`;
+                codigosGerados.push(novoCodigo);
+
+                // Registra o código na coleção 'convites' do banco
+                await db.collection("convites").doc(novoCodigo).set({
+                    gerado_por: user.uid,
+                    usado: false,
+                    quem_usou: null,
+                    data_criacao: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            // Cria o registro inicial com os códigos salvos no campo 'meus_codigos'
             await docRef.set({
                 uid: user.uid,
                 nome: user.displayName || "Pombino Anonimo",
                 email: user.email,
                 status: "Membro Alpha",
                 convites_restantes: 3,
-                perfil_completo: false, // Ainda não completou o setup
+                meus_codigos: codigosGerados, 
+                perfil_completo: false,
                 pombcoins: 10,
                 data_adesao: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
             
+            console.log("Convites gerados! Indo para o setup do perfil...");
             window.location.href = "setup-perfil.html";
         }
     } catch (error) {
         console.error("Erro na portaria:", error);
-        alert("A maré bloqueou sua entrada: " + error.message);
+        alert("Erro ao processar entrada ou gerar convites: " + error.message);
     }
 }
 
@@ -62,36 +81,5 @@ async function germinarEsalvarPombito(dadosFicha, user) {
     try {
         console.log("Germinando perfil para:", user.uid);
         
-        // Isso gera um ícone pixelado/abstrato
-        const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
-
-        // Atualiza o documento com os novos dados da ficha
-        await db.collection("usuarios").doc(user.uid).set({
-            ...dadosFicha,
-            foto_perfil: pombitoUrl,
-            perfil_completo: true,
-            data_germina: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        return true;
-    } catch (e) {
-        console.error("Erro técnico no Firestore:", e);
-        return false;
-    }
-}
-
-/**
- * Função para deslogar da Ordem
- */
-async function sairDaOrdem() {
-    try {
-        const confirmacao = confirm("Deseja realmente sair do Ninho?");
-        if (confirmacao) {
-            await firebase.auth().signOut();
-            window.location.href = "invite.html";
-        }
-    } catch (error) {
-        console.error("Erro ao sair:", error);
-        alert("A maré está agitada e não permitiu sua saída.");
-    }
-}
+        // Gera o avatar no estilo identicon (pixelado/abstrato)
+        const pombitoUrl = `
