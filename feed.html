@@ -15,15 +15,17 @@
             background: #fff; display: flex; justify-content: space-around;
             align-items: center; border-top: 1px solid #ddd; z-index: 1000;
         }
-        .nav-item { font-size: 10px; text-align: center; color: #888; text-decoration: none; }
+        .nav-item { font-size: 10px; text-align: center; color: #888; text-decoration: none; cursor: pointer; }
         .nav-item.active-link { color: #0B57D0; font-weight: bold; }
         
-        /* Estilo do Card de Post */
         .post-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; display: flex; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .post-avatar { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #eee; }
         .post-author { font-weight: bold; color: #0B57D0; }
         .post-date { color: #aaa; font-size: 12px; }
         .post-text { margin-top: 5px; font-size: 14px; color: #333; }
+
+        /* Estilo dos códigos de convite */
+        .convite-box { background: #eef2f7; border: 1px dashed #0B57D0; padding: 10px; margin: 10px 0; border-radius: 8px; font-weight: bold; color: #0B57D0; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -32,8 +34,7 @@
         <span style="font-weight: bold; letter-spacing: 2px; color: #0B57D0;">LOS POMBITOS</span>
 
         <div class="user-avatar-container" onclick="sairDaOrdem()" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
-            <img id="user-avatar-top" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Pombito" 
-                 style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #0B57D0; background: #eee;">
+            <img id="user-avatar-top" src="" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #0B57D0; background: #eee; display: none;">
             <span style="font-size: 10px; color: #ff4757; font-weight: bold;">SAIR</span>
         </div>
     </header>
@@ -44,47 +45,64 @@
                 <textarea id="post-text" maxlength="500" placeholder="O que você está pensando?" style="width: 100%; border: 1px dashed #ccc; border-radius: 8px; padding: 10px; font-family: inherit; resize: none;"></textarea>
                 <button onclick="postarMensagem()" style="width: 100%; margin-top: 10px; padding: 12px; background: #0B57D0; color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer;">POSTAR</button>
             </div>
-            
-            <div id="feed-lista">
-                </div>
+            <div id="feed-lista"></div>
         </section>
 
         <section id="praia" class="section"><h2>Arte na Praia</h2><p>A maré está trazendo novidades...</p></section>
         <section id="galeria" class="section"><h2>Sua Galeria</h2><div id="minha-galeria"></div></section>
+        
         <section id="saldo" class="section">
             <h2>Sua Carteira</h2>
             <div class="balance-card" style="background: white; padding: 20px; border-radius: 15px; text-align: center;">
                 <p>Saldo Atual:</p>
                 <h1 id="pombcoin-balance">0 <span style="font-size: 14px;">$POMB</span></h1>
+                
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+                
+                <p style="font-size: 12px; color: #666;">SEUS CÓDIGOS DE CONVITE:</p>
+                <div id="lista-convites">
+                    <p style="color: #aaa; font-style: italic;">Carregando sementes...</p>
+                </div>
             </div>
         </section>
     </div>
 
     <nav class="bottom-nav">
-        <a href="#" class="nav-item active-link" onclick="showSection('timeline', this)">TIMELINE</a>
-        <a href="#" class="nav-item" onclick="showSection('praia', this)">PRAIA</a>
-        <a href="#" class="nav-item" onclick="showSection('galeria', this)">GALERIA</a>
-        <a href="#" class="nav-item" onclick="showSection('saldo', this)">SALDO</a>
+        <div class="nav-item active-link" onclick="showSection('timeline', this)">TIMELINE</div>
+        <div class="nav-item" onclick="showSection('praia', this)">PRAIA</div>
+        <div class="nav-item" onclick="showSection('galeria', this)">GALERIA</div>
+        <div class="nav-item" onclick="showSection('saldo', this)">SALDO</div>
     </nav>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
     <script src="auth.js"></script>
 
     <script>
-        // 1. CARREGAR PERFIL E AVATAR NO TOPO
+        // 1. CARREGAR DADOS DO USUÁRIO
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 try {
-                    const doc = await firebase.firestore().collection("usuarios").doc(user.uid).get();
+                    const doc = await db.collection("usuarios").doc(user.uid).get();
                     if (doc.exists) {
                         const dados = doc.data();
-                        if (dados.foto_perfil) {
-                            document.getElementById('user-avatar-top').src = dados.foto_perfil;
-                        }
-                        if (dados.pombcoins) {
-                            document.getElementById('pombcoin-balance').innerHTML = `${dados.pombcoins} <span style="font-size: 14px;">$POMB</span>`;
+                        
+                        // Atualiza Foto do Topo
+                        const imgTopo = document.getElementById('user-avatar-top');
+                        imgTopo.src = dados.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
+                        imgTopo.style.display = 'block';
+
+                        // Atualiza Saldo $POMB
+                        document.getElementById('pombcoin-balance').innerHTML = `${dados.pombcoins || 0} <span style="font-size: 14px;">$POMB</span>`;
+
+                        // Mostra os Códigos de Convite
+                        const areaConvites = document.getElementById('lista-convites');
+                        if (dados.meus_codigos && dados.meus_codigos.length > 0) {
+                            areaConvites.innerHTML = dados.meus_codigos.map(cod => `<div class="convite-box">${cod}</div>`).join('');
+                        } else {
+                            areaConvites.innerHTML = "<p>Nenhum código disponível.</p>";
                         }
                     }
                     carregarTimeline();
@@ -110,25 +128,23 @@
             const user = firebase.auth().currentUser;
 
             if (!texto) return;
-
             btn.disabled = true;
             btn.innerText = "ECOANDO...";
 
             try {
-                const userDoc = await firebase.firestore().collection("usuarios").doc(user.uid).get();
+                const userDoc = await db.collection("usuarios").doc(user.uid).get();
                 const userData = userDoc.data();
 
-                await firebase.firestore().collection("posts").add({
+                await db.collection("posts").add({
                     uid: user.uid,
-                    username: userData.username || "Pombito",
-                    foto_perfil: userData.foto_perfil || "https://api.dicebear.com/7.x/pixel-art/svg?seed=Pombito",
+                    username: userData.username || userData.nome.split(' ')[0] || "Pombito",
+                    foto_perfil: userData.foto_perfil,
                     texto: texto,
                     data_post: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
                 textoArea.value = "";
             } catch (e) { 
-                console.error(e);
                 alert("A maré bloqueou seu post.");
             } finally {
                 btn.disabled = false;
@@ -136,10 +152,10 @@
             }
         }
 
-        // 4. CARREGAR TIMELINE EM TEMPO REAL
+        // 4. CARREGAR TIMELINE
         function carregarTimeline() {
             const feedLista = document.getElementById('feed-lista');
-            firebase.firestore().collection("posts")
+            db.collection("posts")
                 .orderBy("data_post", "desc")
                 .limit(50)
                 .onSnapshot((snapshot) => {
@@ -165,4 +181,3 @@
     </script>
 </body>
 </html>
-
