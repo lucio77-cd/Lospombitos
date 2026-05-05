@@ -59,7 +59,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
+    
     <script src="auth.js"></script>
 
     <script>
@@ -69,7 +69,7 @@
         const instructionText = document.querySelector('.encrypted-text');
         let typedCode = "";
 
-        // Focar automaticamente no primeiro campo
+        // Focar no primeiro campo
         window.onload = () => inputs[0].focus();
 
         inputs.forEach((input, index) => {
@@ -82,6 +82,7 @@
                 inputs.forEach(i => typedCode += i.value);
                 
                 if (typedCode.length === 6) {
+                    // CÓDIGO DA ORDEM
                     if (typedCode === "131213") {
                         codeEntryArea.style.display = 'none';
                         loginArea.style.display = 'block';
@@ -102,37 +103,26 @@
             });
         });
 
+        // FUNÇÃO DE LOGIN CORRIGIDA
         async function handleGoogleLogin() {
             const btn = document.querySelector('.cta-button-google');
-            
-            // Garantia de inicialização
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-
             btn.disabled = true;
             btn.innerHTML = "VALIDANDO LINHAGEM...";
 
             const provider = new firebase.auth.GoogleAuthProvider();
 
             try {
-                // Tenta o login por Pop-up
+                // Abre o pop-up do Google
                 const result = await firebase.auth().signInWithPopup(provider);
-                const user = result.user;
-
-                console.log("Sucesso na autenticação:", user.displayName);
-
-                // Chama a função global no auth.js para salvar no Firestore e redirecionar
-                await finalizarCadastroPombito(user, typedCode);
+                
+                // CHAMA A FUNÇÃO DO AUTH.JS (que verifica veterano e gera códigos)
+                await finalizarCadastroPombito(result.user, typedCode);
 
             } catch (error) {
-                console.error("Erro detalhado:", error);
+                console.error("Erro no login:", error);
                 
-                // Tratamento de erros comuns na Vercel
                 if (error.code === 'auth/unauthorized-domain') {
-                    alert("DOMÍNIO NÃO AUTORIZADO: Adicione o link da Vercel no Console do Firebase (Authentication > Settings > Authorized Domains).");
-                } else if (error.code === 'auth/operation-not-allowed') {
-                    alert("ERRO: O provedor Google não foi ativado no Firebase.");
+                    alert("DOMÍNIO NÃO AUTORIZADO! Vá no Firebase > Auth > Settings e adicione: lospombitos.vercel.app");
                 } else {
                     alert("A maré recusou: " + error.message);
                 }
