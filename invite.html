@@ -25,13 +25,13 @@
 
         <div class="code-entry">
             <div class="input-group">
-                <input type="text" maxlength="1" class="code-box" placeholder="0">
-                <input type="text" maxlength="1" class="code-box" placeholder="0">
-                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
+                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
+                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
                 <span class="separator">-</span>
-                <input type="text" maxlength="1" class="code-box" placeholder="0">
-                <input type="text" maxlength="1" class="code-box" placeholder="0">
-                <input type="text" maxlength="1" class="code-box" placeholder="0">
+                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
+                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
+                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
             </div>
         </div>
 
@@ -57,12 +57,74 @@
         const loginArea = document.getElementById('google-login-area');
         const codeEntryArea = document.querySelector('.code-entry');
         const instructionText = document.querySelector('.encrypted-text');
-        let typedCode = "";
 
-        window.onload = () => inputs[0].focus();
+        // Focar no primeiro campo ao carregar
+        window.addEventListener('load', () => inputs[0].focus());
 
-        // Gerenciamento dos campos de código
         inputs.forEach((input, index) => {
+            // Lógica de digitação e pulo automático
             input.addEventListener('input', (e) => {
-                if (e.target.value.length === 1 && index < inputs.length - 1) {
-                    inputs
+                const value = e.target.value;
+                
+                // Se o usuário digitou algo, pula para o próximo
+                if (value.length >= 1) {
+                    e.target.value = value.slice(-1); // Garante apenas 1 dígito
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                }
+
+                // Verifica se todos os campos estão preenchidos
+                let currentCode = "";
+                inputs.forEach(i => currentCode += i.value);
+
+                if (currentCode.length === 6) {
+                    if (currentCode === "131213") {
+                        // SUCESSO: Troca a interface
+                        codeEntryArea.style.display = 'none';
+                        loginArea.style.display = 'block';
+                        instructionText.innerHTML = "ACESSO CONCEDIDO. BEM-VINDO.";
+                        instructionText.style.color = "#2ecc71";
+                    } else {
+                        // ERRO: Limpa e reinicia
+                        alert("CÓDIGO DESCONHECIDO PELA ORDEM.");
+                        inputs.forEach(i => i.value = "");
+                        inputs[0].focus();
+                    }
+                }
+            });
+
+            // Lógica do Backspace (Apagar e voltar)
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        async function handleGoogleLogin() {
+            const btn = document.querySelector('.cta-button-google');
+            btn.disabled = true;
+            btn.innerHTML = "VALIDANDO LINHAGEM...";
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await firebase.auth().signInWithPopup(provider);
+                
+                // Captura o código usado para o registro no banco
+                let finalCode = "";
+                inputs.forEach(i => finalCode += i.value);
+
+                // Executa a função do auth.js
+                await finalizarCadastroPombito(result.user, finalCode);
+
+            } catch (error) {
+                console.error("Erro no login:", error);
+                alert("A maré recusou: " + error.message);
+                btn.disabled = false;
+                btn.innerHTML = "ENTRAR NA LINHAGEM";
+            }
+        }
+    </script>
+</body>
+</html>
