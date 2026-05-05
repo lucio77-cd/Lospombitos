@@ -52,8 +52,9 @@ async function germinarEsalvarPombito(dadosFicha, user) {
         console.log("Germinando perfil para:", user.uid);
         
         // NOVO CÓDIGO DE AVATAR APLICADO AQUI:
-        const pombitoUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.uid}&primaryColor=607d8b`;
-        
+        // Isso vai gerar um ícone pixelado que lembra muito mais um pássaro/pombo
+const pombitoUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=b6e3f4`;
+
         // Atualiza o documento com os novos dados da ficha
         await db.collection("usuarios").doc(user.uid).set({
             ...dadosFicha,
