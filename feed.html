@@ -76,7 +76,7 @@
     <script src="auth.js"></script>
 
     <script>
-        // 1. CARREGAR DADOS DO USUÁRIO (LÓGICA DE LINHAGEM APLICADA)
+        // 1. CARREGAR DADOS DO USUÁRIO
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 try {
@@ -84,15 +84,15 @@
                     if (doc.exists) {
                         const dados = doc.data();
                         
-                        // Atualiza Foto do Topo
+                        // Foto do Topo
                         const imgTopo = document.getElementById('user-avatar-top');
                         imgTopo.src = dados.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
                         imgTopo.style.display = 'block';
 
-                        // 1. Atualiza o saldo (Card Azul)
+                        // Atualiza saldo
                         document.getElementById('pombcoin-balance').innerText = (dados.pombcoins || 0) + " $POMB";
 
-                        // 2. Renderiza os 3 códigos
+                        // Renderiza os 3 códigos ou Botão de Emergência
                         const lista = document.getElementById('lista-convites');
                         if (dados.meus_codigos && dados.meus_codigos.length > 0) {
                             lista.innerHTML = dados.meus_codigos.map(cod => `
@@ -102,24 +102,56 @@
                                 </div>
                             `).join('');
                         } else {
-                            lista.innerHTML = "<p style='font-size: 12px; color: #888;'>Nenhum código encontrado.</p>";
+                            lista.innerHTML = `
+                                <p style='font-size: 12px; color: #888; margin-bottom: 10px;'>Você ainda não tem sementes nesta conta.</p>
+                                <button onclick="gerarCodigosAgora()" style="width:100%; padding:12px; background:#000; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">GERAR MEUS 3 CÓDIGOS</button>
+                            `;
                         }
                     }
                     carregarTimeline();
                 } catch (error) {
-                    console.error("Erro ao carregar dados:", error);
+                    console.error("Erro:", error);
                 }
             } else {
                 window.location.href = "invite.html";
             }
         });
 
+        // GERAR CÓDIGOS (BOTÃO DE EMERGÊNCIA)
+        async function gerarCodigosAgora() {
+            const user = firebase.auth().currentUser;
+            if (!user) return;
+
+            try {
+                const novosCodigos = [];
+                for (let i = 0; i < 3; i++) {
+                    const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    const codigo = `POMB-${randomId}`;
+                    novosCodigos.push(codigo);
+
+                    await db.collection("convites").doc(codigo).set({
+                        gerado_por: user.uid,
+                        usado: false,
+                        data_criacao: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                await db.collection("usuarios").doc(user.uid).update({
+                    meus_codigos: novosCodigos
+                });
+
+                alert("Linhagem gerada com sucesso!");
+                location.reload();
+            } catch (e) {
+                alert("Erro: " + e.message);
+            }
+        }
+
         // FUNÇÃO DE CÓPIA
         function copiar(txt) {
             navigator.clipboard.writeText(txt).then(() => {
                 alert("Código copiado! " + txt);
             }).catch(() => {
-                // Fallback para navegadores que bloqueiam clipboard
                 const input = document.createElement('input');
                 input.value = txt;
                 document.body.appendChild(input);
@@ -130,7 +162,7 @@
             });
         }
 
-        // ALTERNAR SEÇÕES
+        // NAVEGAÇÃO
         function showSection(sectionId, element) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-link'));
@@ -138,21 +170,17 @@
             element.classList.add('active-link');
         }
 
-        // POSTAR MENSAGEM
+        // POSTAR
         async function postarMensagem() {
             const textoArea = document.getElementById('post-text');
             const btn = document.querySelector('.post-box button');
             const texto = textoArea.value.trim();
             const user = firebase.auth().currentUser;
-
             if (!texto) return;
             btn.disabled = true;
-            btn.innerText = "ECOANDO...";
-
             try {
                 const userDoc = await db.collection("usuarios").doc(user.uid).get();
                 const userData = userDoc.data();
-
                 await db.collection("posts").add({
                     uid: user.uid,
                     username: userData.username || "Pombito",
@@ -161,15 +189,11 @@
                     data_post: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 textoArea.value = "";
-            } catch (e) { 
-                alert("Erro ao postar.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "POSTAR";
-            }
+            } catch (e) { alert("Erro ao postar."); }
+            finally { btn.disabled = false; }
         }
 
-        // CARREGAR TIMELINE
+        // TIMELINE snapshot
         function carregarTimeline() {
             const feedLista = document.getElementById('feed-lista');
             db.collection("posts").orderBy("data_post", "desc").limit(50).onSnapshot((snapshot) => {
