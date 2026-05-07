@@ -5,6 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>O Ninho Secreto | Los Pombitos</title>
     <link rel="stylesheet" href="style-invite.css">
+    <style>
+        /* Ajuste para aceitar o formato POMB-XXXX */
+        .input-group { display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .code-box-text { 
+            width: 100%; 
+            max-width: 250px; 
+            height: 50px; 
+            text-align: center; 
+            font-size: 20px; 
+            font-family: 'Courier New', monospace; 
+            border: 2px solid #0B57D0; 
+            border-radius: 8px; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .cta-button-google {
+            width: 100%;
+            padding: 15px;
+            background: #0B57D0;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
@@ -20,28 +51,21 @@
 
         <header class="secret-header">
             <h2>A ORDEM DOS POMBITOS</h2>
-            <p class="encrypted-text">Decifre o segredo para entrar no ninho.</p>
+            <p class="encrypted-text">Insira sua semente de linhagem (POMB-XXXX)</p>
         </header>
 
         <div class="code-entry">
             <div class="input-group">
-                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
-                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
-                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
-                <span class="separator">-</span>
-                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
-                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
-                <input type="number" pattern="\d*" inputmode="numeric" maxlength="1" class="code-box" placeholder="0">
+                <input type="text" id="input-convite" class="code-box-text" placeholder="POMB-XXXX" maxlength="9">
             </div>
+            
+            <button class="cta-button-google" id="btn-entrar" onclick="executarEntrada()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                <span>GERMINAR SEMENTE</span>
+            </button>
         </div>
 
-        <footer class="security-footer">
-            <div id="google-login-area" style="display: none; margin-bottom: 20px;">
-                <button class="cta-button-google" onclick="handleGoogleLogin()">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                    <span>ENTRAR NA LINHAGEM</span>
-                </button>
-            </div>
+        <footer class="security-footer" style="margin-top: 30px;">
             <p>Conexão Criptografada via Praia-Protocol</p>
         </footer>
     </div>
@@ -53,78 +77,28 @@
     <script src="auth.js"></script>
 
     <script>
-        const inputs = document.querySelectorAll('.code-box');
-        const loginArea = document.getElementById('google-login-area');
-        const codeEntryArea = document.querySelector('.code-entry');
-        const instructionText = document.querySelector('.encrypted-text');
-
-        // Focar no primeiro campo ao carregar
-        window.addEventListener('load', () => inputs[0].focus());
-
-        inputs.forEach((input, index) => {
-            // Lógica de digitação e pulo automático
-            input.addEventListener('input', (e) => {
-                const value = e.target.value;
-                
-                // Se o usuário digitou algo, pula para o próximo
-                if (value.length >= 1) {
-                    e.target.value = value.slice(-1); // Garante apenas 1 dígito
-                    if (index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                    }
-                }
-
-                // Verifica se todos os campos estão preenchidos
-                let currentCode = "";
-                inputs.forEach(i => currentCode += i.value);
-
-                if (currentCode.length === 6) {
-                    if (currentCode === "131213") {
-                        // SUCESSO: Troca a interface
-                        codeEntryArea.style.display = 'none';
-                        loginArea.style.display = 'block';
-                        instructionText.innerHTML = "ACESSO CONCEDIDO. BEM-VINDO.";
-                        instructionText.style.color = "#2ecc71";
-                    } else {
-                        // ERRO: Limpa e reinicia
-                        alert("CÓDIGO DESCONHECIDO PELA ORDEM.");
-                        inputs.forEach(i => i.value = "");
-                        inputs[0].focus();
-                    }
-                }
-            });
-
-            // Lógica do Backspace (Apagar e voltar)
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !input.value && index > 0) {
-                    inputs[index - 1].focus();
-                }
-            });
-        });
-
-        async function handleGoogleLogin() {
-            const btn = document.querySelector('.cta-button-google');
+        async function executarEntrada() {
+            const btn = document.getElementById('btn-entrar');
+            const originalText = btn.innerHTML;
+            
+            // Desativa o botão para evitar múltiplos cliques
             btn.disabled = true;
-            btn.innerHTML = "VALIDANDO LINHAGEM...";
+            btn.innerHTML = "VALIDANDO COM A MARÉ...";
 
             try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await firebase.auth().signInWithPopup(provider);
-                
-                // Captura o código usado para o registro no banco
-                let finalCode = "";
-                inputs.forEach(i => finalCode += i.value);
-
-                // Executa a função do auth.js
-                await finalizarCadastroPombito(result.user, finalCode);
-
+                // Chama a função que criamos no auth.js que já faz a validação e o login
+                await validarEEntrar();
             } catch (error) {
-                console.error("Erro no login:", error);
-                alert("A maré recusou: " + error.message);
+                console.error(error);
                 btn.disabled = false;
-                btn.innerHTML = "ENTRAR NA LINHAGEM";
+                btn.innerHTML = originalText;
             }
         }
+
+        // Atalho: pressionar Enter também envia
+        document.getElementById('input-convite').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executarEntrada();
+        });
     </script>
 </body>
 </html>
