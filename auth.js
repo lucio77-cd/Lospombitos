@@ -144,8 +144,16 @@ async function criarCodigos(uid) {
 }
 
 // ----------------------------------------------------------
-// 7. FLUXO PRINCIPAL: VALIDAR CONVITE → LOGIN → CADASTRO
-//    Chamado pelo botão na invite.html.
+// 7. FLUXO PRINCIPAL: VALIDAR CONVITE → LOGIN GOOGLE → CADASTRO
+//
+//    ORDEM CORRETA:
+//    1. Valida o código no Firestore (sem logar ninguém ainda)
+//    2. Abre o Google para o usuário criar/usar a conta dele
+//    3. Verifica se essa conta Google já é membro (acesso direto)
+//    4. Consome o código atomicamente e salva o novo membro
+//
+//    O código SÓ é marcado como usado depois que a conta
+//    Google foi criada com sucesso.
 // ----------------------------------------------------------
 async function validarEEntrar() {
   const input = document.getElementById("input-convite");
@@ -159,69 +167,100 @@ async function validarEEntrar() {
   }
 
   setBotaoCarregando(true, "Entrar");
+
+  // ── PASSO 1: Validar o código ANTES de qualquer login
+  //    O usuário ainda não está logado aqui.
   exibirMensagem("Verificando sua semente...", "info");
 
-  let resultadoLogin;
-
   try {
-    // ── PASSO 1: Login com Google ANTES da transação
-    //    (signInWithPopup não pode rodar dentro de uma transação Firestore)
+    const conviteRef  = db.collection("convites").doc(codigoInput);
+    const conviteSnap = await conviteRef.get();
+
+    if (!conviteSnap.exists) {
+      exibirMensagem("Este código não existe na linhagem.", "erro");
+      setBotaoCarregando(false, "Entrar");
+      return;
+    }
+
+    if (conviteSnap.data().usado === true) {
+      exibirMensagem("Este código já foi utilizado por outro Pombito.", "erro");
+      setBotaoCarregando(false, "Entrar");
+      return;
+    }
+  } catch (e) {
+    console.error("Erro ao verificar convite:", e);
+    exibirMensagem("Erro ao verificar o código. Tente novamente.", "erro");
+    setBotaoCarregando(false, "Entrar");
+    return;
+  }
+
+  // ── PASSO 2: Código válido! Agora abre o Google para criar a conta
+  exibirMensagem("Código válido! Conectando com o Google...", "info");
+
+  let user;
+  try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    resultadoLogin = await auth.signInWithPopup(provider);
+    // Força o Google a mostrar a tela de escolha de conta sempre
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    const resultado = await auth.signInWithPopup(provider);
+    user = resultado.user;
 
   } catch (e) {
-    // Usuário fechou o popup ou erro no Google
     setBotaoCarregando(false, "Entrar");
-    if (e.code === "auth/popup-closed-by-user") {
-      exibirMensagem("Login cancelado. Tente novamente.", "info");
+    if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") {
+      exibirMensagem("Login cancelado. Seu código continua válido, tente novamente.", "info");
     } else {
-      exibirMensagem("Erro no login: " + e.message, "erro");
+      exibirMensagem("Erro no Google: " + e.message, "erro");
     }
     return;
   }
 
-  const user = resultadoLogin.user;
-
+  // ── PASSO 3: Conta Google criada — verificar se já é membro
+  //    Se já tem perfil completo, vai direto ao feed (sem consumir código).
   try {
-    // ── PASSO 2: Verificar se usuário já é membro
     const usuarioSnap = await db.collection("usuarios").doc(user.uid).get();
     if (usuarioSnap.exists && usuarioSnap.data().perfil_completo === true) {
-      // Já é membro, não precisa de convite
+      exibirMensagem("Bem-vindo de volta, Pombito! 🪶", "ok");
       window.location.href = "feed.html";
       return;
     }
+  } catch (e) {
+    console.error("Erro ao verificar membro existente:", e);
+  }
 
-    // ── PASSO 3: Transação atômica para consumir o convite
-    //    Garante que dois usuários não usem o mesmo código ao mesmo tempo.
+  // ── PASSO 4: Conta nova confirmada — agora consome o código atomicamente
+  //    Só chegamos aqui se:
+  //    - o código era válido (passo 1)
+  //    - a conta Google foi criada (passo 2)
+  //    - o usuário não era membro (passo 3)
+  try {
+    exibirMensagem("Registrando na linhagem...", "info");
+
     await db.runTransaction(async (transaction) => {
       const conviteRef  = db.collection("convites").doc(codigoInput);
       const conviteSnap = await transaction.get(conviteRef);
 
-      if (!conviteSnap.exists) {
-        throw new Error("Este código não existe na linhagem.");
+      // Verifica de novo dentro da transação — proteção contra race condition
+      if (!conviteSnap.exists || conviteSnap.data().usado === true) {
+        throw new Error("Este código foi usado por outra pessoa agora mesmo. Peça um novo convite.");
       }
 
-      const dados = conviteSnap.data();
-
-      if (dados.usado) {
-        throw new Error("Este código já foi utilizado por outro Pombito.");
-      }
-
-      // Marca como usado atomicamente
+      // Marca como usado atomicamente — só agora, após conta criada
       transaction.update(conviteRef, {
-        usado:      true,
+        usado:     true,
         quem_usou: user.uid,
         data_uso:  firebase.firestore.FieldValue.serverTimestamp()
       });
     });
 
-    // ── PASSO 4: Criar documento do novo membro + seus 3 códigos
+    // ── PASSO 5: Salvar o novo membro e gerar seus 3 códigos
     await finalizarCadastroPombito(user);
 
   } catch (e) {
-    console.error("Erro na entrada:", e);
+    console.error("Erro ao registrar na linhagem:", e);
     exibirMensagem(e.message || "Erro inesperado. Tente novamente.", "erro");
-    // Faz logout para não deixar o usuário logado sem ter passado pelo convite
+    // Desloga para não deixar o usuário num estado inconsistente
     await auth.signOut();
     setBotaoCarregando(false, "Entrar");
   }
