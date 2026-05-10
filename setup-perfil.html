@@ -1,133 +1,611 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sua Identidade | Los Pombitos</title>
-    <link rel="stylesheet" href="style-setup.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>O Juramento | Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:       #0a0a0f;
+      --parchment: #f2ead8;
+      --aged:      #e0d4b8;
+      --gold:      #c9a84c;
+      --gold-light:#f0d080;
+      --gold-dark: #7a5c1e;
+      --muted:     #6b6050;
+      --card:      rgba(255,255,255,.02);
+      --mono:      'DM Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+      --display:   'Cinzel', serif;
+      --decorative:'Cinzel Decorative', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--ink);
+      color: var(--parchment);
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 20px 60px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* textura + vinheta */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, rgba(139,26,26,.05) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.7) 100%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── CONTAINER ── */
+    .container {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 440px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* ── ORNAMENTOS ── */
+    .ornament {
+      width: 100%; display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+    }
+    .ornament-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
+    .ornament-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+    /* ── POMBO PIXEL (SVG melhorado) ── */
+    .pombo-pixel-wrap {
+      margin-bottom: 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+
+    .pombo-pixel {
+      filter: drop-shadow(0 0 10px rgba(201,168,76,.35));
+      animation: flutuar 4s ease-in-out infinite;
+    }
+    @keyframes flutuar {
+      0%,100% { transform: translateY(0) rotate(-1deg); }
+      50%      { transform: translateY(-5px) rotate(1deg); }
+    }
+
+    /* ── TÍTULOS ── */
+    .titulo-ordem { font-family: var(--decorative); font-size: 10px; letter-spacing: 5px; color: var(--gold); opacity: .7; text-align: center; margin-bottom: 6px; }
+    .titulo-principal { font-family: var(--decorative); font-size: 24px; font-weight: 700; letter-spacing: 2px; color: var(--parchment); line-height: 1.2; text-align: center; text-shadow: 0 0 30px rgba(201,168,76,.25); }
+    .titulo-principal span { color: var(--gold); }
+    .titulo-sub { font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.6; }
+
+    /* ── DIVIDER ── */
+    .divider { display: flex; align-items: center; gap: 8px; width: 100%; margin: 22px 0; }
+    .divider-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(201,168,76,.3), transparent); }
+    .divider-text { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--gold); opacity: .6; white-space: nowrap; }
+
+    /* ── PROGRESSO ── */
+    .progress-wrap {
+      width: 100%; margin-bottom: 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .progress-label {
+      font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--muted);
+    }
+    .progress-bar {
+      width: 100%; height: 2px;
+      background: rgba(201,168,76,.1);
+      border-radius: 2px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(to right, var(--gold-dark), var(--gold-light));
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    /* ── FORMULÁRIO / CARD ── */
+    .form-card {
+      width: 100%;
+      border: 1px solid rgba(201,168,76,.25);
+      border-radius: 4px;
+      padding: 28px 24px;
+      background: var(--card);
+      position: relative;
+    }
+    .form-card::before, .form-card::after {
+      content: ''; position: absolute;
+      width: 14px; height: 14px;
+      border-color: var(--gold); border-style: solid; opacity: .4;
+    }
+    .form-card::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .form-card::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+    /* ── GRUPOS DE INPUT ── */
+    .input-group { margin-bottom: 20px; }
+    .input-group:last-of-type { margin-bottom: 0; }
+
+    .input-label {
+      font-family: var(--mono); font-size: 8px; letter-spacing: 2.5px;
+      color: var(--gold); opacity: .75; display: block; margin-bottom: 8px;
+    }
+
+    .input-field, .select-field {
+      width: 100%; height: 48px;
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(201,168,76,.25);
+      border-radius: 3px;
+      font-family: var(--sans); font-size: 14px;
+      color: var(--parchment);
+      padding: 0 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none; -webkit-appearance: none;
+    }
+
+    .input-field::placeholder { color: rgba(201,168,76,.2); font-size: 13px; }
+
+    .input-field:focus, .select-field:focus {
+      border-color: rgba(201,168,76,.6);
+      box-shadow: 0 0 16px rgba(201,168,76,.08);
+    }
+
+    /* username com @ */
+    .input-username-wrap { position: relative; }
+    .input-username-wrap .arroba {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      font-family: var(--mono); font-size: 14px; color: var(--gold); opacity: .6;
+      pointer-events: none;
+    }
+    .input-username-wrap .input-field { padding-left: 28px; }
+
+    /* select */
+    .select-field {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    .select-field option { background: #1a1a2e; color: var(--parchment); }
+
+    /* duas colunas */
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* cor do pombito — preview visual */
+    .cor-wrap { position: relative; }
+    .cor-preview {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 1px solid rgba(201,168,76,.3);
+      background: transparent;
+      transition: background .3s;
+      pointer-events: none;
+    }
+
+    /* ── DIVIDERS INTERNOS ── */
+    .sep {
+      display: flex; align-items: center; gap: 8px; margin: 22px 0;
+    }
+    .sep-line { flex: 1; height: 1px; background: rgba(201,168,76,.1); }
+    .sep-label { font-family: var(--mono); font-size: 8px; letter-spacing: 2.5px; color: var(--muted); }
+
+    /* ── BOTÃO ── */
+    .btn-germinar {
+      width: 100%; height: 52px; margin-top: 28px;
+      background: linear-gradient(135deg, rgba(201,168,76,.15), rgba(201,168,76,.08));
+      border: 1px solid rgba(201,168,76,.5);
+      border-radius: 3px;
+      color: var(--gold-light);
+      font-family: var(--display); font-size: 13px; letter-spacing: 3px;
+      cursor: pointer; transition: all .25s;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-germinar::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,.25), transparent);
+      opacity: 0; transition: opacity .25s;
+    }
+    .btn-germinar:hover:not(:disabled)::before { opacity: 1; }
+    .btn-germinar:hover:not(:disabled) {
+      border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(201,168,76,.2);
+      transform: translateY(-1px);
+    }
+    .btn-germinar:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── FEEDBACK ── */
+    .msg-feedback {
+      display: none; margin-top: 14px; padding: 10px 16px; border-radius: 3px;
+      font-family: var(--mono); font-size: 10px; letter-spacing: .5px;
+      line-height: 1.6; text-align: center; width: 100%;
+    }
+    .msg-erro  { background: rgba(139,26,26,.2); color: #e88; border: 1px solid rgba(139,26,26,.4); display: block; }
+    .msg-ok    { background: rgba(26,100,26,.2); color: #8e8; border: 1px solid rgba(26,100,26,.4); display: block; }
+    .msg-info  { background: rgba(201,168,76,.1); color: var(--gold-light); border: 1px solid rgba(201,168,76,.3); display: block; }
+
+    /* ── FOOTER ── */
+    .footer-ordem { margin-top: 28px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .footer-lema  { font-family: var(--display); font-size: 9px; letter-spacing: 3px; color: var(--gold); opacity: .5; font-style: italic; }
+    .footer-proto { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); opacity: .4; }
+
+    /* penas caindo */
+    .pena { position: fixed; font-size: 12px; opacity: 0; animation: cair linear infinite; pointer-events: none; z-index: 0; }
+    @keyframes cair {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+      10%  { opacity: .25; }
+      90%  { opacity: .1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* validação inline */
+    .input-field.invalido { border-color: rgba(200,80,80,.5); }
+    .input-field.valido   { border-color: rgba(80,180,80,.3); }
+    .erro-campo {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      color: #e88; margin-top: 5px; display: none;
+    }
+    .erro-campo.visivel { display: block; }
+  </style>
 </head>
 <body>
 
-    <div class="setup-container">
-        <header class="setup-header">
-            <div class="pigeon-pixel-icon">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
-                    <rect x="10" y="4" width="4" height="2" fill="#424242"/>
-                    <rect x="8" y="6" width="8" height="4" fill="#90A4AE"/>
-                    <rect x="16" y="7" width="2" height="2" fill="#FFB74D"/>
-                </svg>
-            </div>
-            <h1>A Ordem vai te Identificar</h1>
-            <p class="subtitle">Seu perfil 8-bit único será germinado a partir dos seus gostos.</p>
-        </header>
+  <div class="pena" style="left:8%;  animation-duration:12s; animation-delay:0s;">🪶</div>
+  <div class="pena" style="left:25%; animation-duration:18s; animation-delay:5s;">🪶</div>
+  <div class="pena" style="left:60%; animation-duration:15s; animation-delay:9s;">🪶</div>
+  <div class="pena" style="left:82%; animation-duration:20s; animation-delay:3s;">🪶</div>
 
-        <form id="setup-form">
-            <div class="input-box">
-                <label>Seu primeiro nome</label>
-                <input type="text" id="nome" placeholder="Ex: Josemar." required>
-            </div>
+  <div class="container">
 
-            <div class="input-box">
-                <label>Seu @username único</label>
-                <input type="text" id="username" placeholder="@pombito" required>
-            </div>
-
-            <div class="row-inputs">
-                <div class="input-box">
-                    <label>Invernos (Idade)</label>
-                    <input type="number" id="idade" placeholder="00" required>
-                </div>
-                <div class="input-box">
-                    <label>Sexo</label>
-                    <select id="sexo">
-                        <option value="F">Feminino</option>
-                        <option value="M">Masculino</option>
-                        <option value="O">Outro</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="input-box">
-                <label>A música da sua alma</label>
-                <input type="text" id="musica" placeholder="Artista - Música" required>
-            </div>
-
-            <div class="input-box">
-                <label>Um filme inesquecível</label>
-                <input type="text" id="filme" placeholder="Nome do filme" required>
-            </div>
-
-            <div class="input-box">
-                <label>Sua cor (Fundo do seu pombito)</label>
-                <input type="text" id="cor" placeholder="Ex: Azul Celeste" required>
-            </div>
-
-            <button type="submit" class="finish-button">
-                GERMINAR MEU PERFIL 8-BIT
-            </button>
-        </form>
+    <!-- ORNAMENTO TOPO -->
+    <div class="ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-diamond" style="width:4px;height:4px;margin:0 2px;opacity:.5"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- POMBO PIXEL MELHORADO -->
+    <div class="pombo-pixel-wrap">
+      <svg class="pombo-pixel" width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- pixel art pombo: grade de 4x4px -->
+        <!-- cabeça -->
+        <rect x="28" y="8"  width="16" height="4"  fill="#e8d4a0"/>
+        <rect x="24" y="12" width="24" height="4"  fill="#e8d4a0"/>
+        <!-- olho -->
+        <rect x="40" y="12" width="4"  height="4"  fill="#0a0a0f"/>
+        <rect x="42" y="12" width="2"  height="2"  fill="white" opacity=".9"/>
+        <!-- bico -->
+        <rect x="44" y="16" width="8"  height="4"  fill="#c9a84c"/>
+        <rect x="48" y="14" width="4"  height="2"  fill="#f0d080"/>
+        <!-- pescoço / corpo -->
+        <rect x="20" y="16" width="28" height="4"  fill="#d4bc84"/>
+        <rect x="16" y="20" width="36" height="4"  fill="#c9a84c"/>
+        <!-- asa esquerda - várias camadas -->
+        <rect x="4"  y="20" width="16" height="4"  fill="#b08a30"/>
+        <rect x="4"  y="24" width="12" height="4"  fill="#9a7428"/>
+        <rect x="8"  y="28" width="8"  height="4"  fill="#7a5c1e"/>
+        <!-- asa direita -->
+        <rect x="52" y="20" width="16" height="4"  fill="#b08a30"/>
+        <rect x="56" y="24" width="12" height="4"  fill="#9a7428"/>
+        <rect x="56" y="28" width="8"  height="4"  fill="#7a5c1e"/>
+        <!-- corpo central -->
+        <rect x="16" y="24" width="40" height="4"  fill="#e8d4a0"/>
+        <rect x="20" y="28" width="32" height="4"  fill="#dcc890"/>
+        <rect x="20" y="32" width="32" height="4"  fill="#d4bc84"/>
+        <!-- barriga achatada (lenda vive) -->
+        <rect x="24" y="36" width="24" height="4"  fill="#c9a84c" opacity=".8"/>
+        <rect x="28" y="40" width="16" height="4"  fill="#b08a30" opacity=".7"/>
+        <!-- cauda -->
+        <rect x="24" y="44" width="4"  height="4"  fill="#9a7428"/>
+        <rect x="32" y="44" width="8"  height="4"  fill="#9a7428"/>
+        <rect x="44" y="44" width="4"  height="4"  fill="#9a7428"/>
+        <!-- patas -->
+        <rect x="28" y="48" width="4"  height="8"  fill="#c9a84c"/>
+        <rect x="24" y="56" width="8"  height="4"  fill="#c9a84c"/>
+        <rect x="40" y="48" width="4"  height="8"  fill="#c9a84c"/>
+        <rect x="36" y="56" width="8"  height="4"  fill="#c9a84c"/>
+        <!-- auréola dourada pixel -->
+        <rect x="28" y="4"  width="4"  height="4"  fill="#f0d080" opacity=".6"/>
+        <rect x="36" y="4"  width="4"  height="4"  fill="#f0d080" opacity=".6"/>
+        <rect x="24" y="8"  width="4"  height="4"  fill="#f0d080" opacity=".3"/>
+        <rect x="44" y="8"  width="4"  height="4"  fill="#f0d080" opacity=".3"/>
+      </svg>
 
-    <script src="auth.js"></script>
+      <div>
+        <p class="titulo-ordem">RITUAL DE IDENTIFICAÇÃO</p>
+        <p class="titulo-principal">FORJE SUA <span>IDENTIDADE</span></p>
+        <p class="titulo-sub">SEU PERFIL SERÁ ÚNICO NA IRMANDADE<br>ESCOLHA COM SABEDORIA</p>
+      </div>
+    </div>
 
-    <script>
-        const setupForm = document.getElementById('setup-form');
-        const finishButton = document.querySelector('.finish-button');
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">✦ O LIVRO DOS POMBITOS ✦</span>
+      <div class="divider-line"></div>
+    </div>
 
-        if (setupForm) {
-            setupForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+    <!-- PROGRESSO -->
+    <div class="progress-wrap">
+      <span class="progress-label">RITUAL INCOMPLETO — PREENCHA TODOS OS CAMPOS</span>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
 
-                finishButton.disabled = true;
-                finishButton.innerText = "GERMINANDO...";
+    <!-- FORMULÁRIO -->
+    <div class="form-card">
 
-                // Garantia: Pega o usuário logado direto da fonte
-                const user = firebase.auth().currentUser;
+      <!-- Identidade -->
+      <div class="input-group">
+        <label class="input-label">SEU NOME NA IRMANDADE</label>
+        <input type="text" id="nome" class="input-field" placeholder="Como te chamam" maxlength="40" autocomplete="off">
+        <span class="erro-campo" id="erro-nome">O Ninho precisa saber seu nome.</span>
+      </div>
 
-                if (!user) {
-                    alert("A Ordem não te reconhece. Faça login novamente.");
-                    window.location.href = "invite.html";
-                    return;
-                }
+      <div class="input-group">
+        <label class="input-label">SEU @USERNAME ÚNICO</label>
+        <div class="input-username-wrap">
+          <span class="arroba">@</span>
+          <input type="text" id="username" class="input-field" placeholder="seuapelido" maxlength="30" autocomplete="off" oninput="sanitizarUsername(this)">
+        </div>
+        <span class="erro-campo" id="erro-username">Apenas letras, números e _ (sem espaços).</span>
+      </div>
 
-                const dadosFicha = {
-                    nome: document.getElementById('nome').value,
-                    username: document.getElementById('username').value.trim().toLowerCase(),
-                    idade: document.getElementById('idade').value,
-                    sexo: document.getElementById('sexo').value,
-                    musica: document.getElementById('musica').value,
-                    filme: document.getElementById('filme').value,
-                    cor: document.getElementById('cor').value,
-                    perfil_completo: true,
-                    data_criacao: firebase.firestore.FieldValue.serverTimestamp()
-                };
+      <div class="row">
+        <div class="input-group">
+          <label class="input-label">INVERNOS (IDADE)</label>
+          <input type="number" id="idade" class="input-field" placeholder="00" min="1" max="120">
+          <span class="erro-campo" id="erro-idade">Informe sua idade.</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">SER</label>
+          <select id="sexo" class="select-field">
+            <option value="">Escolha</option>
+            <option value="F">Feminino</option>
+            <option value="M">Masculino</option>
+            <option value="O">Outro</option>
+          </select>
+        </div>
+      </div>
 
-                try {
-                    // Chama a função global definida no seu auth.js
-                    // Passamos os dados e a instância do usuário para garantir a gravação
-                    const sucesso = await germinarEsalvarPombito(dadosFicha, user);
+      <div class="sep">
+        <div class="sep-line"></div>
+        <span class="sep-label">ALMA & GOSTO</span>
+        <div class="sep-line"></div>
+      </div>
 
-                    if (sucesso) {
-                        console.log("Perfil criado com sucesso!");
-                        window.location.href = "feed.html";
-                    } else {
-                        // Se cair aqui, a maré agitou dentro da função do auth.js
-                        throw new Error("Erro ao gravar no Firestore.");
-                    }
-                } catch (error) {
-                    console.error("Erro na germinação:", error);
-                    // Agora o erro mostra a causa real para sabermos se é regra do banco
-                    alert("A maré está agitada. (Dica: Verifique se as regras do Firestore no console estão publicadas)");
-                    
-                    finishButton.disabled = false;
-                    finishButton.innerText = "GERMINAR MEU PERFIL 8-BIT";
-                }
-            });
+      <div class="input-group">
+        <label class="input-label">A MÚSICA DA SUA ALMA</label>
+        <input type="text" id="musica" class="input-field" placeholder="Artista — Música" maxlength="80" autocomplete="off">
+        <span class="erro-campo" id="erro-musica">Toda alma tem uma música.</span>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">UM FILME INESQUECÍVEL</label>
+        <input type="text" id="filme" class="input-field" placeholder="Nome do filme" maxlength="80" autocomplete="off">
+        <span class="erro-campo" id="erro-filme">Todo Pombito tem um filme.</span>
+      </div>
+
+      <div class="sep">
+        <div class="sep-line"></div>
+        <span class="sep-label">SEU POMBITO</span>
+        <div class="sep-line"></div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">COR DO SEU POMBITO (FUNDO)</label>
+        <div class="cor-wrap">
+          <input type="text" id="cor" class="input-field" placeholder="Ex: Azul Celeste, Verde Mar..." maxlength="40" autocomplete="off" oninput="atualizarCorPreview(this)">
+          <div class="cor-preview" id="cor-preview"></div>
+        </div>
+      </div>
+
+    </div><!-- /form-card -->
+
+    <!-- FEEDBACK -->
+    <div class="msg-feedback" id="msg-feedback"></div>
+
+    <!-- BOTÃO -->
+    <button class="btn-germinar" id="btn-germinar" onclick="submeterPerfil()">
+      🕊️ GERMINAR MEU POMBITO
+    </button>
+
+    <!-- FOOTER -->
+    <div class="footer-ordem">
+      <p class="footer-lema">"Ele caiu. Ele levantou. Ele voou."</p>
+      <p class="footer-proto">PRAIA-PROTOCOL · LACRADO PELA ORDEM</p>
+    </div>
+
+  </div><!-- /container -->
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="auth.js"></script>
+
+  <script>
+    // ── MAPA DE CORES (texto → hex) ──
+    const coresMapa = {
+      'azul':    '#1a4fff', 'azul celeste': '#87ceeb', 'azul mar': '#006994',
+      'verde':   '#2d8a4e', 'verde mar':    '#2e8b57', 'verde limão': '#9acd32',
+      'vermelho':'#cc2200', 'rosa':         '#e75480', 'roxo': '#6a0dad',
+      'laranja': '#e86a1a', 'amarelo':      '#f5b800', 'preto': '#1a1a2e',
+      'branco':  '#f2ead8', 'dourado':      '#c9a84c', 'cinza': '#6b6b6b',
+      'marrom':  '#7a4e2d', 'bege':         '#d4b896', 'ciano': '#00b4d8',
+      'violeta': '#7c3aed', 'turquesa':     '#40e0d0', 'coral': '#ff6b6b',
+    };
+
+    function atualizarCorPreview(input) {
+      const val = input.value.toLowerCase().trim();
+      const preview = document.getElementById('cor-preview');
+      const cor = coresMapa[val] || null;
+      preview.style.background = cor || 'transparent';
+      preview.style.borderColor = cor ? cor : 'rgba(201,168,76,.3)';
+      atualizarProgresso();
+    }
+
+    // ── USERNAME: só letras, números e _ ──
+    function sanitizarUsername(input) {
+      input.value = input.value.replace(/[^a-z0-9_]/gi, '').toLowerCase();
+      atualizarProgresso();
+    }
+
+    // ── PROGRESSO ──
+    const campos = ['nome','username','idade','musica','filme','cor'];
+    function atualizarProgresso() {
+      const preenchidos = campos.filter(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() !== '';
+      }).length;
+      const pct = Math.round((preenchidos / campos.length) * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      const label = document.querySelector('.progress-label');
+      if (pct === 100) {
+        label.textContent = 'RITUAL COMPLETO — PRONTO PARA GERMINAR';
+        label.style.color = 'var(--gold)';
+      } else {
+        label.textContent = `RITUAL ${pct}% COMPLETO`;
+        label.style.color = '';
+      }
+    }
+
+    // Ouve todos os campos para atualizar progresso
+    campos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', atualizarProgresso);
+    });
+
+    // ── FEEDBACK VISUAL ──
+    function exibirMensagem(texto, tipo) {
+      const el = document.getElementById('msg-feedback');
+      el.textContent = texto;
+      el.className = 'msg-feedback msg-' + tipo;
+    }
+
+    function setBotao(carregando) {
+      const btn = document.getElementById('btn-germinar');
+      btn.disabled = carregando;
+      btn.textContent = carregando ? 'GERMINANDO...' : '🕊️ GERMINAR MEU POMBITO';
+    }
+
+    // ── VALIDAÇÃO ──
+    function validarCampos() {
+      let ok = true;
+
+      // Limpa erros anteriores
+      document.querySelectorAll('.erro-campo').forEach(e => e.classList.remove('visivel'));
+      document.querySelectorAll('.input-field').forEach(e => { e.classList.remove('invalido','valido'); });
+
+      const nome = document.getElementById('nome').value.trim();
+      if (!nome) { mostrarErro('nome', 'erro-nome'); ok = false; }
+      else marcarValido('nome');
+
+      const username = document.getElementById('username').value.trim();
+      if (!username || username.length < 3) { mostrarErro('username', 'erro-username'); ok = false; }
+      else marcarValido('username');
+
+      const idade = document.getElementById('idade').value;
+      if (!idade || idade < 1 || idade > 120) { mostrarErro('idade', 'erro-idade'); ok = false; }
+      else marcarValido('idade');
+
+      const musica = document.getElementById('musica').value.trim();
+      if (!musica) { mostrarErro('musica', 'erro-musica'); ok = false; }
+      else marcarValido('musica');
+
+      const filme = document.getElementById('filme').value.trim();
+      if (!filme) { mostrarErro('filme', 'erro-filme'); ok = false; }
+      else marcarValido('filme');
+
+      const cor = document.getElementById('cor').value.trim();
+      if (!cor) {
+        exibirMensagem('Escolha uma cor para o seu Pombito.', 'erro');
+        ok = false;
+      }
+
+      return ok;
+    }
+
+    function mostrarErro(inputId, erroId) {
+      document.getElementById(inputId).classList.add('invalido');
+      document.getElementById(erroId).classList.add('visivel');
+    }
+
+    function marcarValido(inputId) {
+      document.getElementById(inputId).classList.add('valido');
+    }
+
+    // ── SUBMETER PERFIL ──
+    async function submeterPerfil() {
+      if (!validarCampos()) return;
+
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        exibirMensagem('A Ordem não te reconhece. Faça login novamente.', 'erro');
+        setTimeout(() => window.location.href = 'invite.html', 2000);
+        return;
+      }
+
+      setBotao(true);
+      exibirMensagem('Gravando sua identidade nos archivos da Ordem...', 'info');
+
+      // Verifica unicidade do username antes de salvar
+      try {
+        const usernameVal = document.getElementById('username').value.trim().toLowerCase();
+        const usernameSnap = await db.collection('usuarios')
+          .where('username', '==', usernameVal)
+          .limit(1)
+          .get();
+
+        // Permite se o único resultado for o próprio usuário
+        const jaExiste = usernameSnap.docs.some(d => d.id !== user.uid);
+        if (jaExiste) {
+          mostrarErro('username', 'erro-username');
+          document.getElementById('erro-username').textContent = 'Este @username já pertence a outro Pombito.';
+          exibirMensagem('Este @username já está na Ordem. Escolha outro.', 'erro');
+          setBotao(false);
+          return;
         }
-    </script>
+      } catch(e) {
+        console.error('Erro ao verificar username:', e);
+      }
+
+      const dadosFicha = {
+        nome:     document.getElementById('nome').value.trim(),
+        username: document.getElementById('username').value.trim().toLowerCase(),
+        idade:    Number(document.getElementById('idade').value),
+        sexo:     document.getElementById('sexo').value || 'O',
+        musica:   document.getElementById('musica').value.trim(),
+        filme:    document.getElementById('filme').value.trim(),
+        cor:      document.getElementById('cor').value.trim(),
+      };
+
+      // germinarEsalvarPombito está no auth.js
+      const sucesso = await germinarEsalvarPombito(dadosFicha);
+
+      if (!sucesso) {
+        // auth.js já exibiu o erro — só reativa o botão
+        setBotao(false);
+      }
+      // Se sucesso, auth.js redireciona para feed.html
+    }
+
+    // ── PROTEÇÃO: se não logado, volta ao início ──
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) window.location.href = 'invite.html';
+    });
+  </script>
 </body>
 </html>
