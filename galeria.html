@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Los Pombitos | Galeria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:     #0d0d0d;
+      --sand:    #f0ebe3;
+      --shore:   #e2d9cd;
+      --wave:    #1a4fff;
+      --foam:    #c8d8ff;
+      --sun:     #f5b800;
+      --coral:   #ff5533;
+      --muted:   #8a8278;
+      --card:    #faf8f5;
+      --green:   #1a8a4a;
+      --radius:  14px;
+      --mono:    'DM Mono', monospace;
+      --sans:    'DM Sans', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--sand);
+      color: var(--ink);
+      min-height: 100dvh;
+      padding-bottom: 80px;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Grain */
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: .5;
+    }
+
+    /* ── HEADER ── */
+    .feed-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--sand);
+      border-bottom: 1.5px solid var(--shore);
+      padding: 0 20px; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-logo {
+      font-family: var(--display);
+      font-size: 26px; letter-spacing: 3px;
+      color: var(--wave); line-height: 1;
+    }
+    .header-logo span { color: var(--sun); }
+
+    .header-saldo {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 1px;
+      color: var(--wave); background: var(--foam);
+      border-radius: 20px; padding: 5px 12px;
+      border: none; cursor: default;
+    }
+
+    /* ── CONTAINER ── */
+    .container {
+      padding: 20px 16px 90px;
+      max-width: 640px; margin: 0 auto;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── ABAS ── */
+    .abas {
+      display: flex; gap: 0;
+      background: var(--card);
+      border: 1.5px solid var(--shore);
+      border-radius: var(--radius);
+      padding: 4px; margin-bottom: 20px;
+    }
+
+    .aba {
+      flex: 1; height: 40px;
+      font-family: var(--mono); font-size: 10px;
+      font-weight: 500; letter-spacing: 1.5px;
+      color: var(--muted); background: none;
+      border: none; border-radius: 10px;
+      cursor: pointer; transition: all .2s;
+    }
+
+    .aba.ativa {
+      background: var(--wave); color: white;
+    }
+
+    /* ── SEÇÕES ── */
+    .secao { display: none; animation: fadeUp .3s ease; }
+    .secao.ativa { display: block; }
+
+    /* ── GRID DE ARTES ── */
+    .artes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* ── CARD DE ARTE ── */
+    .arte-card {
+      background: var(--card);
+      border: 1.5px solid var(--shore);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .2s;
+      animation: fadeUp .3s ease;
+    }
+    .arte-card:hover {
+      border-color: var(--foam);
+      transform: translateY(-2px);
+    }
+
+    /* imagem protegida */
+    .arte-thumb {
+      position: relative;
+      width: 100%; aspect-ratio: 1;
+      overflow: hidden;
+      -webkit-user-drag: none;
+    }
+    .arte-thumb::after {
+      content: ''; position: absolute; inset: 0; z-index: 5;
+    }
+    .arte-thumb canvas {
+      width: 100%; height: 100%;
+      display: block; image-rendering: pixelated;
+      pointer-events: none; -webkit-user-drag: none;
+    }
+
+    /* badge de status */
+    .arte-badge {
+      position: absolute; top: 8px; right: 8px; z-index: 6;
+      font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+      border-radius: 20px; padding: 3px 8px; font-weight: 500;
+    }
+    .arte-badge.venda   { background: var(--sun); color: var(--ink); }
+    .arte-badge.guardada { background: var(--shore); color: var(--muted); }
+    .arte-badge.nova    { background: var(--wave); color: white; }
+
+    .arte-info {
+      padding: 10px 12px;
+      border-top: 1px solid var(--shore);
+    }
+
+    .arte-nome {
+      font-family: var(--display);
+      font-size: 14px; letter-spacing: 1.5px;
+      color: var(--ink); margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .arte-semana {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted);
+    }
+
+    .arte-preco {
+      font-family: var(--mono); font-size: 11px;
+      font-weight: 500; color: var(--wave);
+      margin-top: 4px;
+    }
+
+    /* ── ESTADO VAZIO ── */
+    .estado-vazio {
+      text-align: center; padding: 60px 20px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; letter-spacing: 1px;
+      border: 2px dashed var(--shore);
+      border-radius: var(--radius);
+    }
+    .estado-vazio .icone { font-size: 40px; margin-bottom: 14px; }
+
+    /* ── SKELETON ── */
+    .sk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .sk-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .sk-thumb {
+      width: 100%; aspect-ratio: 1;
+      background: var(--shore); animation: shimmer 1.4s infinite;
+    }
+    .sk-info { padding: 10px 12px; }
+    .sk-line {
+      height: 10px; border-radius: 4px;
+      background: var(--shore); animation: shimmer 1.4s infinite;
+      margin-bottom: 6px;
+    }
+    @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── FILTROS (Galeria dos Irmãos) ── */
+    .filtros {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .btn-filtro {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      background: var(--card); color: var(--muted);
+      border: 1.5px solid var(--shore); border-radius: 20px;
+      padding: 5px 14px; cursor: pointer; transition: all .2s;
+    }
+    .btn-filtro.ativo { background: var(--wave); color: white; border-color: var(--wave); }
+    .btn-filtro:hover:not(.ativo) { border-color: var(--foam); color: var(--wave); }
+
+    /* ── CARD IRMÃO (galeria pública) ── */
+    .irmao-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); overflow: hidden;
+      cursor: pointer; transition: border-color .2s, transform .2s;
+      animation: fadeUp .3s ease;
+    }
+    .irmao-card:hover { border-color: var(--foam); transform: translateY(-2px); }
+
+    .irmao-thumb {
+      position: relative; width: 100%; aspect-ratio: 1; overflow: hidden;
+    }
+    .irmao-thumb::after { content:''; position:absolute; inset:0; z-index:5; }
+    .irmao-thumb canvas {
+      width:100%; height:100%; display:block;
+      image-rendering:pixelated; pointer-events:none;
+    }
+
+    .irmao-preco-badge {
+      position: absolute; bottom: 8px; left: 8px; z-index: 6;
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 1px; background: var(--ink); color: var(--sun);
+      border-radius: 20px; padding: 4px 10px;
+    }
+
+    .irmao-info {
+      padding: 10px 12px;
+      border-top: 1px solid var(--shore);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .irmao-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1.5px solid var(--foam); object-fit: cover;
+      flex-shrink: 0; image-rendering: pixelated;
+    }
+
+    .irmao-nome {
+      font-family: var(--mono); font-size: 11px;
+      font-weight: 500; color: var(--wave);
+    }
+    .irmao-arte {
+      font-size: 11px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: white;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: .5px; padding: 10px 22px;
+      border-radius: 20px; opacity: 0; transition: all .3s;
+      pointer-events: none; z-index: 9000; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── MODAL ARTE (detalhes + ações) ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(13,13,13,.55);
+      backdrop-filter: blur(8px);
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.aberto { display: flex; }
+
+    .modal {
+      width: 100%; max-width: 640px;
+      background: var(--card);
+      border-top: 1.5px solid var(--shore);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 24px 20px 40px;
+      animation: slideUp .3s ease;
+      position: relative;
+    }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+    .modal-handle {
+      width: 36px; height: 4px; background: var(--shore);
+      border-radius: 2px; margin: 0 auto 20px;
+    }
+
+    .modal-fechar {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; color: var(--muted);
+      font-size: 22px; cursor: pointer; font-family: var(--mono);
+    }
+    .modal-fechar:hover { color: var(--ink); }
+
+    .modal-arte-wrap {
+      width: 100%; aspect-ratio: 1; max-height: 260px;
+      border-radius: var(--radius); overflow: hidden;
+      margin-bottom: 16px; position: relative;
+    }
+    .modal-arte-wrap::after { content:''; position:absolute; inset:0; z-index:5; }
+    .modal-arte-wrap canvas {
+      width:100%; height:100%; display:block;
+      image-rendering:pixelated; pointer-events:none;
+    }
+
+    .modal-titulo {
+      font-family: var(--display); font-size: 22px;
+      letter-spacing: 2px; color: var(--ink); margin-bottom: 2px;
+    }
+    .modal-meta {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 16px;
+    }
+
+    /* dono da arte no modal */
+    .modal-dono {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px; background: var(--sand);
+      border: 1.5px solid var(--shore); border-radius: var(--radius);
+      margin-bottom: 16px;
+    }
+    .modal-dono-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid var(--foam); object-fit: cover;
+      image-rendering: pixelated;
+    }
+    .modal-dono-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 2px;
+    }
+    .modal-dono-nome {
+      font-family: var(--mono); font-size: 13px;
+      font-weight: 500; color: var(--wave);
+    }
+
+    /* preço no modal */
+    .modal-preco-wrap {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--sand); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); margin-bottom: 16px;
+    }
+    .modal-preco-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted); margin-bottom: 4px;
+    }
+    .modal-preco-valor {
+      font-family: var(--display); font-size: 30px;
+      letter-spacing: 2px; color: var(--ink);
+    }
+    .modal-preco-moeda {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1px; color: var(--muted);
+    }
+
+    /* input de preço (para colocar à venda) */
+    .preco-input-wrap { margin-bottom: 12px; }
+    .preco-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; display: block;
+    }
+    .preco-row { display: flex; gap: 10px; align-items: center; }
+    .preco-input {
+      flex: 1; height: 48px;
+      background: var(--sand); border: 1.5px solid var(--shore);
+      border-radius: var(--radius);
+      font-family: var(--display); font-size: 24px;
+      letter-spacing: 2px; color: var(--ink);
+      text-align: center; outline: none;
+      transition: border-color .2s;
+      -webkit-user-select: text; user-select: text;
+    }
+    .preco-input:focus { border-color: var(--wave); }
+    .preco-input::placeholder { color: var(--shore); font-size: 18px; }
+    .preco-moeda {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 1px; color: var(--muted);
+    }
+
+    /* botões do modal */
+    .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn-primario {
+      width: 100%; height: 48px;
+      background: var(--wave); color: white;
+      border: none; border-radius: 25px;
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 1.5px;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-primario:hover:not(:disabled) { background: #0033cc; transform: translateY(-1px); }
+    .btn-primario:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-secundario {
+      width: 100%; height: 44px;
+      background: none; color: var(--muted);
+      border: 1.5px solid var(--shore); border-radius: 25px;
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 1px; cursor: pointer; transition: all .2s;
+    }
+    .btn-secundario:hover { border-color: var(--coral); color: var(--coral); }
+
+    .btn-comprar-arte {
+      width: 100%; height: 48px;
+      background: var(--sun); color: var(--ink);
+      border: none; border-radius: 25px;
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 1.5px;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-comprar-arte:hover:not(:disabled) { background: #e0a800; transform: translateY(-1px); }
+    .btn-comprar-arte:disabled { opacity: .5; cursor: not-allowed; }
+
+    .taxa-aviso {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted);
+      text-align: center; margin-top: 8px; line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="feed-header">
+    <div class="header-logo">A <span>GALERIA</span></div>
+    <div>
+      <span class="header-saldo" id="header-saldo">— $POMB</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ABAS -->
+    <div class="abas">
+      <button class="aba ativa" id="aba-minhas" onclick="mudarAba('minhas')">
+        🖼️ MINHAS ARTES
+      </button>
+      <button class="aba" id="aba-irmaos" onclick="mudarAba('irmaos')">
+        🕊️ GALERIA DOS IRMÃOS
+      </button>
+    </div>
+
+    <!-- ══ MINHAS ARTES ══ -->
+    <div id="secao-minhas" class="secao ativa">
+
+      <!-- Skeleton -->
+      <div id="sk-minhas" class="sk-grid">
+        <div class="sk-card"><div class="sk-thumb"></div><div class="sk-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:40%"></div></div></div>
+        <div class="sk-card"><div class="sk-thumb"></div><div class="sk-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:40%"></div></div></div>
+      </div>
+
+      <!-- Grid real -->
+      <div id="grid-minhas" class="artes-grid" style="display:none"></div>
+
+      <!-- Vazio -->
+      <div id="vazio-minhas" class="estado-vazio" style="display:none">
+        <div class="icone">🖼️</div>
+        <p>NENHUMA ARTE AINDA</p>
+        <p style="margin-top:6px;opacity:.6;font-size:9px">
+          Ganhe um leilão na Praia para ter sua primeira obra
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ══ GALERIA DOS IRMÃOS ══ -->
+    <div id="secao-irmaos" class="secao">
+
+      <!-- Filtros -->
+      <div class="filtros">
+        <button class="btn-filtro ativo" onclick="filtrar('todos', this)">TODOS</button>
+        <button class="btn-filtro" onclick="filtrar('venda', this)">À VENDA</button>
+        <button class="btn-filtro" onclick="filtrar('recentes', this)">RECENTES</button>
+      </div>
+
+      <!-- Skeleton -->
+      <div id="sk-irmaos" class="sk-grid">
+        <div class="sk-card"><div class="sk-thumb"></div><div class="sk-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:40%"></div></div></div>
+        <div class="sk-card"><div class="sk-thumb"></div><div class="sk-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:40%"></div></div></div>
+        <div class="sk-card"><div class="sk-thumb"></div><div class="sk-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:40%"></div></div></div>
+        <div class="sk-card"><div class="sk-thumb"></div><div class="sk-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:40%"></div></div></div>
+      </div>
+
+      <!-- Grid real -->
+      <div id="grid-irmaos" class="artes-grid" style="display:none"></div>
+
+      <!-- Vazio -->
+      <div id="vazio-irmaos" class="estado-vazio" style="display:none">
+        <div class="icone">🕊️</div>
+        <p>NENHUMA ARTE À VENDA</p>
+        <p style="margin-top:6px;opacity:.6;font-size:9px">
+          Os irmãos ainda não colocaram obras no mercado
+        </p>
+      </div>
+
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- MODAL DETALHES DA ARTE -->
+  <div class="modal-overlay" id="modal-arte">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <button class="modal-fechar" onclick="fecharModal()">×</button>
+
+      <!-- Canvas da arte em tamanho maior -->
+      <div class="modal-arte-wrap">
+        <canvas id="modal-canvas" width="480" height="480"
+          oncontextmenu="return false"></canvas>
+      </div>
+
+      <p class="modal-titulo" id="modal-titulo">···</p>
+      <p class="modal-meta"   id="modal-meta">···</p>
+
+      <!-- Dono (visível na galeria dos irmãos) -->
+      <div class="modal-dono" id="modal-dono" style="display:none">
+        <img class="modal-dono-avatar" id="modal-dono-avatar" src="" alt="">
+        <div>
+          <p class="modal-dono-label">PROPRIEDADE DE</p>
+          <p class="modal-dono-nome" id="modal-dono-nome">@···</p>
+        </div>
+      </div>
+
+      <!-- Conteúdo dinâmico (muda conforme contexto) -->
+      <div id="modal-conteudo"></div>
+
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="auth.js"></script>
+
+  <script>
+    // ══════════════════════════════════════════
+    //  ESTADO
+    // ══════════════════════════════════════════
+    let meuUID    = null;
+    let meuSaldo  = 0;
+    let abaAtual  = 'minhas';
+    let filtroAtual = 'todos';
+    let arteAtual  = null; // arte aberta no modal
+    let todasIrmaos = []; // cache para filtragem
+
+    // ══════════════════════════════════════════
+    //  ANTI-SCREENSHOT
+    // ══════════════════════════════════════════
+    document.addEventListener('keydown', (e) => {
+      if (
+        e.key === 'PrintScreen' ||
+        (e.ctrlKey && ['s','c','p','u'].includes(e.key.toLowerCase())) ||
+        (e.metaKey && ['s','c','p','u'].includes(e.key.toLowerCase()))
+      ) {
+        e.preventDefault();
+        mostrarToast('🔒 Esta arte é protegida pela Ordem.');
+      }
+    });
+    document.addEventListener('contextmenu', e => {
+      if (e.target.tagName === 'CANVAS') e.preventDefault();
+    });
+
+    // ══════════════════════════════════════════
+    //  TOAST
+    // ══════════════════════════════════════════
+    let toastTimer;
+    function mostrarToast(msg, dur = 3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+    }
+
+    // ══════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'invite.html'; return; }
+      meuUID = user.uid;
+
+      // Saldo em tempo real
+      db.collection('usuarios').doc(meuUID).onSnapshot((snap) => {
+        if (!snap.exists) return;
+        meuSaldo = snap.data().pombcoins || 0;
+        document.getElementById('header-saldo').textContent = `${meuSaldo} $POMB`;
+      });
+
+      await carregarMinhasArtes();
+    });
+
+    // ══════════════════════════════════════════
+    //  ABAS
+    // ══════════════════════════════════════════
+    async function mudarAba(aba) {
+      abaAtual = aba;
+
+      document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+      document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+
+      document.getElementById(`aba-${aba}`).classList.add('ativa');
+      document.getElementById(`secao-${aba}`).classList.add('ativa');
+
+      if (aba === 'irmaos') await carregarIrmaos();
+    }
+
+    // ══════════════════════════════════════════
+    //  MINHAS ARTES
+    // ══════════════════════════════════════════
+    async function carregarMinhasArtes() {
+      try {
+        const snap = await db.collection('galeria')
+          .where('dono_uid', '==', meuUID)
+          .orderBy('adquirida_em', 'desc')
+          .get();
+
+        document.getElementById('sk-minhas').style.display = 'none';
+
+        if (snap.empty) {
+          document.getElementById('vazio-minhas').style.display = 'block';
+          return;
+        }
+
+        const grid = document.getElementById('grid-minhas');
+        grid.style.display = 'grid';
+        grid.innerHTML = '';
+
+        snap.forEach((doc) => {
+          const arte = { id: doc.id, ...doc.data() };
+          grid.appendChild(criarCardMinha(arte));
+        });
+
+      } catch(e) {
+        console.error('Erro ao carregar minhas artes:', e);
+        document.getElementById('sk-minhas').style.display = 'none';
+        mostrarToast('Erro ao carregar suas artes.');
+      }
+    }
+
+    function criarCardMinha(arte) {
+      const div = document.createElement('div');
+      div.className = 'arte-card';
+      div.onclick = () => abrirModalMinha(arte);
+
+      const badge = arte.a_venda
+        ? `<span class="arte-badge venda">À VENDA</span>`
+        : `<span class="arte-badge guardada">GUARDADA</span>`;
+
+      const preco = arte.a_venda
+        ? `<p class="arte-preco">${arte.preco} $POMB</p>`
+        : '';
+
+      div.innerHTML = `
+        <div class="arte-thumb">
+          <canvas width="200" height="200"></canvas>
+          ${badge}
+        </div>
+        <div class="arte-info">
+          <p class="arte-nome">${arte.arte_titulo || 'SEM TÍTULO'}</p>
+          <p class="arte-semana">SEMANA · ${arte.semana || '—'}</p>
+          ${preco}
+        </div>`;
+
+      // Renderiza no canvas do card
+      const canvas = div.querySelector('canvas');
+      renderizarMini(canvas, arte.arte_dna || {});
+
+      return div;
+    }
+
+    // ══════════════════════════════════════════
+    //  GALERIA DOS IRMÃOS
+    // ══════════════════════════════════════════
+    async function carregarIrmaos() {
+      document.getElementById('sk-irmaos').style.display = 'grid';
+      document.getElementById('grid-irmaos').style.display = 'none';
+      document.getElementById('vazio-irmaos').style.display = 'none';
+
+      try {
+        const snap = await db.collection('galeria')
+          .where('dono_uid', '!=', meuUID) // não mostra as minhas
+          .orderBy('dono_uid') // necessário após !=
+          .orderBy('adquirida_em', 'desc')
+          .limit(40)
+          .get();
+
+        // Busca dados dos donos em paralelo
+        const artes = [];
+        for (const doc of snap.docs) {
+          const arte = { id: doc.id, ...doc.data() };
+
+          // Pega dados do dono
+          try {
+            const donoSnap = await db.collection('usuarios').doc(arte.dono_uid).get();
+            if (donoSnap.exists) {
+              const d = donoSnap.data();
+              arte.dono_username = d.username || 'pombito';
+              arte.dono_foto     = d.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${arte.dono_uid}`;
+            }
+          } catch(e) { /* ignora */ }
+
+          artes.push(arte);
+        }
+
+        todasIrmaos = artes;
+        document.getElementById('sk-irmaos').style.display = 'none';
+        renderizarIrmaos(artes);
+
+      } catch(e) {
+        console.error('Erro ao carregar galeria:', e);
+        document.getElementById('sk-irmaos').style.display = 'none';
+        mostrarToast('Erro ao carregar a galeria.');
+      }
+    }
+
+    function renderizarIrmaos(artes) {
+      const grid = document.getElementById('grid-irmaos');
+
+      if (artes.length === 0) {
+        document.getElementById('vazio-irmaos').style.display = 'block';
+        grid.style.display = 'none';
+        return;
+      }
+
+      document.getElementById('vazio-irmaos').style.display = 'none';
+      grid.style.display = 'grid';
+      grid.innerHTML = '';
+
+      artes.forEach((arte) => {
+        const div = document.createElement('div');
+        div.className = 'irmao-card';
+        div.onclick = () => abrirModalIrmao(arte);
+
+        const precoBadge = arte.a_venda
+          ? `<span class="irmao-preco-badge">${arte.preco} $POMB</span>`
+          : '';
+
+        div.innerHTML = `
+          <div class="irmao-thumb">
+            <canvas width="200" height="200"></canvas>
+            ${precoBadge}
+          </div>
+          <div class="irmao-info">
+            <img class="irmao-avatar"
+              src="${arte.dono_foto || `https://api.dicebear.com/7.x/identicon/svg?seed=${arte.dono_uid}`}"
+              onerror="this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${arte.dono_uid}'"
+              alt="">
+            <div style="min-width:0">
+              <p class="irmao-nome">@${arte.dono_username || '···'}</p>
+              <p class="irmao-arte">${arte.arte_titulo || 'SEM TÍTULO'}</p>
+            </div>
+          </div>`;
+
+        const canvas = div.querySelector('canvas');
+        renderizarMini(canvas, arte.arte_dna || {});
+        grid.appendChild(div);
+      });
+    }
+
+    // ══════════════════════════════════════════
+    //  FILTROS
+    // ══════════════════════════════════════════
+    function filtrar(tipo, btn) {
+      filtroAtual = tipo;
+      document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
+      btn.classList.add('ativo');
+
+      let filtradas = [...todasIrmaos];
+
+      if (tipo === 'venda') {
+        filtradas = filtradas.filter(a => a.a_venda === true);
+      } else if (tipo === 'recentes') {
+        filtradas = filtradas.sort((a, b) => {
+          const ta = a.adquirida_em?.seconds || 0;
+          const tb = b.adquirida_em?.seconds || 0;
+          return tb - ta;
+        });
+      }
+
+      renderizarIrmaos(filtradas);
+    }
+
+    // ══════════════════════════════════════════
+    //  MODAL — MINHA ARTE
+    // ══════════════════════════════════════════
+    function abrirModalMinha(arte) {
+      arteAtual = arte;
+
+      document.getElementById('modal-titulo').textContent = arte.arte_titulo || 'SEM TÍTULO';
+      document.getElementById('modal-meta').textContent   =
+        `SEMANA ${arte.semana || '—'} · ADQUIRIDA NO LEILÃO`;
+      document.getElementById('modal-dono').style.display = 'none';
+
+      // Renderiza arte grande
+      const canvas = document.getElementById('modal-canvas');
+      renderizarMini(canvas, arte.arte_dna || {});
+
+      // Conteúdo dinâmico
+      const conteudo = document.getElementById('modal-conteudo');
+
+      if (arte.a_venda) {
+        // Está à venda — pode retirar ou alterar preço
+        conteudo.innerHTML = `
+          <div class="modal-preco-wrap">
+            <div>
+              <p class="modal-preco-label">PREÇO ATUAL</p>
+              <p class="modal-preco-valor">${arte.preco}</p>
+            </div>
+            <p class="modal-preco-moeda">$POMB</p>
+          </div>
+          <div class="preco-input-wrap">
+            <label class="preco-label">ALTERAR PREÇO</label>
+            <div class="preco-row">
+              <input type="number" id="novo-preco" class="preco-input"
+                placeholder="${arte.preco}" min="1"
+                onfocus="this.select()">
+              <span class="preco-moeda">$POMB</span>
+            </div>
+          </div>
+          <div class="modal-btns">
+            <button class="btn-primario" onclick="alterarPreco()">
+              ATUALIZAR PREÇO
+            </button>
+            <button class="btn-secundario" onclick="retirarDaVenda()">
+              RETIRAR DA VENDA
+            </button>
+          </div>
+          <p class="taxa-aviso">A Ordem retém 10% sobre cada venda realizada.</p>`;
+      } else {
+        // Guardada — pode colocar à venda
+        conteudo.innerHTML = `
+          <div class="preco-input-wrap">
+            <label class="preco-label">DEFINIR PREÇO DE VENDA</label>
+            <div class="preco-row">
+              <input type="number" id="novo-preco" class="preco-input"
+                placeholder="100" min="1"
+                onfocus="this.select()">
+              <span class="preco-moeda">$POMB</span>
+            </div>
+          </div>
+          <div class="modal-btns">
+            <button class="btn-primario" onclick="colocarAVenda()">
+              COLOCAR À VENDA
+            </button>
+          </div>
+          <p class="taxa-aviso">A Ordem retém 10% sobre cada venda realizada.</p>`;
+      }
+
+      document.getElementById('modal-arte').classList.add('aberto');
+    }
+
+    // ══════════════════════════════════════════
+    //  MODAL — ARTE DO IRMÃO
+    // ══════════════════════════════════════════
+    function abrirModalIrmao(arte) {
+      arteAtual = arte;
+
+      document.getElementById('modal-titulo').textContent = arte.arte_titulo || 'SEM TÍTULO';
+      document.getElementById('modal-meta').textContent   =
+        `SEMANA ${arte.semana || '—'} · COLEÇÃO PRIVADA`;
+
+      // Mostra dono
+      const donoEl = document.getElementById('modal-dono');
+      donoEl.style.display = 'flex';
+      document.getElementById('modal-dono-avatar').src =
+        arte.dono_foto || `https://api.dicebear.com/7.x/identicon/svg?seed=${arte.dono_uid}`;
+      document.getElementById('modal-dono-nome').textContent =
+        '@' + (arte.dono_username || '···');
+
+      // Renderiza arte grande
+      const canvas = document.getElementById('modal-canvas');
+      renderizarMini(canvas, arte.arte_dna || {});
+
+      // Conteúdo
+      const conteudo = document.getElementById('modal-conteudo');
+
+      if (arte.a_venda) {
+        const taxaOrdem = Math.floor(arte.preco * 0.1);
+        conteudo.innerHTML = `
+          <div class="modal-preco-wrap">
+            <div>
+              <p class="modal-preco-label">PREÇO</p>
+              <p class="modal-preco-valor">${arte.preco}</p>
+            </div>
+            <p class="modal-preco-moeda">$POMB</p>
+          </div>
+          <div class="modal-btns">
+            <button class="btn-comprar-arte" id="btn-comprar-obra"
+              onclick="comprarArte()"
+              ${meuSaldo < arte.preco ? 'disabled' : ''}>
+              ${meuSaldo >= arte.preco ? `🤝 COMPRAR POR ${arte.preco} $POMB` : 'SALDO INSUFICIENTE'}
+            </button>
+          </div>
+          <p class="taxa-aviso">
+            ${taxaOrdem} $POMB (10%) vão para a Ordem · ${arte.preco - taxaOrdem} $POMB para o irmão
+          </p>`;
+      } else {
+        conteudo.innerHTML = `
+          <div class="modal-btns">
+            <button class="btn-secundario" style="cursor:default;opacity:.6" disabled>
+              🔒 ESTA OBRA NÃO ESTÁ À VENDA
+            </button>
+          </div>`;
+      }
+
+      document.getElementById('modal-arte').classList.add('aberto');
+    }
+
+    function fecharModal() {
+      document.getElementById('modal-arte').classList.remove('aberto');
+      arteAtual = null;
+    }
+
+    // ══════════════════════════════════════════
+    //  AÇÕES DA MINHA ARTE
+    // ══════════════════════════════════════════
+    async function colocarAVenda() {
+      const input = document.getElementById('novo-preco');
+      const preco = parseInt(input.value);
+
+      if (!preco || preco < 1) { mostrarToast('Defina um preço válido.'); return; }
+
+      try {
+        await db.collection('galeria').doc(arteAtual.id).update({
+          a_venda: true,
+          preco,
+          colocada_venda_em: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+
+        mostrarToast(`Arte colocada à venda por ${preco} $POMB! 🖼️`);
+        fecharModal();
+        await carregarMinhasArtes();
+      } catch(e) {
+        console.error(e);
+        mostrarToast('Erro ao colocar à venda.');
+      }
+    }
+
+    async function alterarPreco() {
+      const input = document.getElementById('novo-preco');
+      const preco = parseInt(input.value);
+
+      if (!preco || preco < 1) { mostrarToast('Defina um preço válido.'); return; }
+
+      try {
+        await db.collection('galeria').doc(arteAtual.id).update({ preco });
+        mostrarToast(`Preço atualizado para ${preco} $POMB!`);
+        fecharModal();
+        await carregarMinhasArtes();
+      } catch(e) {
+        mostrarToast('Erro ao atualizar preço.');
+      }
+    }
+
+    async function retirarDaVenda() {
+      try {
+        await db.collection('galeria').doc(arteAtual.id).update({
+          a_venda: false, preco: 0,
+        });
+        mostrarToast('Arte retirada da venda.');
+        fecharModal();
+        await carregarMinhasArtes();
+      } catch(e) {
+        mostrarToast('Erro ao retirar da venda.');
+      }
+    }
+
+    // ══════════════════════════════════════════
+    //  COMPRAR ARTE DO IRMÃO
+    // ══════════════════════════════════════════
+    async function comprarArte() {
+      if (!arteAtual || !arteAtual.a_venda) return;
+
+      const btn = document.getElementById('btn-comprar-obra');
+      btn.disabled = true;
+      btn.textContent = 'PROCESSANDO...';
+
+      try {
+        const preco     = arteAtual.preco;
+        const taxaOrdem = Math.floor(preco * 0.1);
+        const valorDono = preco - taxaOrdem;
+
+        await db.runTransaction(async (t) => {
+          // Verifica saldo do comprador
+          const compradorRef  = db.collection('usuarios').doc(meuUID);
+          const compradorSnap = await t.get(compradorRef);
+          const saldoAtual    = compradorSnap.data().pombcoins || 0;
+
+          if (saldoAtual < preco) throw new Error('Saldo insuficiente.');
+
+          // Verifica se ainda está à venda
+          const arteRef  = db.collection('galeria').doc(arteAtual.id);
+          const arteSnap = await t.get(arteRef);
+          if (!arteSnap.data().a_venda) throw new Error('Esta arte já foi vendida.');
+
+          const donoRef = db.collection('usuarios').doc(arteAtual.dono_uid);
+
+          // Débita comprador
+          t.update(compradorRef, {
+            pombcoins: saldoAtual - preco,
+          });
+
+          // Credita dono (menos taxa)
+          t.update(donoRef, {
+            pombcoins: firebase.firestore.FieldValue.increment(valorDono),
+          });
+
+          // Transfere propriedade da arte
+          t.update(arteRef, {
+            dono_uid:       meuUID,
+            a_venda:        false,
+            preco:          0,
+            adquirida_em:   firebase.firestore.FieldValue.serverTimestamp(),
+            historico:      firebase.firestore.FieldValue.arrayUnion({
+              de:   arteAtual.dono_uid,
+              para: meuUID,
+              preco,
+              taxa: taxaOrdem,
+              data: new Date().toISOString(),
+            }),
+          });
+
+          // Registra transação
+          const txRef = db.collection('transacoes').doc();
+          t.set(txRef, {
+            tipo:       'compra_galeria',
+            comprador:  meuUID,
+            vendedor:   arteAtual.dono_uid,
+            arte_id:    arteAtual.id,
+            arte_titulo: arteAtual.arte_titulo,
+            preco,
+            taxa_ordem:  taxaOrdem,
+            valor_dono:  valorDono,
+            data:        firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        mostrarToast(`Arte adquirida por ${preco} $POMB! 🎉`);
+        fecharModal();
+
+        // Recarrega abas
+        await carregarMinhasArtes();
+        if (abaAtual === 'irmaos') await carregarIrmaos();
+
+      } catch(e) {
+        console.error('Erro na compra:', e);
+        mostrarToast(e.message || 'Erro ao comprar. Tente novamente.');
+        btn.disabled = false;
+        btn.textContent = `🤝 COMPRAR POR ${arteAtual.preco} $POMB`;
+      }
+    }
+
+    // ══════════════════════════════════════════
+    //  RENDERIZAR ARTE NO CANVAS (mini)
+    // ══════════════════════════════════════════
+    function renderizarMini(canvas, dna) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+
+      ctx.fillStyle = '#f0ebe3';
+      ctx.fillRect(0, 0, W, H);
+
+      const seed = hashStr(dna.tema || 'pombito');
+      const cores = [
+        `hsl(${210 + seed % 60}, 70%, 75%)`,
+        `hsl(${30  + seed % 30}, 60%, 80%)`,
+        `hsl(${200 + seed % 40}, 50%, 70%)`,
+      ];
+
+      for (let i = 0; i < 16; i++) {
+        const x = (seed * (i+1) * 137) % W;
+        const y = (seed * (i+1) * 97)  % H;
+        const s = 20 + (seed * i % 40);
+        ctx.fillStyle = cores[i % cores.length];
+        ctx.globalAlpha = 0.1 + (i % 4) * 0.04;
+        ctx.fillRect(x, y, s, s);
+      }
+      ctx.globalAlpha = 1;
+
+      // Pombo pixel
+      const px  = Math.floor(W / 16);
+      const grade = [
+        [0,0,1,1,1,1,1,0,0],
+        [0,1,1,1,1,1,1,1,0],
+        [2,2,1,1,4,1,1,2,2],
+        [2,2,2,1,1,1,2,2,2],
+        [0,2,2,1,1,1,2,2,0],
+        [0,0,1,1,1,1,1,0,0],
+        [0,0,0,1,0,1,0,0,0],
+      ];
+      const ox = Math.floor((W - grade[0].length * px) / 2);
+      const oy = Math.floor((H - grade.length * px) / 2);
+      const corAsa = `hsl(${210 + seed%60}, 60%, 55%)`;
+
+      grade.forEach((linha, r) => {
+        linha.forEach((cod, c) => {
+          if (!cod) return;
+          ctx.fillStyle = cod === 1 ? '#e8d4a0' : cod === 2 ? corAsa : cod === 4 ? '#0d0d0d' : '#f5b800';
+          ctx.fillRect(ox + c*px, oy + r*px, px-1, px-1);
+        });
+      });
+
+      // Halo
+      ctx.strokeStyle = 'rgba(245,184,0,0.3)';
+      ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      ctx.arc(W/2, oy - 4, W*0.15, 0, Math.PI*2);
+      ctx.stroke(); ctx.setLineDash([]);
+
+      // Assinatura
+      ctx.font = `${Math.max(7, W*0.04)}px monospace`;
+      ctx.fillStyle = 'rgba(138,130,120,0.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText('LOS POMBITOS', W/2, H - Math.max(6, W*0.04));
+    }
+
+    function hashStr(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) & 0xffffffff;
+      return Math.abs(h);
+    }
+
+    // Fecha modal ao clicar fora
+    document.getElementById('modal-arte').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) fecharModal();
+    });
+  </script>
+</body>
+</html>
+
