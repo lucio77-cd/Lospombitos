@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Los Pombitos | A Praia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── TOKENS (idênticos ao feed) ── */
+    :root {
+      --ink:     #0d0d0d;
+      --sand:    #f0ebe3;
+      --shore:   #e2d9cd;
+      --wave:    #1a4fff;
+      --foam:    #c8d8ff;
+      --sun:     #f5b800;
+      --coral:   #ff5533;
+      --muted:   #8a8278;
+      --card:    #faf8f5;
+      --green:   #1a8a4a;
+      --radius:  14px;
+      --mono:    'DM Mono', monospace;
+      --sans:    'DM Sans', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--sand);
+      color: var(--ink);
+      min-height: 100dvh;
+      padding-bottom: 80px;
+      overscroll-behavior: none;
+      /* anti-screenshot */
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Grain — igual ao feed */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: .5;
+    }
+
+    /* ── HEADER ── */
+    .feed-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--sand);
+      border-bottom: 1.5px solid var(--shore);
+      padding: 0 20px; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+
+    .header-logo {
+      font-family: var(--display);
+      font-size: 26px; letter-spacing: 3px;
+      color: var(--wave); line-height: 1;
+    }
+    .header-logo span { color: var(--sun); }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .header-saldo {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 1px;
+      color: var(--wave);
+      background: var(--foam);
+      border-radius: 20px; padding: 5px 12px;
+      cursor: pointer; transition: all .2s;
+      border: none;
+    }
+    .header-saldo:hover { background: var(--wave); color: white; }
+
+    /* ── CONTAINER ── */
+    .container {
+      padding: 20px 16px 90px;
+      max-width: 640px; margin: 0 auto;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-family: var(--display);
+      font-size: 22px; letter-spacing: 2px;
+      color: var(--ink); margin-bottom: 4px;
+    }
+
+    .section-sub {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1.5px; color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── ARTE CARD ── */
+    .arte-card {
+      background: var(--card);
+      border: 1.5px solid var(--shore);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      animation: fadeUp .3s ease;
+    }
+
+    /* PROTEÇÃO DA ARTE */
+    .arte-protegida {
+      position: relative;
+      width: 100%; aspect-ratio: 1;
+      overflow: hidden; cursor: not-allowed;
+    }
+
+    .arte-protegida::after {
+      content: ''; position: absolute; inset: 0; z-index: 10;
+    }
+
+    .arte-watermark {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; opacity: 0; transition: opacity .3s;
+      background: rgba(240,235,227,.85);
+    }
+    .arte-protegida:hover .arte-watermark { opacity: 1; }
+
+    .watermark-texto {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 2px; color: var(--muted);
+      text-align: center; line-height: 2.2;
+      transform: rotate(-12deg);
+    }
+
+    #arte-canvas {
+      width: 100%; height: 100%; display: block;
+      image-rendering: pixelated;
+      -webkit-user-drag: none; pointer-events: none;
+    }
+
+    .arte-info {
+      padding: 14px 16px;
+      border-top: 1px solid var(--shore);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .arte-titulo {
+      font-family: var(--display);
+      font-size: 18px; letter-spacing: 2px; color: var(--ink);
+    }
+
+    .arte-semana {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted); margin-top: 2px;
+    }
+
+    .arte-lote {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1px; color: var(--wave);
+      background: var(--foam); border-radius: 20px;
+      padding: 4px 12px;
+    }
+
+    /* ── TIMER ── */
+    .timer-card {
+      background: var(--wave);
+      border-radius: var(--radius);
+      padding: 16px 20px; margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      color: white;
+    }
+
+    .timer-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; opacity: .7; margin-bottom: 4px;
+    }
+
+    .timer-valor {
+      font-family: var(--display);
+      font-size: 32px; letter-spacing: 4px; line-height: 1;
+    }
+
+    .timer-data {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1px; opacity: .7; text-align: right;
+    }
+
+    /* ── STATUS DO LANCE ── */
+    .status-card {
+      border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 16px;
+      border: 1.5px solid; display: flex;
+      align-items: center; justify-content: space-between;
+      transition: all .4s;
+    }
+
+    .status-card.sem-lance {
+      background: var(--card); border-color: var(--shore);
+    }
+    .status-card.ganhando {
+      background: #edfff5; border-color: #b8f0d0;
+    }
+    .status-card.perdendo {
+      background: #fff0ee; border-color: #ffd5ce;
+    }
+
+    .status-esquerda { display: flex; align-items: center; gap: 12px; }
+    .status-icone { font-size: 24px; }
+
+    .status-titulo {
+      font-family: var(--mono); font-size: 11px;
+      font-weight: 500; letter-spacing: 1px;
+    }
+    .status-card.ganhando .status-titulo { color: var(--green); }
+    .status-card.perdendo .status-titulo { color: var(--coral); }
+    .status-card.sem-lance .status-titulo { color: var(--muted); }
+
+    .status-desc {
+      font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
+
+    .status-valor {
+      font-family: var(--display); font-size: 22px; letter-spacing: 1px;
+    }
+    .status-card.ganhando .status-valor { color: var(--green); }
+    .status-card.perdendo .status-valor { color: var(--coral); }
+    .status-card.sem-lance .status-valor { color: var(--muted); }
+
+    /* ── MAIOR LANCE ── */
+    .lance-atual-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    .lance-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted); margin-bottom: 10px;
+    }
+
+    .lance-row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .lance-lider { display: flex; align-items: center; gap: 10px; }
+
+    .lance-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid var(--foam); object-fit: cover;
+      background: var(--shore); image-rendering: pixelated;
+    }
+
+    .lance-username {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; color: var(--wave);
+    }
+    .lance-quando {
+      font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
+
+    .lance-numero {
+      font-family: var(--display); font-size: 28px;
+      letter-spacing: 2px; color: var(--ink); text-align: right;
+    }
+    .lance-moeda {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted); text-align: right;
+    }
+
+    /* ── HISTÓRICO ── */
+    .historico-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    .historico-titulo {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted); margin-bottom: 10px;
+    }
+
+    .lance-item {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--shore);
+      animation: fadeUp .25s ease;
+    }
+    .lance-item:last-child { border-bottom: none; }
+
+    .lance-item-user {
+      font-family: var(--mono); font-size: 11px;
+      font-weight: 500; color: var(--wave);
+    }
+    .lance-item-tempo { font-size: 11px; color: var(--muted); }
+    .lance-item-valor {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--ink); font-weight: 500;
+    }
+
+    /* ── DAR LANCE ── */
+    .dar-lance-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .dar-lance-titulo {
+      font-family: var(--display); font-size: 20px;
+      letter-spacing: 2px; color: var(--ink); margin-bottom: 2px;
+    }
+
+    .dar-lance-min {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 14px;
+    }
+
+    .lance-input-wrap {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 10px;
+    }
+
+    .lance-input {
+      flex: 1; height: 52px;
+      background: var(--sand);
+      border: 1.5px solid var(--shore); border-radius: var(--radius);
+      font-family: var(--display); font-size: 28px;
+      letter-spacing: 2px; color: var(--ink);
+      text-align: center; outline: none;
+      transition: border-color .2s;
+      -webkit-user-select: text; user-select: text;
+    }
+    .lance-input:focus { border-color: var(--wave); }
+    .lance-input::placeholder { color: var(--shore); font-size: 20px; }
+
+    .lance-moeda-label {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 1px; color: var(--muted);
+    }
+
+    .sugestoes {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+
+    .btn-sugestao {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      background: var(--foam); color: var(--wave);
+      border: none; border-radius: 20px; padding: 5px 12px;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-sugestao:hover { background: var(--wave); color: white; }
+
+    .btn-lance {
+      width: 100%; height: 48px;
+      background: var(--wave); color: white;
+      border: none; border-radius: 25px;
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 1.5px;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-lance:hover:not(:disabled) { background: #0033cc; transform: translateY(-1px); }
+    .btn-lance:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── SALDO CARD ── */
+    .saldo-card {
+      background: var(--wave);
+      background-image: linear-gradient(135deg, #1a4fff 0%, #0033cc 60%, #001a80 100%);
+      border-radius: var(--radius); padding: 20px;
+      margin-bottom: 16px; color: white;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+
+    .saldo-card::before {
+      content: 'POMB';
+      position: absolute; right: -8px; top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--display); font-size: 72px;
+      color: rgba(255,255,255,.06); pointer-events: none;
+    }
+
+    .saldo-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; opacity: .7; margin-bottom: 4px;
+    }
+
+    .saldo-numero {
+      font-family: var(--display); font-size: 34px;
+      letter-spacing: 2px; line-height: 1;
+    }
+
+    .btn-comprar {
+      font-family: var(--mono); font-size: 10px;
+      font-weight: 500; letter-spacing: 1px;
+      background: white; color: var(--wave);
+      border: none; border-radius: 20px;
+      padding: 9px 18px; cursor: pointer;
+      transition: all .2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-comprar:hover { background: var(--foam); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: white;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: .5px; padding: 10px 22px;
+      border-radius: 20px; opacity: 0; transition: all .3s;
+      pointer-events: none; z-index: 9000; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── SKELETON ── */
+    .skeleton {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+    }
+    .sk-line {
+      height: 12px; border-radius: 4px;
+      background: var(--shore); animation: shimmer 1.4s infinite;
+      margin-bottom: 8px;
+    }
+    .sk-line:last-child { margin-bottom: 0; }
+    @keyframes shimmer {
+      0%,100% { opacity: 1; } 50% { opacity: .4; }
+    }
+
+    /* ── MODAL COMPRAR ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(13,13,13,.6);
+      backdrop-filter: blur(8px);
+      display: none; align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .modal-overlay.aberto { display: flex; }
+
+    .modal {
+      width: 100%; max-width: 640px;
+      background: var(--card);
+      border-top: 1.5px solid var(--shore);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 28px 20px 40px;
+      animation: slideUp .3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .modal-handle {
+      width: 36px; height: 4px; background: var(--shore);
+      border-radius: 2px; margin: 0 auto 20px;
+    }
+
+    .modal-titulo {
+      font-family: var(--display); font-size: 24px;
+      letter-spacing: 2px; color: var(--ink); margin-bottom: 4px;
+    }
+
+    .modal-sub {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1.5px; color: var(--muted); margin-bottom: 20px;
+    }
+
+    .pacotes { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+    .pacote {
+      background: var(--sand); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 14px 16px;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: space-between; transition: all .2s;
+      position: relative;
+    }
+    .pacote:hover { border-color: var(--foam); }
+    .pacote.selecionado { border-color: var(--wave); background: #f0f3ff; }
+
+    .pacote-badge {
+      position: absolute; top: -9px; right: 14px;
+      font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+      background: var(--sun); color: var(--ink);
+      padding: 2px 8px; border-radius: 10px; font-weight: 500;
+    }
+
+    .pacote-pomb {
+      font-family: var(--display); font-size: 20px;
+      letter-spacing: 2px; color: var(--ink);
+    }
+    .pacote-bonus {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--green); margin-top: 2px;
+    }
+
+    .pacote-preco {
+      font-family: var(--mono); font-size: 15px;
+      font-weight: 500; color: var(--ink);
+    }
+
+    .btn-pix {
+      width: 100%; height: 50px;
+      background: #32BCAD; color: white; border: none;
+      border-radius: 25px; font-family: var(--mono);
+      font-size: 12px; font-weight: 500; letter-spacing: 1.5px;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-pix:hover:not(:disabled) { background: #28a99c; transform: translateY(-1px); }
+    .btn-pix:disabled { opacity: .5; cursor: not-allowed; }
+
+    .pix-aviso {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted);
+      text-align: center; margin-top: 12px; line-height: 1.8;
+    }
+
+    .modal-fechar {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; color: var(--muted);
+      font-size: 22px; cursor: pointer; font-family: var(--mono);
+      transition: color .2s;
+    }
+    .modal-fechar:hover { color: var(--ink); }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="feed-header">
+    <div class="header-logo">A <span>PRAIA</span></div>
+    <div class="header-right">
+      <button class="header-saldo" id="header-saldo" onclick="abrirModal()">
+        — $POMB
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- TÍTULO -->
+    <p class="section-title">LEILÃO DA SEMANA</p>
+    <p class="section-sub" id="section-sub">SEMANA · ···</p>
+
+    <!-- SKELETON de carregamento -->
+    <div id="loading-wrap">
+      <div class="skeleton">
+        <div class="sk-line" style="width:60%;height:200px;border-radius:10px"></div>
+      </div>
+    </div>
+
+    <!-- CONTEÚDO (aparece após carregar) -->
+    <div id="praia-content" style="display:none;animation:fadeUp .3s ease">
+
+      <!-- ARTE -->
+      <div class="arte-card">
+        <div class="arte-protegida" id="arte-wrap"
+          oncontextmenu="return false"
+          ondragstart="return false">
+          <canvas id="arte-canvas" width="480" height="480"></canvas>
+          <div class="arte-watermark">
+            <div class="watermark-texto">
+              PROPRIEDADE DA ORDEM<br>
+              LOS POMBITOS<br>
+              REPRODUÇÃO PROIBIDA
+            </div>
+          </div>
+        </div>
+        <div class="arte-info">
+          <div>
+            <p class="arte-titulo" id="arte-titulo">···</p>
+            <p class="arte-semana" id="arte-semana">SEMANA · ···</p>
+          </div>
+          <span class="arte-lote" id="arte-lote">LOTE #···</span>
+        </div>
+      </div>
+
+      <!-- TIMER -->
+      <div class="timer-card">
+        <div>
+          <p class="timer-label">ENCERRA EM</p>
+          <p class="timer-valor" id="timer-display">00:00:00</p>
+        </div>
+        <div>
+          <p class="timer-data" id="timer-data">···</p>
+          <p class="timer-data">às 23:00</p>
+        </div>
+      </div>
+
+      <!-- STATUS DO MEU LANCE -->
+      <div class="status-card sem-lance" id="status-card">
+        <div class="status-esquerda">
+          <span class="status-icone" id="status-icone">🕊️</span>
+          <div>
+            <p class="status-titulo" id="status-titulo">SEM LANCE AINDA</p>
+            <p class="status-desc" id="status-desc">Dê seu primeiro lance para entrar na disputa</p>
+          </div>
+        </div>
+        <p class="status-valor" id="status-valor">—</p>
+      </div>
+
+      <!-- MAIOR LANCE ATUAL -->
+      <div class="lance-atual-card">
+        <p class="lance-label">MAIOR LANCE ATUAL</p>
+        <div class="lance-row">
+          <div class="lance-lider">
+            <img class="lance-avatar" id="lider-avatar"
+              src="https://api.dicebear.com/7.x/identicon/svg?seed=ordem" alt="">
+            <div>
+              <p class="lance-username" id="lider-username">@···</p>
+              <p class="lance-quando" id="lider-quando">···</p>
+            </div>
+          </div>
+          <div>
+            <p class="lance-numero" id="lance-maior">—</p>
+            <p class="lance-moeda">$POMB</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTÓRICO -->
+      <div class="historico-card">
+        <p class="historico-titulo">ÚLTIMOS LANCES</p>
+        <div id="historico-lista">
+          <p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Nenhum lance ainda. Seja o primeiro!</p>
+        </div>
+      </div>
+
+      <!-- DAR LANCE -->
+      <div class="dar-lance-card">
+        <p class="dar-lance-titulo">DAR UM LANCE</p>
+        <p class="dar-lance-min" id="lance-min-label">Mínimo: — $POMB</p>
+
+        <div class="lance-input-wrap">
+          <input
+            type="number" id="lance-input" class="lance-input"
+            placeholder="0" min="1"
+            onfocus="this.select()"
+          >
+          <span class="lance-moeda-label">$POMB</span>
+        </div>
+
+        <div class="sugestoes">
+          <button class="btn-sugestao" onclick="sugerirLance('min')">MÍNIMO</button>
+          <button class="btn-sugestao" onclick="sugerirLance(10)">+10</button>
+          <button class="btn-sugestao" onclick="sugerirLance(25)">+25</button>
+          <button class="btn-sugestao" onclick="sugerirLance(50)">+50</button>
+          <button class="btn-sugestao" onclick="sugerirLance(100)">+100</button>
+        </div>
+
+        <button class="btn-lance" id="btn-lance" onclick="darLance()">
+          🔨 CONFIRMAR LANCE
+        </button>
+      </div>
+
+      <!-- SALDO -->
+      <div class="saldo-card">
+        <div>
+          <p class="saldo-label">SEU SALDO</p>
+          <p class="saldo-numero" id="saldo-display">0 $POMB</p>
+        </div>
+        <button class="btn-comprar" onclick="abrirModal()">+ COMPRAR $POMB</button>
+      </div>
+
+    </div><!-- /praia-content -->
+
+  </div><!-- /container -->
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- MODAL COMPRAR $POMB (bottom sheet) -->
+  <div class="modal-overlay" id="modal-comprar">
+    <div class="modal" style="position:relative">
+      <div class="modal-handle"></div>
+      <button class="modal-fechar" onclick="fecharModal()">×</button>
+
+      <p class="modal-titulo">COMPRAR $POMB</p>
+      <p class="modal-sub">ESCOLHA SEU PACOTE · PAGAMENTO VIA PIX</p>
+
+      <div class="pacotes">
+        <div class="pacote" onclick="selecionarPacote(this, 100, 5)">
+          <div>
+            <p class="pacote-pomb">100 $POMB</p>
+          </div>
+          <p class="pacote-preco">R$ 5,00</p>
+        </div>
+
+        <div class="pacote" onclick="selecionarPacote(this, 300, 10)">
+          <div class="pacote-badge">+50 BÔNUS</div>
+          <div>
+            <p class="pacote-pomb">300 $POMB</p>
+            <p class="pacote-bonus">250 + 50 de bônus</p>
+          </div>
+          <p class="pacote-preco">R$ 10,00</p>
+        </div>
+
+        <div class="pacote" onclick="selecionarPacote(this, 900, 25)">
+          <div class="pacote-badge">MELHOR VALOR</div>
+          <div>
+            <p class="pacote-pomb">900 $POMB</p>
+            <p class="pacote-bonus">700 + 200 de bônus</p>
+          </div>
+          <p class="pacote-preco">R$ 25,00</p>
+        </div>
+      </div>
+
+      <button class="btn-pix" id="btn-pix" onclick="iniciarPix()" disabled>
+        PAGAR COM PIX
+      </button>
+
+      <p class="pix-aviso">
+        Saldo creditado em até 5 minutos após confirmação.<br>
+        $POMB é crédito interno — não pode ser sacado.
+      </p>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="auth.js"></script>
+
+  <script>
+    // ══════════════════════════════════════════
+    //  ESTADO
+    // ══════════════════════════════════════════
+    let meuUID     = null;
+    let meuSaldo   = 0;
+    let meuLance   = 0;
+    let maiorLance = 0;
+    let leilaoId   = null;
+    let leilaoFim  = null;
+    let pacoteAtual = null;
+    let leilaoListener = null;
+    let saldoListener  = null;
+
+    // ══════════════════════════════════════════
+    //  ANTI-SCREENSHOT
+    // ══════════════════════════════════════════
+    document.addEventListener('keydown', (e) => {
+      if (
+        e.key === 'PrintScreen' ||
+        (e.ctrlKey && ['s','c','p','u'].includes(e.key.toLowerCase())) ||
+        (e.metaKey && ['s','c','p','u'].includes(e.key.toLowerCase()))
+      ) {
+        e.preventDefault();
+        mostrarToast('🔒 Esta arte é protegida pela Ordem.');
+      }
+    });
+
+    document.addEventListener('contextmenu', e => {
+      if (e.target.closest('.arte-protegida')) e.preventDefault();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      const canvas = document.getElementById('arte-canvas');
+      if (!canvas) return;
+      if (document.hidden) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f0ebe3';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (window._arteAtual) {
+        renderizarArte(window._arteAtual);
+      }
+    });
+
+    // ══════════════════════════════════════════
+    //  TOAST
+    // ══════════════════════════════════════════
+    let toastTimer;
+    function mostrarToast(msg, dur = 3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+    }
+
+    // ══════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'invite.html'; return; }
+      meuUID = user.uid;
+      ouvirSaldo();
+      await carregarLeilao();
+      iniciarAcumulador();
+      registrarPush();
+    });
+
+    // ══════════════════════════════════════════
+    //  SALDO EM TEMPO REAL
+    // ══════════════════════════════════════════
+    function ouvirSaldo() {
+      if (saldoListener) saldoListener();
+      saldoListener = db.collection('usuarios').doc(meuUID)
+        .onSnapshot((snap) => {
+          if (!snap.exists) return;
+          meuSaldo = snap.data().pombcoins || 0;
+          document.getElementById('saldo-display').textContent = `${meuSaldo} $POMB`;
+          document.getElementById('header-saldo').textContent = `${meuSaldo} $POMB`;
+          atualizarMinLabel();
+        });
+    }
+
+    // ══════════════════════════════════════════
+    //  LEILÃO ATIVO
+    // ══════════════════════════════════════════
+    async function carregarLeilao() {
+      try {
+        const snap = await db.collection('leiloes')
+          .where('status', '==', 'ativo')
+          .orderBy('criado_em', 'desc')
+          .limit(1).get();
+
+        if (snap.empty) {
+          await criarLeilao();
+        } else {
+          const doc = snap.docs[0];
+          leilaoId  = doc.id;
+          const d   = doc.data();
+          leilaoFim = d.encerra_em.toDate();
+
+          document.getElementById('arte-titulo').textContent = d.arte_titulo || 'ARTE DA SEMANA';
+          document.getElementById('arte-semana').textContent = `SEMANA · ${d.numero_semana || '—'}`;
+          document.getElementById('arte-lote').textContent   = `LOTE #${d.numero_semana || '1'}`;
+          document.getElementById('section-sub').textContent = `SEMANA ${d.numero_semana || '—'} · LEILÃO ABERTO`;
+
+          window._arteAtual = d.arte_dna || {};
+          renderizarArte(d.arte_dna || {});
+          iniciarTimer(leilaoFim);
+          ouvirLances();
+
+          document.getElementById('loading-wrap').style.display = 'none';
+          document.getElementById('praia-content').style.display = 'block';
+        }
+      } catch(e) {
+        console.error('Erro ao carregar leilão:', e);
+        mostrarToast('Erro ao carregar o leilão.');
+      }
+    }
+
+    async function criarLeilao() {
+      const agora = new Date();
+      const fim   = new Date(agora);
+      fim.setDate(fim.getDate() + (7 - fim.getDay()));
+      fim.setHours(23, 0, 0, 0);
+
+      const temas = [
+        'Ocean Ceremony', 'Midnight Carnival', 'Golden Beach',
+        'Storm Warrior', 'Sacred Oracle', 'Neon Festival',
+        'Sand Mandala', 'Pigeon Constellation', 'Brotherhood Ritual'
+      ];
+      const tema = temas[Math.floor(Math.random() * temas.length)];
+      const semana = obterSemana();
+
+      const dados = {
+        status: 'ativo',
+        arte_titulo: tema.toUpperCase(),
+        arte_dna: { tema, mood: 'mystical' },
+        numero_semana: semana,
+        criado_em: firebase.firestore.FieldValue.serverTimestamp(),
+        encerra_em: firebase.firestore.Timestamp.fromDate(fim),
+        maior_lance: 0,
+        lider_uid: null,
+        lider_username: '',
+        total_lances: 0,
+      };
+
+      const ref = await db.collection('leiloes').add(dados);
+      leilaoId  = ref.id;
+      leilaoFim = fim;
+
+      document.getElementById('arte-titulo').textContent = dados.arte_titulo;
+      document.getElementById('arte-semana').textContent = `SEMANA · ${semana}`;
+      document.getElementById('arte-lote').textContent   = `LOTE #${semana}`;
+      document.getElementById('section-sub').textContent = `SEMANA ${semana} · LEILÃO ABERTO`;
+
+      window._arteAtual = dados.arte_dna;
+      renderizarArte(dados.arte_dna);
+      iniciarTimer(fim);
+      ouvirLances();
+
+      document.getElementById('loading-wrap').style.display = 'none';
+      document.getElementById('praia-content').style.display = 'block';
+    }
+
+    // ══════════════════════════════════════════
+    //  OUVIR LANCES
+    // ══════════════════════════════════════════
+    function ouvirLances() {
+      if (leilaoListener) leilaoListener();
+
+      leilaoListener = db.collection('leiloes').doc(leilaoId)
+        .onSnapshot((snap) => {
+          if (!snap.exists) return;
+          const d = snap.data();
+          maiorLance = d.maior_lance || 0;
+
+          // Maior lance
+          document.getElementById('lance-maior').textContent = maiorLance > 0 ? maiorLance : '—';
+
+          // Líder
+          if (d.lider_uid) {
+            document.getElementById('lider-username').textContent = '@' + (d.lider_username || '···');
+            document.getElementById('lider-avatar').src =
+              d.lider_foto || `https://api.dicebear.com/7.x/identicon/svg?seed=${d.lider_uid}`;
+            document.getElementById('lider-quando').textContent =
+              d.lance_em ? formatarTempo(d.lance_em.toDate()) : '···';
+          }
+
+          atualizarStatus(d);
+          atualizarMinLabel();
+        });
+
+      // Histórico
+      db.collection('leiloes').doc(leilaoId)
+        .collection('lances')
+        .orderBy('data', 'desc').limit(8)
+        .onSnapshot((snap) => {
+          const lista = document.getElementById('historico-lista');
+          if (snap.empty) {
+            lista.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Nenhum lance ainda. Seja o primeiro!</p>`;
+            return;
+          }
+          lista.innerHTML = '';
+          snap.forEach((doc) => {
+            const l = doc.data();
+            lista.innerHTML += `
+              <div class="lance-item">
+                <span class="lance-item-user">@${l.username || '···'}</span>
+                <span class="lance-item-tempo">${l.data ? formatarTempo(l.data.toDate()) : '···'}</span>
+                <span class="lance-item-valor">${l.valor} $POMB</span>
+              </div>`;
+          });
+        });
+    }
+
+    // ══════════════════════════════════════════
+    //  STATUS DO MEU LANCE
+    // ══════════════════════════════════════════
+    function atualizarStatus(d) {
+      const card   = document.getElementById('status-card');
+      const icone  = document.getElementById('status-icone');
+      const titulo = document.getElementById('status-titulo');
+      const desc   = document.getElementById('status-desc');
+      const valor  = document.getElementById('status-valor');
+
+      if (meuLance === 0) {
+        card.className = 'status-card sem-lance';
+        icone.textContent  = '🕊️';
+        titulo.textContent = 'SEM LANCE AINDA';
+        desc.textContent   = 'Dê seu primeiro lance para entrar na disputa';
+        valor.textContent  = '—';
+      } else if (d.lider_uid === meuUID) {
+        card.className = 'status-card ganhando';
+        icone.textContent  = '🏆';
+        titulo.textContent = 'VOCÊ ESTÁ GANHANDO';
+        desc.textContent   = 'Seu lance está na frente! Fique de olho.';
+        valor.textContent  = `${meuLance}`;
+      } else {
+        card.className = 'status-card perdendo';
+        icone.textContent  = '⚠️';
+        titulo.textContent = 'SEU LANCE FOI SUPERADO';
+        desc.textContent   = `Lance atual: ${d.maior_lance} $POMB`;
+        valor.textContent  = `${meuLance}`;
+      }
+    }
+
+    // ══════════════════════════════════════════
+    //  DAR LANCE
+    // ══════════════════════════════════════════
+    function calcMin() { return maiorLance > 0 ? maiorLance + 5 : 50; }
+
+    function atualizarMinLabel() {
+      document.getElementById('lance-min-label').textContent =
+        `Mínimo: ${calcMin()} $POMB · Seu saldo: ${meuSaldo} $POMB`;
+    }
+
+    function sugerirLance(tipo) {
+      const input = document.getElementById('lance-input');
+      input.value = tipo === 'min' ? calcMin() : (maiorLance > 0 ? maiorLance + tipo : calcMin() + tipo);
+    }
+
+    async function darLance() {
+      const input = document.getElementById('lance-input');
+      const btn   = document.getElementById('btn-lance');
+      const valor = parseInt(input.value);
+      const min   = calcMin();
+
+      if (!valor || isNaN(valor))  { mostrarToast('Digite um valor para o lance.'); return; }
+      if (valor < min)             { mostrarToast(`Lance mínimo é ${min} $POMB.`); return; }
+      if (valor > meuSaldo)        { mostrarToast('Saldo insuficiente! Compre mais $POMB.'); return; }
+      if (!leilaoId)               { mostrarToast('Nenhum leilão ativo.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'ENVIANDO...';
+
+      try {
+        const userSnap = await db.collection('usuarios').doc(meuUID).get();
+        const userData  = userSnap.data();
+
+        await db.runTransaction(async (t) => {
+          const leilaoRef  = db.collection('leiloes').doc(leilaoId);
+          const leilaoSnap = await t.get(leilaoRef);
+          const leilao     = leilaoSnap.data();
+
+          const minAtual = leilao.maior_lance > 0 ? leilao.maior_lance + 5 : 50;
+          if (valor < minAtual) throw new Error(`Novo mínimo: ${minAtual} $POMB`);
+
+          const userRef    = db.collection('usuarios').doc(meuUID);
+          const userSnap2  = await t.get(userRef);
+          const saldoAtual = userSnap2.data().pombcoins || 0;
+
+          if (valor > saldoAtual) throw new Error('Saldo insuficiente.');
+
+          // Devolve lance anterior do mesmo usuário
+          const devolucao = meuLance > 0 ? meuLance : 0;
+
+          t.update(userRef, { pombcoins: saldoAtual - valor + devolucao });
+
+          t.update(leilaoRef, {
+            maior_lance:    valor,
+            lider_uid:      meuUID,
+            lider_username: userData.username || 'pombito',
+            lider_foto:     userData.foto_perfil || '',
+            lance_em:       firebase.firestore.FieldValue.serverTimestamp(),
+            total_lances:   firebase.firestore.FieldValue.increment(1),
+          });
+
+          const lanceRef = db.collection('leiloes').doc(leilaoId)
+            .collection('lances').doc();
+          t.set(lanceRef, {
+            uid:      meuUID,
+            username: userData.username || 'pombito',
+            foto:     userData.foto_perfil || '',
+            valor,
+            data:     firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        meuLance = valor;
+        input.value = '';
+        mostrarToast(`Lance de ${valor} $POMB confirmado! 🔨`);
+
+      } catch(e) {
+        console.error('Erro no lance:', e);
+        mostrarToast(e.message || 'Erro ao dar lance.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔨 CONFIRMAR LANCE';
+      }
+    }
+
+    // ══════════════════════════════════════════
+    //  TIMER
+    // ══════════════════════════════════════════
+    function iniciarTimer(fim) {
+      document.getElementById('timer-data').textContent =
+        fim.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
+
+      const tick = () => {
+        const diff = fim - new Date();
+        if (diff <= 0) {
+          document.getElementById('timer-display').textContent = '00:00:00';
+          encerrarLeilao(); return;
+        }
+        const h = String(Math.floor(diff/3600000)).padStart(2,'0');
+        const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+        const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+        document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    async function encerrarLeilao() {
+      if (!leilaoId) return;
+      await db.collection('leiloes').doc(leilaoId).update({ status: 'encerrado' });
+      leilaoId = null;
+      setTimeout(() => carregarLeilao(), 3000);
+    }
+
+    // ══════════════════════════════════════════
+    //  ACUMULADOR $POMB (1 a cada 5min online)
+    // ══════════════════════════════════════════
+    function iniciarAcumulador() {
+      // Daily bonus
+      verificarDailyBonus();
+
+      // Tick a cada 5 minutos
+      setInterval(async () => {
+        if (!meuUID || document.hidden) return;
+        try {
+          await db.collection('usuarios').doc(meuUID).update({
+            pombcoins: firebase.firestore.FieldValue.increment(1),
+            ultimo_tick: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        } catch(e) { console.error('Tick error:', e); }
+      }, 5 * 60 * 1000);
+    }
+
+    async function verificarDailyBonus() {
+      const snap  = await db.collection('usuarios').doc(meuUID).get();
+      const dados = snap.data();
+      const agora = new Date();
+      const ultimo = dados.ultimo_daily ? dados.ultimo_daily.toDate() : null;
+
+      if (!ultimo || ultimo.toDateString() !== agora.toDateString()) {
+        await db.collection('usuarios').doc(meuUID).update({
+          pombcoins:    firebase.firestore.FieldValue.increment(10),
+          ultimo_daily: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        mostrarToast('🎁 Bônus diário: +10 $POMB!');
+      }
+    }
+
+    // ══════════════════════════════════════════
+    //  RENDERIZAR ARTE NO CANVAS
+    // ══════════════════════════════════════════
+    function renderizarArte(dna) {
+      const canvas = document.getElementById('arte-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+
+      // Fundo claro harmonioso com o tema do feed
+      ctx.fillStyle = '#f0ebe3';
+      ctx.fillRect(0, 0, W, H);
+
+      const seed = hashStr(dna.tema || 'pombito');
+
+      // Padrão geométrico em tons de areia e azul
+      const cores = [
+        `hsl(${210 + (seed % 60)}, 70%, 75%)`,
+        `hsl(${30 + (seed % 30)}, 60%, 80%)`,
+        `hsl(${200 + (seed % 40)}, 50%, 70%)`,
+      ];
+
+      // Blocos decorativos
+      for (let i = 0; i < 20; i++) {
+        const x = (seed * (i + 1) * 137) % W;
+        const y = (seed * (i + 1) * 97)  % H;
+        const s = 30 + (seed * i % 60);
+        ctx.fillStyle = cores[i % cores.length];
+        ctx.globalAlpha = 0.12 + (i % 5) * 0.04;
+        ctx.fillRect(x, y, s, s);
+      }
+      ctx.globalAlpha = 1;
+
+      // Pombo central pixel art (estilo claro)
+      desenharPombo(ctx, W/2, H/2 - 20, seed);
+
+      // Texto da semana em baixo
+      ctx.font = '500 11px "DM Mono", monospace';
+      ctx.fillStyle = 'rgba(138,130,120,0.5)';
+      ctx.textAlign = 'center';
+      ctx.fillText('LOS POMBITOS · ARTE EXCLUSIVA', W/2, H - 16);
+    }
+
+    function desenharPombo(ctx, cx, cy, seed) {
+      const px = 14;
+      const corCorpo = '#e8d4a0';
+      const corAsa   = `hsl(${210 + seed % 60}, 60%, 55%)`;
+      const corBico  = '#f5b800';
+
+      const grade = [
+        [0,0,6,6,6,6,6,0,0],
+        [0,0,1,1,1,1,1,0,0],
+        [0,1,1,1,1,1,1,1,0],
+        [2,2,1,1,4,1,1,2,2],
+        [2,2,2,1,1,1,2,2,2],
+        [0,2,2,1,1,1,2,2,0],
+        [0,0,1,1,1,1,1,0,0],
+        [0,0,0,1,0,1,0,0,0],
+        [0,0,0,1,0,1,0,0,0],
+      ];
+
+      const ox = cx - (grade[0].length * px) / 2;
+      const oy = cy - (grade.length * px) / 2;
+
+      grade.forEach((linha, r) => {
+        linha.forEach((cod, c) => {
+          if (!cod) return;
+          const cores = {
+            1: corCorpo, 2: corAsa,
+            3: corBico,  4: '#0d0d0d',
+            6: null, // halo tratado abaixo
+          };
+          if (cod === 6) {
+            ctx.strokeStyle = 'rgba(245,184,0,0.35)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.arc(cx, oy - 6, 30, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            return;
+          }
+          ctx.fillStyle = cores[cod] || '#fff';
+          ctx.fillRect(ox + c*px, oy + r*px, px-2, px-2);
+        });
+      });
+
+      // Olho brilho
+      ctx.fillStyle = 'white';
+      ctx.fillRect(ox + 4*px + 4, oy + 3*px + 2, 4, 4);
+    }
+
+    function hashStr(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) & 0xffffffff;
+      return Math.abs(h);
+    }
+
+    // ══════════════════════════════════════════
+    //  MODAL COMPRAR $POMB
+    // ══════════════════════════════════════════
+    function abrirModal() {
+      document.getElementById('modal-comprar').classList.add('aberto');
+    }
+
+    function fecharModal() {
+      document.getElementById('modal-comprar').classList.remove('aberto');
+      pacoteAtual = null;
+      document.querySelectorAll('.pacote').forEach(p => p.classList.remove('selecionado'));
+      document.getElementById('btn-pix').disabled = true;
+    }
+
+    function selecionarPacote(el, pomb, reais) {
+      document.querySelectorAll('.pacote').forEach(p => p.classList.remove('selecionado'));
+      el.classList.add('selecionado');
+      pacoteAtual = { pomb, reais };
+      document.getElementById('btn-pix').disabled = false;
+    }
+
+    async function iniciarPix() {
+      if (!pacoteAtual) return;
+      const btn = document.getElementById('btn-pix');
+      btn.disabled = true;
+      btn.textContent = 'GERANDO PIX...';
+
+      try {
+        const ref = await db.collection('pagamentos').add({
+          uid:       meuUID,
+          pomb:      pacoteAtual.pomb,
+          reais:     pacoteAtual.reais,
+          status:    'pendente',
+          criado_em: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+
+        fecharModal();
+        mostrarToast(
+          `PIX gerado! ID: ${ref.id.substring(0,8).toUpperCase()} · Envie comprovante para receber ${pacoteAtual.pomb} $POMB`,
+          5000
+        );
+      } catch(e) {
+        mostrarToast('Erro ao gerar PIX. Tente novamente.');
+        btn.disabled = false;
+        btn.textContent = 'PAGAR COM PIX';
+      }
+    }
+
+    // Fecha modal ao clicar fora
+    document.getElementById('modal-comprar').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) fecharModal();
+    });
+
+    // ══════════════════════════════════════════
+    //  PUSH NOTIFICATIONS
+    // ══════════════════════════════════════════
+    async function registrarPush() {
+      if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+      try {
+        await navigator.serviceWorker.register('/sw-pombitos.js');
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') console.log('[Push] Permissão concedida');
+      } catch(e) { console.log('[Push] Não disponível:', e); }
+    }
+
+    // ══════════════════════════════════════════
+    //  UTILITÁRIOS
+    // ══════════════════════════════════════════
+    function formatarTempo(date) {
+      const diff = Date.now() - date.getTime();
+      if (diff < 60000)   return 'agora mesmo';
+      if (diff < 3600000) return `${Math.floor(diff/60000)}min atrás`;
+      if (diff < 86400000) return `${Math.floor(diff/3600000)}h atrás`;
+      return date.toLocaleDateString('pt-BR');
+    }
+
+    function obterSemana() {
+      const d = new Date();
+      const start = new Date(d.getFullYear(), 0, 1);
+      return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7);
+    }
+
+    // Limpa listeners ao sair
+    window.addEventListener('beforeunload', () => {
+      if (leilaoListener) leilaoListener();
+      if (saldoListener)  saldoListener();
+    });
+  </script>
+</body>
+</html>
+
