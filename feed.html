@@ -511,6 +511,7 @@
     }
 
     .nav-item:hover { background: var(--shore); }
+    a.nav-item { text-decoration: none; color: inherit; }
 
     .nav-icon { font-size: 20px; line-height: 1; }
 
@@ -582,26 +583,6 @@
       <div id="feed-lista"></div>
     </section>
 
-    <!-- PRAIA -->
-    <section id="praia" class="section">
-      <p class="section-title">PRAIA</p>
-      <div class="em-breve">
-        <div class="emoji">🌊</div>
-        <p>EM CONSTRUÇÃO</p>
-        <p style="font-size:10px; opacity:.6">A maré está trazendo novidades...</p>
-      </div>
-    </section>
-
-    <!-- GALERIA -->
-    <section id="galeria" class="section">
-      <p class="section-title">GALERIA</p>
-      <div class="em-breve">
-        <div class="emoji">🖼️</div>
-        <p>EM CONSTRUÇÃO</p>
-        <p style="font-size:10px; opacity:.6">Suas fotos vão aparecer aqui...</p>
-      </div>
-    </section>
-
     <!-- SALDO -->
     <section id="saldo" class="section">
       <p class="section-title">CARTEIRA</p>
@@ -625,14 +606,14 @@
       <span class="nav-icon">🏠</span>
       <span class="nav-label">TIMELINE</span>
     </div>
-    <div class="nav-item" onclick="showSection('praia', this)">
+    <a class="nav-item" href="praia.html" style="text-decoration:none">
       <span class="nav-icon">🌊</span>
       <span class="nav-label">PRAIA</span>
-    </div>
-    <div class="nav-item" onclick="showSection('galeria', this)">
+    </a>
+    <a class="nav-item" href="galeria.html" style="text-decoration:none">
       <span class="nav-icon">🖼️</span>
       <span class="nav-label">GALERIA</span>
-    </div>
+    </a>
     <div class="nav-item" onclick="showSection('saldo', this)">
       <span class="nav-icon">💰</span>
       <span class="nav-label">SALDO</span>
