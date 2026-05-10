@@ -1,60 +1,424 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Los Pombitos | v0.1</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:       #0a0a0f;
+      --parchment: #f2ead8;
+      --gold:      #c9a84c;
+      --gold-light:#f0d080;
+      --gold-dark: #7a5c1e;
+      --muted:     #6b6050;
+      --mono:      'DM Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+      --display:   'Cinzel', serif;
+      --decorative:'Cinzel Decorative', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--ink);
+      color: var(--parchment);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* ── TEXTURA + VINHETA ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(201,168,76,.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 100%, rgba(139,26,26,.05) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.75) 100%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── CONTAINER CENTRAL ── */
+    .stage {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px;
+      animation: surgir 1.8s ease forwards;
+    }
+
+    @keyframes surgir {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── ORNAMENTOS LATERAIS ── */
+    .ornament-row {
+      display: flex; align-items: center; gap: 12px;
+      width: min(380px, 90vw);
+      margin-bottom: 36px;
+    }
+    .orn-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
+    .orn-diamond { width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+    .orn-diamond.sm { width: 4px; height: 4px; opacity: .5; }
+
+    /* ── BRASÃO ── */
+    .brasao {
+      position: relative;
+      width: 160px; height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .ring {
+      position: absolute; border-radius: 50%;
+      border: 1.5px solid transparent;
+      animation: girar linear infinite;
+    }
+    .ring-1 {
+      inset: 0;
+      border-top-color: var(--gold);
+      border-right-color: var(--gold-light);
+      border-bottom-color: var(--gold);
+      animation-duration: 14s; opacity: .45;
+    }
+    .ring-2 {
+      inset: 10px;
+      border-top-color: var(--gold-dark);
+      border-left-color: var(--gold);
+      animation-duration: 22s;
+      animation-direction: reverse; opacity: .3;
+    }
+    @keyframes girar { to { transform: rotate(360deg); } }
+
+    .core {
+      width: 118px; height: 118px; border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, #1a1a2e, #0a0a0f);
+      border: 1px solid rgba(201,168,76,.28);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .core::before {
+      content: ''; position: absolute; top: -30%; left: -10%;
+      width: 60%; height: 60%;
+      background: radial-gradient(circle, rgba(201,168,76,.1), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .halo {
+      position: absolute; width: 74px; height: 74px; border-radius: 50%;
+      border: 1px solid rgba(240,208,128,.22);
+      box-shadow: 0 0 14px rgba(201,168,76,.12), inset 0 0 14px rgba(201,168,76,.04);
+      animation: pulsar 3.5s ease-in-out infinite;
+    }
+    @keyframes pulsar {
+      0%,100% { opacity:.55; transform:scale(1); }
+      50%      { opacity:1;   transform:scale(1.07); }
+    }
+
+    .pombo {
+      position: relative; z-index: 2;
+      filter: drop-shadow(0 0 10px rgba(201,168,76,.45));
+      animation: flutuar 4.5s ease-in-out infinite;
+    }
+    @keyframes flutuar {
+      0%,100% { transform: translateY(0) rotate(-2deg); }
+      50%      { transform: translateY(-5px) rotate(2deg); }
+    }
+
+    /* ── TEXTOS ── */
+    .pre-titulo {
+      font-family: var(--decorative);
+      font-size: 10px; letter-spacing: 6px;
+      color: var(--gold); opacity: .7;
+      margin-bottom: 10px; text-align: center;
+    }
+
+    .titulo {
+      font-family: var(--decorative);
+      font-size: clamp(34px, 9vw, 52px);
+      font-weight: 700; letter-spacing: 4px;
+      color: var(--parchment); line-height: 1;
+      text-align: center;
+      text-shadow: 0 0 40px rgba(201,168,76,.25);
+      margin-bottom: 14px;
+    }
+    .titulo span { color: var(--gold); }
+
+    .lema {
+      font-family: var(--display);
+      font-size: 11px; letter-spacing: 2px;
+      color: var(--muted); text-align: center;
+      font-style: italic; line-height: 1.8;
+      margin-bottom: 8px;
+    }
+
+    .lema-destaque {
+      font-family: var(--mono);
+      font-size: 9px; letter-spacing: 4px;
+      color: var(--gold); opacity: .6;
+      text-align: center; margin-bottom: 44px;
+    }
+
+    /* ── BOTÃO ENTRAR ── */
+    .btn-entrar {
+      position: relative;
+      width: min(320px, 86vw);
+      height: 58px;
+      background: linear-gradient(135deg, rgba(201,168,76,.14), rgba(201,168,76,.06));
+      border: 1px solid rgba(201,168,76,.5);
+      border-radius: 4px;
+      color: var(--gold-light);
+      font-family: var(--decorative);
+      font-size: 14px; letter-spacing: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      cursor: pointer; text-decoration: none;
+      transition: all .3s;
+      overflow: hidden;
+    }
+
+    /* cantos decorativos */
+    .btn-entrar::before, .btn-entrar::after {
+      content: ''; position: absolute;
+      width: 12px; height: 12px;
+      border-color: var(--gold); border-style: solid;
+      opacity: .5; transition: opacity .3s;
+    }
+    .btn-entrar::before { top: 6px; left: 6px; border-width: 1px 0 0 1px; }
+    .btn-entrar::after  { bottom: 6px; right: 6px; border-width: 0 1px 1px 0; }
+
+    .btn-entrar:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 30px rgba(201,168,76,.2), inset 0 0 30px rgba(201,168,76,.04);
+      transform: translateY(-2px);
+      letter-spacing: 5px;
+    }
+    .btn-entrar:hover::before,
+    .btn-entrar:hover::after { opacity: 1; }
+
+    .btn-entrar .pombo-mini {
+      font-size: 20px;
+      animation: flutuar 3s ease-in-out infinite;
+    }
+
+    /* ── CONTADOR ── */
+    .counter-wrap {
+      margin-top: 36px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+
+    .counter-bar {
+      width: min(280px, 80vw); height: 2px;
+      background: rgba(201,168,76,.1); border-radius: 2px; overflow: hidden;
+    }
+    .counter-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(to right, var(--gold-dark), var(--gold-light));
+      border-radius: 2px;
+      transition: width 2s ease;
+    }
+
+    .counter-label {
+      font-family: var(--mono);
+      font-size: 9px; letter-spacing: 3px;
+      color: var(--muted); opacity: .6;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .status-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold);
+      animation: piscar 2s ease-in-out infinite;
+    }
+    @keyframes piscar {
+      0%,100% { opacity:1; }
+      50%      { opacity:.2; }
+    }
+
+    /* ── PENAS CAINDO ── */
+    .pena {
+      position: fixed; font-size: 11px; opacity: 0;
+      animation: cair linear infinite;
+      pointer-events: none; z-index: 0; user-select: none;
+    }
+    @keyframes cair {
+      0%   { transform: translateY(-20px) rotate(0deg);   opacity: 0; }
+      10%  { opacity: .25; }
+      90%  { opacity: .1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      position: fixed; bottom: 16px; left: 0; right: 0;
+      text-align: center; z-index: 1;
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 2px; color: var(--muted); opacity: .3;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="hero">
-            <div class="pixel-pigeon-main">
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="10" y="4" width="4" height="2" fill="#424242"/>
-                    <rect x="8" y="6" width="8" height="4" fill="#90A4AE"/>
-                    <rect x="16" y="7" width="2" height="2" fill="#FFB74D"/>
-                    <rect x="10" y="7" width="2" height="2" fill="black"/>
-                    <rect x="6" y="10" width="12" height="6" fill="#78909C"/>
-                    <rect x="8" y="16" width="8" height="2" fill="#546E7A"/>
-                    <rect x="9" y="18" width="2" height="2" fill="#FF7043"/>
-                    <rect x="13" y="18" width="2" height="2" fill="#FF7043"/>
-                </svg>
-            </div>
-            <h1>Los <span>Pombitos</span></h1>
-        </div>
+  <!-- Penas caindo -->
+  <div class="pena" style="left:6%;  animation-duration:13s; animation-delay:0s;">🪶</div>
+  <div class="pena" style="left:20%; animation-duration:18s; animation-delay:5s;">🪶</div>
+  <div class="pena" style="left:50%; animation-duration:15s; animation-delay:9s;">🪶</div>
+  <div class="pena" style="left:72%; animation-duration:21s; animation-delay:3s;">🪶</div>
+  <div class="pena" style="left:88%; animation-duration:12s; animation-delay:7s;">🪶</div>
 
-        <hr class="divider">
+  <div class="stage">
 
-        <p class="manifesto">"A rede onde o tempo voa devagar."</p>
-
-        <a href="invite.html" class="cta-button">
-            <div class="avatar-box">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="13" y="6" width="3" height="2" fill="#424242"/>
-                    <rect x="16" y="7" width="2" height="2" fill="#FFB74D"/>
-                    <rect x="11" y="8" width="5" height="4" fill="#90A4AE"/>
-                    <rect x="13" y="9" width="1" height="1" fill="black"/>
-                    <rect x="7" y="12" width="10" height="5" fill="#78909C"/>
-                    <rect x="9" y="17" width="1" height="2" fill="#FF7043"/>
-                    <rect x="13" y="17" width="1" height="2" fill="#FF7043"/>
-                </svg>
-            </div>
-            <span class="cta-text">Se tem o convite, se torne pombito</span>
-            <span class="cta-arrow">›</span>
-        </a>
-
-        <div class="counter-section">
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
-            </div>
-            <p class="counter-label">
-                [ 0000 / 0100 ] codes used <span class="status-dot"></span>
-            </p>
-        </div>
+    <!-- Ornamento topo -->
+    <div class="ornament-row">
+      <div class="orn-line"></div>
+      <div class="orn-diamond sm"></div>
+      <div class="orn-diamond"></div>
+      <div class="orn-diamond sm"></div>
+      <div class="orn-line"></div>
     </div>
 
+    <!-- Brasão: O Pombo Imortal -->
+    <div class="brasao">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="core">
+        <div class="halo"></div>
+
+        <!-- O Pombo Imortal — ele caiu, levantou e voou -->
+        <svg class="pombo" width="80" height="80" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- auréola -->
+          <ellipse cx="38" cy="15" rx="11" ry="3.5" stroke="#f0d080" stroke-width="1" stroke-dasharray="2.5 2" opacity=".65"/>
+          <!-- asa esquerda -->
+          <path d="M37 44 C32 40,20 36,9 29 C7 28,5 25,9 24 C14 23,21 27,27 31 C21 25,13 18,11 13 C10 11,12 9,15 10 C21 13,27 21,31 30 C27 21,23 11,23 7 C23 5,26 4,28 6 C32 13,35 24,36 34 Z" fill="url(#ag)" opacity=".95"/>
+          <!-- asa direita -->
+          <path d="M39 44 C44 40,56 36,67 29 C69 28,71 25,67 24 C62 23,55 27,49 31 C55 25,63 18,65 13 C66 11,64 9,61 10 C55 13,49 21,45 30 C49 21,53 11,53 7 C53 5,50 4,48 6 C44 13,41 24,40 34 Z" fill="url(#agr)" opacity=".95"/>
+          <!-- corpo -->
+          <ellipse cx="38" cy="50" rx="12" ry="7" fill="url(#cg)"/>
+          <!-- cabeça -->
+          <circle cx="38" cy="36" r="9" fill="url(#hg)"/>
+          <!-- olho -->
+          <circle cx="40.5" cy="33.5" r="3" fill="#0a0a0f"/>
+          <circle cx="41.5" cy="32.5" r="1.2" fill="white" opacity=".9"/>
+          <!-- bico -->
+          <path d="M47 36 L53 38 L47 39.5 Z" fill="#c9a84c"/>
+          <path d="M47 36 L53 38 L47 37 Z" fill="#f0d080" opacity=".6"/>
+          <!-- cauda -->
+          <path d="M30 56 L26 63 M38 57 L38 64 M46 56 L50 63" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+          <!-- patas -->
+          <line x1="33" y1="57" x2="30" y2="63" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="30" y1="63" x2="27" y2="63" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+          <line x1="30" y1="63" x2="30" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+          <line x1="30" y1="63" x2="33" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+          <line x1="43" y1="57" x2="46" y2="63" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="46" y1="63" x2="49" y2="63" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+          <line x1="46" y1="63" x2="46" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+          <line x1="46" y1="63" x2="43" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+          <!-- brilhos -->
+          <circle cx="9"  cy="27" r="1.8" fill="#f0d080" opacity=".5"/>
+          <circle cx="67" cy="27" r="1.8" fill="#f0d080" opacity=".5"/>
+          <circle cx="23" cy="6"  r="1.4" fill="#f0d080" opacity=".4"/>
+          <circle cx="53" cy="6"  r="1.4" fill="#f0d080" opacity=".4"/>
+          <defs>
+            <linearGradient id="ag" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#f0d080"/>
+              <stop offset="50%"  stop-color="#c9a84c"/>
+              <stop offset="100%" stop-color="#7a5c1e"/>
+            </linearGradient>
+            <linearGradient id="agr" x1="1" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#f0d080"/>
+              <stop offset="50%"  stop-color="#c9a84c"/>
+              <stop offset="100%" stop-color="#7a5c1e"/>
+            </linearGradient>
+            <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#e8d4a0"/>
+              <stop offset="100%" stop-color="#c9a84c" stop-opacity=".8"/>
+            </linearGradient>
+            <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#f2e8c0"/>
+              <stop offset="100%" stop-color="#d4b86a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Títulos -->
+    <p class="pre-titulo">A SAGRADA ORDEM DE</p>
+    <h1 class="titulo">LOS <span>POMBITOS</span></h1>
+    <p class="lema">"A rede onde o tempo voa devagar."</p>
+    <p class="lema-destaque">ELE CAIU · ELE LEVANTOU · ELE VOOU</p>
+
+    <!-- CTA -->
+    <a href="invite.html" class="btn-entrar">
+      <span class="pombo-mini">🕊️</span>
+      ENTRAR NO NINHO
+    </a>
+
+    <!-- Contador de membros -->
+    <div class="counter-wrap">
+      <div class="counter-bar">
+        <div class="counter-fill" id="counter-fill"></div>
+      </div>
+      <p class="counter-label">
+        <span id="counter-text">[ ···· / 0100 ] membros</span>
+        <span class="status-dot"></span>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <p class="footer">PRAIA-PROTOCOL · LACRADO PELA ORDEM</p>
+
+  <!-- Firebase (para contar membros em tempo real) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    // ── Contador de membros em tempo real ──
+    db.collection('usuarios')
+      .where('perfil_completo', '==', true)
+      .onSnapshot((snap) => {
+        const total   = snap.size;
+        const meta    = 100;
+        const pct     = Math.min((total / meta) * 100, 100);
+        const pad     = String(total).padStart(4, '0');
+
+        document.getElementById('counter-fill').style.width = pct + '%';
+        document.getElementById('counter-text').textContent =
+          `[ ${pad} / 0100 ] membros`;
+      }, () => {
+        // Silencia erro se offline
+        document.getElementById('counter-text').textContent = '[ ···· / 0100 ] membros';
+      });
+
+    // ── Se já logado, vai direto ao feed ──
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) return;
+      try {
+        const snap = await db.collection('usuarios').doc(user.uid).get();
+        if (snap.exists && snap.data().perfil_completo === true) {
+          window.location.href = 'feed.html';
+        }
+      } catch(e) {}
+    });
+  </script>
 </body>
 </html>
-
