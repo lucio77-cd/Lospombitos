@@ -32,17 +32,21 @@ const auth = firebase.auth();
 
 // ----------------------------------------------------------
 // 3. VERIFICAÇÃO DE SESSÃO ATIVA
-//    Roda ao carregar qualquer página.
-//    Usuário já logado com perfil completo → feed.
-//    Usuário logado sem perfil → setup.
-//    Usuário sem sessão → fica na tela de convite.
+//    Páginas permitidas por perfil:
+//    - Sem sessão        → apenas index.html e invite.html
+//    - Perfil completo   → feed, praia, galeria
+//    - Perfil incompleto → apenas setup-perfil.html
 // ----------------------------------------------------------
+
+const PAGINAS_PUBLICAS = ["index.html", "invite.html", "", "/"];
+const PAGINAS_MEMBRO   = ["feed.html", "praia.html", "galeria.html", "setup-perfil.html"];
+
 auth.onAuthStateChanged(async (user) => {
-  const paginaAtual = window.location.pathname.split("/").pop();
+  const paginaAtual = window.location.pathname.split("/").pop() || "index.html";
 
   if (!user) {
-    // Sem sessão: só pode estar em invite.html
-    if (paginaAtual !== "invite.html") {
+    // Sem sessão: redireciona para invite se tentar acessar página protegida
+    if (!PAGINAS_PUBLICAS.includes(paginaAtual)) {
       window.location.href = "invite.html";
     }
     return;
@@ -53,12 +57,14 @@ auth.onAuthStateChanged(async (user) => {
     const snap = await db.collection("usuarios").doc(user.uid).get();
 
     if (snap.exists && snap.data().perfil_completo === true) {
-      // Membro completo → feed (a não ser que já esteja lá)
-      if (paginaAtual !== "feed.html") {
+      // Membro completo — pode acessar feed, praia e galeria livremente
+      // Se estiver em página pública, manda pro feed
+      if (PAGINAS_PUBLICAS.includes(paginaAtual)) {
         window.location.href = "feed.html";
       }
+      // Nas páginas de membro não redireciona — deixa carregar normalmente
     } else {
-      // Logado mas sem perfil completo → setup
+      // Perfil incompleto → só pode estar no setup
       if (paginaAtual !== "setup-perfil.html") {
         window.location.href = "setup-perfil.html";
       }
@@ -378,4 +384,3 @@ async function obterDadosMembro() {
     return null;
   }
 }
-
