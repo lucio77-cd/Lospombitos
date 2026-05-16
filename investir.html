@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Investir | Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:     #0d0d0d;
+      --sand:    #f0ebe3;
+      --shore:   #e2d9cd;
+      --wave:    #1a4fff;
+      --foam:    #c8d8ff;
+      --sun:     #f5b800;
+      --coral:   #ff5533;
+      --muted:   #8a8278;
+      --card:    #faf8f5;
+      --green:   #1a8a4a;
+      --red:     #cc2200;
+      --radius:  14px;
+      --mono:    'DM Mono', monospace;
+      --sans:    'DM Sans', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--sand);
+      color: var(--ink);
+      min-height: 100dvh;
+      padding-bottom: 80px;
+      overscroll-behavior: none;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: .5;
+    }
+
+    /* ── HEADER ── */
+    .feed-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--sand);
+      border-bottom: 1.5px solid var(--shore);
+      padding: 0 20px; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-logo {
+      font-family: var(--display);
+      font-size: 26px; letter-spacing: 3px;
+      color: var(--wave); line-height: 1;
+    }
+    .header-logo span { color: var(--sun); }
+
+    .header-mercado {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .mercado-badge {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      border-radius: 20px; padding: 4px 10px; font-weight: 500;
+    }
+    .mercado-badge.aberto  { background: #d4f5e2; color: var(--green); }
+    .mercado-badge.fechado { background: var(--shore); color: var(--muted); }
+    .mercado-badge.pre     { background: #fff8d4; color: #8a6a00; }
+
+    /* ── CONTAINER ── */
+    .container {
+      padding: 20px 16px;
+      max-width: 640px; margin: 0 auto;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BUSCA ── */
+    .busca-wrap {
+      position: relative; margin-bottom: 20px;
+    }
+
+    .busca-input {
+      width: 100%; height: 50px;
+      background: var(--card);
+      border: 1.5px solid var(--shore);
+      border-radius: var(--radius);
+      font-family: var(--sans); font-size: 15px;
+      color: var(--ink); padding: 0 16px 0 44px;
+      outline: none; transition: border-color .2s;
+    }
+    .busca-input:focus { border-color: var(--wave); }
+    .busca-input::placeholder { color: var(--muted); }
+
+    .busca-icon {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px; pointer-events: none;
+    }
+
+    .busca-clear {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; font-size: 18px;
+      color: var(--muted); cursor: pointer; display: none;
+    }
+
+    /* Autocomplete */
+    .autocomplete {
+      position: absolute; top: 54px; left: 0; right: 0;
+      background: var(--card);
+      border: 1.5px solid var(--shore); border-radius: var(--radius);
+      z-index: 50; display: none; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+    .autocomplete.visivel { display: block; animation: fadeUp .15s ease; }
+
+    .autocomplete-item {
+      padding: 12px 16px; cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      transition: background .15s;
+      border-bottom: 1px solid var(--shore);
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: var(--sand); }
+
+    .ac-ticker {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; color: var(--wave);
+      background: var(--foam); border-radius: 6px;
+      padding: 2px 8px; flex-shrink: 0;
+    }
+    .ac-nome { font-size: 13px; color: var(--ink); flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ac-tipo { font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted); }
+
+    /* ── ÍNDICES ── */
+    .indices-scroll {
+      display: flex; gap: 10px; overflow-x: auto;
+      padding-bottom: 4px; margin-bottom: 20px;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .indices-scroll::-webkit-scrollbar { display: none; }
+
+    .indice-chip {
+      flex-shrink: 0;
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: 10px; padding: 8px 14px;
+      display: flex; flex-direction: column; gap: 2px;
+      min-width: 100px;
+    }
+
+    .indice-nome {
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 1.5px; color: var(--muted);
+    }
+    .indice-valor {
+      font-family: var(--display); font-size: 16px;
+      letter-spacing: 1px; color: var(--ink); line-height: 1;
+    }
+    .indice-var {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: .5px; font-weight: 500;
+    }
+    .indice-var.pos { color: var(--green); }
+    .indice-var.neg { color: var(--red); }
+
+    /* skeleton dos índices */
+    .sk-chip {
+      flex-shrink: 0; min-width: 100px;
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: 10px; padding: 8px 14px;
+    }
+    .sk-line {
+      height: 10px; border-radius: 4px;
+      background: var(--shore); margin-bottom: 6px;
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-family: var(--display); font-size: 20px;
+      letter-spacing: 2px; color: var(--ink); margin-bottom: 12px;
+    }
+
+    /* ── CATEGORIAS ── */
+    .categorias-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 28px;
+    }
+
+    .categoria-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 18px 16px;
+      cursor: pointer; transition: all .2s;
+      display: flex; flex-direction: column; gap: 8px;
+      text-decoration: none; color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .categoria-card:hover {
+      border-color: var(--wave); transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(26,79,255,.08);
+    }
+    .categoria-card:active { transform: translateY(0); }
+
+    .categoria-icon { font-size: 28px; line-height: 1; }
+
+    .categoria-nome {
+      font-family: var(--display); font-size: 16px;
+      letter-spacing: 1.5px; color: var(--ink);
+    }
+
+    .categoria-desc {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; color: var(--muted); line-height: 1.5;
+    }
+
+    .categoria-badge {
+      display: inline-block;
+      font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+      border-radius: 20px; padding: 3px 8px; margin-top: 2px;
+      font-weight: 500;
+    }
+    .badge-risco-baixo  { background: #d4f5e2; color: var(--green); }
+    .badge-risco-medio  { background: #fff8d4; color: #8a6a00; }
+    .badge-risco-alto   { background: #ffd5ce; color: var(--red); }
+
+    /* ── DESTAQUES DO DIA ── */
+    .destaques-grid {
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px;
+    }
+
+    .destaque-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: border-color .2s;
+      text-decoration: none; color: inherit;
+    }
+    .destaque-card:hover { border-color: var(--foam); }
+
+    .destaque-esq { display: flex; align-items: center; gap: 12px; }
+
+    .destaque-ticker {
+      font-family: var(--mono); font-size: 13px;
+      font-weight: 500; color: var(--wave);
+      background: var(--foam); border-radius: 6px;
+      padding: 3px 10px; flex-shrink: 0;
+    }
+
+    .destaque-nome { font-size: 13px; color: var(--ink); }
+    .destaque-tipo { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 1px; }
+
+    .destaque-dir { text-align: right; }
+    .destaque-preco {
+      font-family: var(--mono); font-size: 14px;
+      font-weight: 500; color: var(--ink);
+    }
+    .destaque-var {
+      font-family: var(--mono); font-size: 11px;
+      font-weight: 500; margin-top: 2px;
+    }
+    .destaque-var.pos { color: var(--green); }
+    .destaque-var.neg { color: var(--red); }
+
+    /* ── HORÁRIO DE MERCADO ── */
+    .horario-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 14px 16px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .horario-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted); margin-bottom: 3px;
+    }
+    .horario-status {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 1px;
+    }
+    .horario-status.aberto  { color: var(--green); }
+    .horario-status.fechado { color: var(--muted); }
+    .horario-status.pre     { color: #8a6a00; }
+
+    .horario-hora {
+      font-family: var(--display); font-size: 28px;
+      letter-spacing: 3px; color: var(--ink); line-height: 1;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: white;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: .5px; padding: 10px 22px;
+      border-radius: 20px; opacity: 0; transition: all .3s;
+      pointer-events: none; z-index: 9000; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+      background: rgba(240,235,227,.92);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-top: 1.5px solid var(--shore);
+      display: flex; justify-content: space-around; align-items: center;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; cursor: pointer; padding: 6px 12px;
+      border-radius: 10px; transition: all .2s;
+      text-decoration: none; color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-item:hover { background: var(--shore); }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1.5px; color: var(--muted); transition: color .2s;
+    }
+    .nav-item.active-link .nav-label { color: var(--wave); font-weight: 500; }
+    .nav-item.active-link .nav-icon { filter: drop-shadow(0 0 6px rgba(26,79,255,.4)); }
+
+    /* ── SKELETON DESTAQUES ── */
+    .sk-destaque {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sk-esq { display: flex; align-items: center; gap: 12px; }
+    .sk-ticker { width: 60px; height: 26px; background: var(--shore);
+      border-radius: 6px; animation: shimmer 1.4s infinite; }
+    .sk-info { display: flex; flex-direction: column; gap: 6px; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="feed-header">
+    <div class="header-logo">INVES<span>TIR</span></div>
+    <div class="header-mercado">
+      <span class="mercado-badge fechado" id="mercado-badge">Carregando...</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- BUSCA -->
+    <div class="busca-wrap">
+      <span class="busca-icon">🔍</span>
+      <input
+        type="text"
+        class="busca-input"
+        id="busca-input"
+        placeholder="Buscar ativo — ex: PETR4, Bitcoin, Tesouro..."
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        oninput="onBusca(this.value)"
+      >
+      <button class="busca-clear" id="busca-clear" onclick="limparBusca()">×</button>
+      <div class="autocomplete" id="autocomplete"></div>
+    </div>
+
+    <!-- ÍNDICES -->
+    <div class="indices-scroll" id="indices-scroll">
+      <!-- Skeletons -->
+      <div class="sk-chip">
+        <div class="sk-line" style="width:60%"></div>
+        <div class="sk-line" style="width:80%;height:16px"></div>
+      </div>
+      <div class="sk-chip">
+        <div class="sk-line" style="width:60%"></div>
+        <div class="sk-line" style="width:80%;height:16px"></div>
+      </div>
+      <div class="sk-chip">
+        <div class="sk-line" style="width:60%"></div>
+        <div class="sk-line" style="width:80%;height:16px"></div>
+      </div>
+      <div class="sk-chip">
+        <div class="sk-line" style="width:60%"></div>
+        <div class="sk-line" style="width:80%;height:16px"></div>
+      </div>
+    </div>
+
+    <!-- HORÁRIO DE MERCADO -->
+    <div class="horario-card">
+      <div>
+        <p class="horario-label">SITUAÇÃO DO MERCADO</p>
+        <p class="horario-status fechado" id="horario-status">Verificando...</p>
+        <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px" id="horario-prox"></p>
+      </div>
+      <p class="horario-hora" id="horario-hora">--:--</p>
+    </div>
+
+    <!-- CATEGORIAS -->
+    <p class="section-title">ONDE INVESTIR</p>
+
+    <div class="categorias-grid">
+
+      <a class="categoria-card" href="relatorio.html?tipo=acoes">
+        <span class="categoria-icon">📈</span>
+        <p class="categoria-nome">AÇÕES</p>
+        <p class="categoria-desc">Compre parte de empresas na B3</p>
+        <span class="categoria-badge badge-risco-alto">RISCO ALTO</span>
+      </a>
+
+      <a class="categoria-card" href="relatorio.html?tipo=fiis">
+        <span class="categoria-icon">🏢</span>
+        <p class="categoria-nome">FIIs</p>
+        <p class="categoria-desc">Fundos imobiliários com renda mensal</p>
+        <span class="categoria-badge badge-risco-medio">RISCO MÉDIO</span>
+      </a>
+
+      <a class="categoria-card" href="relatorio.html?tipo=cdb">
+        <span class="categoria-icon">🏦</span>
+        <p class="categoria-nome">CDB</p>
+        <p class="categoria-desc">Renda fixa com proteção do FGC</p>
+        <span class="categoria-badge badge-risco-baixo">RISCO BAIXO</span>
+      </a>
+
+      <a class="categoria-card" href="relatorio.html?tipo=lci">
+        <span class="categoria-icon">🌱</span>
+        <p class="categoria-nome">LCI / LCA</p>
+        <p class="categoria-desc">Isento de IR para pessoa física</p>
+        <span class="categoria-badge badge-risco-baixo">RISCO BAIXO</span>
+      </a>
+
+      <a class="categoria-card" href="relatorio.html?tipo=tesouro">
+        <span class="categoria-icon">🏛️</span>
+        <p class="categoria-nome">TESOURO</p>
+        <p class="categoria-desc">Títulos públicos do governo federal</p>
+        <span class="categoria-badge badge-risco-baixo">RISCO BAIXO</span>
+      </a>
+
+      <a class="categoria-card" href="relatorio.html?tipo=cripto">
+        <span class="categoria-icon">₿</span>
+        <p class="categoria-nome">CRIPTO</p>
+        <p class="categoria-desc">Bitcoin, Ethereum e altcoins</p>
+        <span class="categoria-badge badge-risco-alto">RISCO ALTO</span>
+      </a>
+
+    </div>
+
+    <!-- DESTAQUES DO DIA -->
+    <p class="section-title">DESTAQUES DO DIA</p>
+
+    <div class="destaques-grid" id="destaques-grid">
+      <!-- Skeletons -->
+      <div class="sk-destaque">
+        <div class="sk-esq">
+          <div class="sk-ticker"></div>
+          <div class="sk-info">
+            <div class="sk-line" style="width:100px"></div>
+            <div class="sk-line" style="width:60px"></div>
+          </div>
+        </div>
+        <div class="sk-info" style="align-items:flex-end">
+          <div class="sk-line" style="width:60px"></div>
+          <div class="sk-line" style="width:40px"></div>
+        </div>
+      </div>
+      <div class="sk-destaque">
+        <div class="sk-esq">
+          <div class="sk-ticker"></div>
+          <div class="sk-info">
+            <div class="sk-line" style="width:100px"></div>
+            <div class="sk-line" style="width:60px"></div>
+          </div>
+        </div>
+        <div class="sk-info" style="align-items:flex-end">
+          <div class="sk-line" style="width:60px"></div>
+          <div class="sk-line" style="width:40px"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a class="nav-item" href="feed.html">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">FEED</span>
+    </a>
+    <a class="nav-item active-link" href="investir.html">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">INVESTIR</span>
+    </a>
+    <a class="nav-item" href="carteira.html">
+      <span class="nav-icon">💼</span>
+      <span class="nav-label">CARTEIRA</span>
+    </a>
+    <a class="nav-item" href="feed.html#perfil">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">PERFIL</span>
+    </a>
+  </nav>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="auth.js"></script>
+  <script src="mercado-api.js"></script>
+
+  <script>
+    // ── DESTAQUES — ativos populares na B3 + cripto ──
+    const DESTAQUES_TICKERS = [
+      { ticker:'PETR4',  tipo:'Ação',  nome:'Petrobras PN' },
+      { ticker:'VALE3',  tipo:'Ação',  nome:'Vale ON' },
+      { ticker:'ITUB4',  tipo:'Ação',  nome:'Itaú Unibanco PN' },
+      { ticker:'BBAS3',  tipo:'Ação',  nome:'Banco do Brasil ON' },
+      { ticker:'HGLG11', tipo:'FII',   nome:'CSHG Logística' },
+      { ticker:'MXRF11', tipo:'FII',   nome:'Maxi Renda' },
+    ];
+
+    // ── TOAST ──
+    let toastTimer;
+    function mostrarToast(msg, dur = 3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+    }
+
+    // ── RELÓGIO ──
+    function iniciarRelogio() {
+      const tick = () => {
+        const agora   = new Date(new Date().toLocaleString('en-US', { timeZone:'America/Sao_Paulo' }));
+        const h = String(agora.getHours()).padStart(2,'0');
+        const m = String(agora.getMinutes()).padStart(2,'0');
+        document.getElementById('horario-hora').textContent = `${h}:${m}`;
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // ── STATUS DO MERCADO ──
+    function atualizarStatusMercado() {
+      const mercado  = MercadoAPI.verificarHorarioMercado();
+      const badge    = document.getElementById('mercado-badge');
+      const status   = document.getElementById('horario-status');
+      const prox     = document.getElementById('horario-prox');
+
+      badge.className = 'mercado-badge';
+      status.className = 'horario-status';
+
+      if (mercado.status === 'aberto') {
+        badge.classList.add('aberto');
+        badge.textContent = '● Mercado Aberto';
+        status.classList.add('aberto');
+        status.textContent = 'Mercado aberto ✅';
+        prox.textContent = 'Fecha às 17:30';
+      } else if (mercado.status === 'pre_abertura') {
+        badge.classList.add('pre');
+        badge.textContent = '◐ Pré-abertura';
+        status.classList.add('pre');
+        status.textContent = 'Pré-abertura — ordens agendadas';
+        prox.textContent = 'Abre às 09:45';
+      } else {
+        badge.classList.add('fechado');
+        badge.textContent = '○ Fechado';
+        status.classList.add('fechado');
+        status.textContent = 'Mercado fechado';
+        if (mercado.proxima) {
+          const d = mercado.proxima;
+          prox.textContent = `Próxima abertura: ${d.toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' })} às 09:45`;
+        }
+      }
+    }
+
+    // ── ÍNDICES ──
+    async function carregarIndices() {
+      try {
+        const indices = await MercadoAPI.buscarIndices();
+        const scroll  = document.getElementById('indices-scroll');
+
+        if (!indices || indices.length === 0) {
+          scroll.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px">Índices indisponíveis</p>`;
+          return;
+        }
+
+        scroll.innerHTML = '';
+        indices.forEach(idx => {
+          const pos = (idx.variacao_pct || 0) >= 0;
+          const chip = document.createElement('div');
+          chip.className = 'indice-chip';
+          chip.innerHTML = `
+            <p class="indice-nome">${idx.nome || idx.ticker}</p>
+            <p class="indice-valor">${formatarValorIndice(idx)}</p>
+            <p class="indice-var ${pos ? 'pos' : 'neg'}">${MercadoAPI.pct(idx.variacao_pct || 0)}</p>`;
+          scroll.appendChild(chip);
+        });
+      } catch(e) {
+        console.error('[Investir] Erro índices:', e);
+      }
+    }
+
+    function formatarValorIndice(idx) {
+      const t = idx.ticker;
+      if (t === 'BRL=X' || t === 'EURUSD=X') return `R$ ${(idx.preco || 0).toFixed(2)}`;
+      if (t === 'BTC-USD') return `R$ ${Number(((idx.preco||0)*5.2).toFixed(0)).toLocaleString('pt-BR')}`;
+      if (t === '^BVSP')   return Number((idx.preco||0).toFixed(0)).toLocaleString('pt-BR');
+      return (idx.preco || 0).toLocaleString('pt-BR');
+    }
+
+    // ── DESTAQUES ──
+    async function carregarDestaques() {
+      const grid = document.getElementById('destaques-grid');
+      try {
+        const tickers  = DESTAQUES_TICKERS.map(d => d.ticker);
+        const cotacoes = await MercadoAPI.buscarMultiplos(tickers);
+
+        grid.innerHTML = '';
+
+        if (!cotacoes || cotacoes.length === 0) {
+          grid.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Cotações indisponíveis no momento.</p>`;
+          return;
+        }
+
+        cotacoes.forEach((cot, i) => {
+          const info = DESTAQUES_TICKERS[i] || {};
+          const pos  = (cot.variacao_pct || 0) >= 0;
+
+          const card = document.createElement('a');
+          card.className = 'destaque-card';
+          card.href = `relatorio.html?ticker=${cot.ticker}&tipo=${info.tipo === 'FII' ? 'fiis' : 'acoes'}`;
+
+          card.innerHTML = `
+            <div class="destaque-esq">
+              <span class="destaque-ticker">${cot.ticker}</span>
+              <div>
+                <p class="destaque-nome">${info.nome || cot.nome || cot.ticker}</p>
+                <p class="destaque-tipo">${info.tipo || 'Ação'} · B3</p>
+              </div>
+            </div>
+            <div class="destaque-dir">
+              <p class="destaque-preco">R$ ${(cot.preco || 0).toFixed(2)}</p>
+              <p class="destaque-var ${pos ? 'pos' : 'neg'}">${MercadoAPI.pct(cot.variacao_pct || 0)}</p>
+            </div>`;
+
+          grid.appendChild(card);
+        });
+
+      } catch(e) {
+        console.error('[Investir] Erro destaques:', e);
+        grid.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar cotações.</p>`;
+      }
+    }
+
+    // ── BUSCA ──
+    let buscaTimer;
+
+    function onBusca(valor) {
+      const clear = document.getElementById('busca-clear');
+      clear.style.display = valor ? 'block' : 'none';
+
+      clearTimeout(buscaTimer);
+
+      if (!valor || valor.length < 2) {
+        fecharAutocomplete();
+        return;
+      }
+
+      buscaTimer = setTimeout(() => executarBusca(valor), 400);
+    }
+
+    async function executarBusca(query) {
+      try {
+        // Busca local primeiro (destaques)
+        const local = DESTAQUES_TICKERS.filter(d =>
+          d.ticker.includes(query.toUpperCase()) ||
+          d.nome.toLowerCase().includes(query.toLowerCase())
+        );
+
+        // Depois busca na API
+        const api = await MercadoAPI.buscarAutoComplete(query);
+
+        // Combina removendo duplicatas
+        const todos = [...local.map(d => ({ ticker: d.ticker, nome: d.nome, tipo: d.tipo }))];
+        api.forEach(a => {
+          if (!todos.find(t => t.ticker === a.ticker)) {
+            todos.push({ ticker: a.ticker, nome: a.nome, tipo: a.tipo });
+          }
+        });
+
+        renderizarAutocomplete(todos.slice(0, 6));
+      } catch(e) {
+        console.error('[Busca]', e);
+      }
+    }
+
+    function renderizarAutocomplete(itens) {
+      const ac = document.getElementById('autocomplete');
+
+      if (!itens || itens.length === 0) {
+        ac.innerHTML = `<div class="autocomplete-item" style="color:var(--muted);font-size:12px;font-family:var(--mono)">Nenhum resultado encontrado</div>`;
+        ac.classList.add('visivel');
+        return;
+      }
+
+      ac.innerHTML = '';
+      itens.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = `
+          <span class="ac-ticker">${item.ticker}</span>
+          <span class="ac-nome">${item.nome}</span>
+          <span class="ac-tipo">${item.tipo || ''}</span>`;
+        div.onclick = () => irParaRelatorio(item.ticker, item.tipo);
+        ac.appendChild(div);
+      });
+
+      ac.classList.add('visivel');
+    }
+
+    function fecharAutocomplete() {
+      document.getElementById('autocomplete').classList.remove('visivel');
+    }
+
+    function limparBusca() {
+      document.getElementById('busca-input').value = '';
+      document.getElementById('busca-clear').style.display = 'none';
+      fecharAutocomplete();
+    }
+
+    function irParaRelatorio(ticker, tipo) {
+      const tipoMap = {
+        'Ação': 'acoes', 'FII': 'fiis', 'Cryptocurrency': 'cripto',
+        'EQUITY': 'acoes', 'MUTUALFUND': 'fiis',
+      };
+      const tipoUrl = tipoMap[tipo] || 'acoes';
+      window.location.href = `relatorio.html?ticker=${ticker}&tipo=${tipoUrl}`;
+    }
+
+    // Fecha autocomplete ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.busca-wrap')) fecharAutocomplete();
+    });
+
+    // ── ENTER na busca ──
+    document.getElementById('busca-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const val = e.target.value.trim().toUpperCase();
+        if (val) irParaRelatorio(val, 'acoes');
+      }
+    });
+
+    // ── INIT ──
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'invite.html'; return; }
+
+      iniciarRelogio();
+      atualizarStatusMercado();
+      setInterval(atualizarStatusMercado, 60000);
+
+      // Carrega dados em paralelo
+      await Promise.all([
+        carregarIndices(),
+        carregarDestaques(),
+      ]);
+    });
+  </script>
+</body>
+</html>
+
