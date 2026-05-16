@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>O Juramento | Los Pombitos</title>
+  <title>Seu Perfil | Los Pombitos Investimentos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
@@ -257,6 +257,35 @@
       color: #e88; margin-top: 5px; display: none;
     }
     .erro-campo.visivel { display: block; }
+
+    /* ── PERFIL DE INVESTIDOR ── */
+    .perfil-cards {
+      display: flex; flex-direction: column; gap: 10px; margin-top: 4px;
+    }
+    .perfil-card {
+      border: 1px solid rgba(201,168,76,.2); border-radius: 3px;
+      padding: 14px 16px; cursor: pointer;
+      background: rgba(0,0,0,.2); transition: all .2s;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .perfil-card:hover { border-color: rgba(201,168,76,.5); background: rgba(201,168,76,.05); }
+    .perfil-card.selecionado { border-color: var(--gold); background: rgba(201,168,76,.1); }
+    .perfil-card input[type="radio"] { display: none; }
+    .perfil-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+    .perfil-titulo {
+      font-family: var(--display); font-size: 13px; letter-spacing: 1.5px;
+      color: var(--gold-light); margin-bottom: 3px;
+    }
+    .perfil-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .perfil-detalhe {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      color: var(--gold); opacity: .6; margin-top: 4px;
+    }
+    .erro-perfil {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      color: #e88; margin-top: 6px; display: none;
+    }
+    .erro-perfil.visivel { display: block; }
   </style>
 </head>
 <body>
@@ -325,9 +354,9 @@
       </svg>
 
       <div>
-        <p class="titulo-ordem">RITUAL DE IDENTIFICAÇÃO</p>
-        <p class="titulo-principal">FORJE SUA <span>IDENTIDADE</span></p>
-        <p class="titulo-sub">SEU PERFIL SERÁ ÚNICO NA IRMANDADE<br>ESCOLHA COM SABEDORIA</p>
+        <p class="titulo-ordem">CRIE SEU PERFIL</p>
+        <p class="titulo-principal">CONFIGURE SUA <span>CONTA</span></p>
+        <p class="titulo-sub">REDE SOCIAL · SIMULADORA DE CORRETORA<br>CAPITAL INICIAL: R$ 500.000,00</p>
       </div>
     </div>
 
@@ -413,20 +442,65 @@
         </div>
       </div>
 
+      <div class="sep">
+        <div class="sep-line"></div>
+        <span class="sep-label">SEU PERFIL DE INVESTIDOR</span>
+        <div class="sep-line"></div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">COMO VOCÊ LIDA COM RISCO?</label>
+        <div class="perfil-cards">
+
+          <label class="perfil-card" onclick="selecionarPerfil(this, 'conservador')">
+            <input type="radio" name="perfil_investidor" value="conservador">
+            <span class="perfil-icon">🛡️</span>
+            <div>
+              <p class="perfil-titulo">CONSERVADOR</p>
+              <p class="perfil-desc">Prefere segurança e previsibilidade. Prioriza renda fixa e evita grandes oscilações.</p>
+              <p class="perfil-detalhe">Tesouro Direto · CDB · LCI/LCA · Renda fixa</p>
+            </div>
+          </label>
+
+          <label class="perfil-card" onclick="selecionarPerfil(this, 'moderado')">
+            <input type="radio" name="perfil_investidor" value="moderado">
+            <span class="perfil-icon">⚖️</span>
+            <div>
+              <p class="perfil-titulo">MODERADO</p>
+              <p class="perfil-desc">Busca equilíbrio entre segurança e rentabilidade. Aceita alguma variação para ganhar mais.</p>
+              <p class="perfil-detalhe">Mix de renda fixa + FIIs + ações blue chips</p>
+            </div>
+          </label>
+
+          <label class="perfil-card" onclick="selecionarPerfil(this, 'arrojado')">
+            <input type="radio" name="perfil_investidor" value="arrojado">
+            <span class="perfil-icon">🚀</span>
+            <div>
+              <p class="perfil-titulo">ARROJADO</p>
+              <p class="perfil-desc">Aceita alta volatilidade em busca de grandes retornos. Confortável com ações e cripto.</p>
+              <p class="perfil-detalhe">Ações · FIIs · Cripto · Small caps</p>
+            </div>
+          </label>
+
+        </div>
+        <span class="erro-perfil" id="erro-perfil">Escolha seu perfil de investidor.</span>
+      </div>
+
     </div><!-- /form-card -->
 
     <!-- FEEDBACK -->
     <div class="msg-feedback" id="msg-feedback"></div>
+    <p id="status" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px;"></p>
 
     <!-- BOTÃO -->
     <button class="btn-germinar" id="btn-germinar" onclick="submeterPerfil()">
-      🕊️ GERMINAR MEU POMBITO
+      📈 CRIAR MINHA CONTA
     </button>
 
     <!-- FOOTER -->
     <div class="footer-ordem">
-      <p class="footer-lema">"Ele caiu. Ele levantou. Ele voou."</p>
-      <p class="footer-proto">PRAIA-PROTOCOL · LACRADO PELA ORDEM</p>
+      <p class="footer-lema">"Aprenda investindo. Invista aprendendo."</p>
+      <p class="footer-proto">LOS POMBITOS INVESTIMENTOS · SIMULADOR EDUCACIONAL</p>
     </div>
 
   </div><!-- /container -->
@@ -435,7 +509,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="auth.js"></script>
-
   <script>
     // ── MAPA DE CORES (texto → hex) ──
     const coresMapa = {
@@ -465,12 +538,15 @@
 
     // ── PROGRESSO ──
     const campos = ['nome','username','idade','musica','filme','cor'];
+    let perfilSelecionado = null;
     function atualizarProgresso() {
       const preenchidos = campos.filter(id => {
         const el = document.getElementById(id);
         return el && el.value.trim() !== '';
       }).length;
-      const pct = Math.round((preenchidos / campos.length) * 100);
+      const totalCampos = campos.length + 1; // +1 para perfil de investidor
+      const comPerfil   = preenchidos + (perfilSelecionado ? 1 : 0);
+      const pct = Math.round((comPerfil / totalCampos) * 100);
       document.getElementById('progress-fill').style.width = pct + '%';
       const label = document.querySelector('.progress-label');
       if (pct === 100) {
@@ -480,6 +556,15 @@
         label.textContent = `RITUAL ${pct}% COMPLETO`;
         label.style.color = '';
       }
+    }
+
+    // ── SELECIONAR PERFIL DE INVESTIDOR ──
+    function selecionarPerfil(card, valor) {
+      document.querySelectorAll('.perfil-card').forEach(c => c.classList.remove('selecionado'));
+      card.classList.add('selecionado');
+      perfilSelecionado = valor;
+      document.getElementById('erro-perfil').classList.remove('visivel');
+      atualizarProgresso();
     }
 
     // Ouve todos os campos para atualizar progresso
@@ -498,7 +583,7 @@
     function setBotao(carregando) {
       const btn = document.getElementById('btn-germinar');
       btn.disabled = carregando;
-      btn.textContent = carregando ? 'GERMINANDO...' : '🕊️ GERMINAR MEU POMBITO';
+      btn.textContent = carregando ? 'GERMINANDO...' : '📈 CRIAR MINHA CONTA';
     }
 
     // ── VALIDAÇÃO ──
@@ -532,6 +617,11 @@
       const cor = document.getElementById('cor').value.trim();
       if (!cor) {
         exibirMensagem('Escolha uma cor para o seu Pombito.', 'erro');
+        ok = false;
+      }
+
+      if (!perfilSelecionado) {
+        document.getElementById('erro-perfil').classList.add('visivel');
         ok = false;
       }
 
@@ -583,26 +673,29 @@
       }
 
       const dadosFicha = {
-        nome:     document.getElementById('nome').value.trim(),
-        username: document.getElementById('username').value.trim().toLowerCase(),
-        idade:    Number(document.getElementById('idade').value),
-        sexo:     document.getElementById('sexo').value || 'O',
-        musica:   document.getElementById('musica').value.trim(),
-        filme:    document.getElementById('filme').value.trim(),
-        cor:      document.getElementById('cor').value.trim(),
+        nome:               document.getElementById('nome').value.trim(),
+        username:           document.getElementById('username').value.trim().toLowerCase(),
+        idade:              Number(document.getElementById('idade').value),
+        sexo:               document.getElementById('sexo').value || 'O',
+        musica:             document.getElementById('musica').value.trim(),
+        filme:              document.getElementById('filme').value.trim(),
+        cor:                document.getElementById('cor').value.trim(),
+        perfil_investidor:  perfilSelecionado,
       };
 
-      // germinarEsalvarPombito está no auth.js
+      // Salva perfil e cria carteira (auth.js)
       const sucesso = await germinarEsalvarPombito(dadosFicha);
 
       if (!sucesso) {
-        // auth.js já exibiu o erro — só reativa o botão
         setBotao(false);
+        return;
       }
-      // Se sucesso, auth.js redireciona para feed.html
+
+      exibirMensagem('Bem-vindo à Corretora! Seu capital de R$ 500.000 está disponível. 🚀', 'ok');
+      setTimeout(() => { window.location.href = 'feed.html'; }, 2000);
     }
 
-    // ── PROTEÇÃO: se não logado, volta ao início ──
+    // Protecao: se nao logado, volta ao inicio
     firebase.auth().onAuthStateChanged((user) => {
       if (!user) window.location.href = 'invite.html';
     });
