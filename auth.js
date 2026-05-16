@@ -1,7 +1,7 @@
 // ============================================================
 //  LOS POMBITOS — auth.js  (versão corrigida e segura)
-//  Comunidade fechada: só entra quem recebe um código POMB-XXXXX
-//  Cada membro ganha 3 códigos para convidar quem quiser
+//  Rede social + Simuladora de Corretora
+//  Comunidade fechada por convite · Capital inicial R$ 500.000
 // ============================================================
 
 // ----------------------------------------------------------
@@ -34,12 +34,15 @@ const auth = firebase.auth();
 // 3. VERIFICAÇÃO DE SESSÃO ATIVA
 //    Páginas permitidas por perfil:
 //    - Sem sessão        → apenas index.html e invite.html
-//    - Perfil completo   → feed, praia, galeria
+//    - Perfil completo   → feed, investir, carteira, relatorio, ordem
 //    - Perfil incompleto → apenas setup-perfil.html
 // ----------------------------------------------------------
 
 const PAGINAS_PUBLICAS = ["index.html", "invite.html", "", "/"];
-const PAGINAS_MEMBRO   = ["feed.html", "praia.html", "galeria.html", "setup-perfil.html"];
+const PAGINAS_MEMBRO   = [
+  "feed.html", "investir.html", "carteira.html",
+  "relatorio.html", "ordem.html", "setup-perfil.html"
+];
 
 auth.onAuthStateChanged(async (user) => {
   const paginaAtual = window.location.pathname.split("/").pop() || "index.html";
@@ -294,14 +297,21 @@ async function finalizarCadastroPombito(user) {
 
     // Salva dados iniciais do membro (sem sobrescrever campos existentes)
     await docRef.set({
-      uid:             user.uid,
-      nome:            user.displayName || "Pombito",
-      email:           user.email,
-      foto_google:     user.photoURL || null,
-      meus_codigos:    novosCodigos,
-      pombcoins:       10,
-      perfil_completo: false,
-      data_adesao:     firebase.firestore.FieldValue.serverTimestamp()
+      uid:                user.uid,
+      nome:               user.displayName || "Pombito",
+      email:              user.email,
+      foto_google:        user.photoURL || null,
+      meus_codigos:       novosCodigos,
+      // Capital inicial da corretora simulada
+      saldo_disponivel:   500000.00,
+      saldo_investido:    0,
+      patrimonio_total:   500000.00,
+      rentabilidade_pct:  0,
+      // Perfil de investidor (preenchido no setup)
+      perfil_investidor:  null,
+      // Controle
+      perfil_completo:    false,
+      data_adesao:        firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
     window.location.href = "setup-perfil.html";
@@ -339,6 +349,21 @@ async function germinarEsalvarPombito(dadosFicha) {
       perfil_completo: true,
       data_germina:    firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
+
+    // Cria carteira no Firestore se não existir
+    const carteiraRef = db.collection("carteiras").doc(user.uid);
+    const carteiraSnap = await carteiraRef.get();
+    if (!carteiraSnap.exists) {
+      await carteiraRef.set({
+        uid:              user.uid,
+        saldo_disponivel: 500000.00,
+        saldo_investido:  0,
+        patrimonio_total: 500000.00,
+        posicoes:         [],
+        historico_ordens: [],
+        criada_em:        firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
 
     window.location.href = "feed.html";
     return true;
@@ -384,4 +409,3 @@ async function obterDadosMembro() {
     return null;
   }
 }
-
