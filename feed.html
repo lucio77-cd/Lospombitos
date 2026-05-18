@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Los Pombitos | Feed</title>
+  <title>Feed | Los Pombitos Investimentos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
@@ -561,7 +561,7 @@
           <textarea
             id="post-text"
             maxlength="500"
-            placeholder="O que você está pensando, Pombito?"
+            placeholder="O que você acha do mercado hoje, Pombito?"
             oninput="atualizarContador(this)"
             rows="2"
           ></textarea>
@@ -583,40 +583,97 @@
       <div id="feed-lista"></div>
     </section>
 
-    <!-- SALDO -->
-    <section id="saldo" class="section">
-      <p class="section-title">CARTEIRA</p>
+    <!-- PERFIL -->
+    <section id="perfil" class="section">
+      <p class="section-title">MEU PERFIL</p>
 
-      <div class="crypto-card">
-        <p class="crypto-label">SALDO ATUAL</p>
-        <p id="pombcoin-balance">— $POMB</p>
+      <!-- Card do investidor -->
+      <div class="crypto-card" style="margin-bottom:16px">
+        <p class="crypto-label">PATRIMÔNIO TOTAL</p>
+        <p id="patrimonio-display" style="font-family:var(--display);font-size:38px;letter-spacing:2px;line-height:1;margin-bottom:8px">R$ ···</p>
+        <div style="display:flex;gap:20px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">
+          <div>
+            <p class="crypto-label">DISPONÍVEL</p>
+            <p id="saldo-display-perfil" style="font-family:var(--mono);font-size:13px;font-weight:500">R$ ···</p>
+          </div>
+          <div>
+            <p class="crypto-label">RENTABILIDADE</p>
+            <p id="rentab-display" style="font-family:var(--mono);font-size:13px;font-weight:500">+0,00%</p>
+          </div>
+          <div>
+            <p class="crypto-label">PERFIL</p>
+            <p id="perfil-display" style="font-family:var(--mono);font-size:13px;font-weight:500">···</p>
+          </div>
+        </div>
       </div>
 
-      <p class="convites-titulo">SEMENTES DA LINHAGEM</p>
+      <!-- Atalhos rápidos -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        <a href="carteira.html" style="text-decoration:none">
+          <div class="post-box" style="text-align:center;cursor:pointer;padding:16px">
+            <p style="font-size:28px;margin-bottom:6px">💼</p>
+            <p style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--wave)">CARTEIRA</p>
+          </div>
+        </a>
+        <a href="investir.html" style="text-decoration:none">
+          <div class="post-box" style="text-align:center;cursor:pointer;padding:16px">
+            <p style="font-size:28px;margin-bottom:6px">📈</p>
+            <p style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--wave)">INVESTIR</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Dados do perfil -->
+      <div class="post-box" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          <img id="perfil-avatar" src="" alt="" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--wave);object-fit:cover">
+          <div>
+            <p id="perfil-nome" style="font-family:var(--display);font-size:20px;letter-spacing:2px"></p>
+            <p id="perfil-username" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--sand);border-radius:10px;padding:10px">
+            <p style="font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px">PERFIL INVESTIDOR</p>
+            <p id="perfil-investidor-label" style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)">···</p>
+          </div>
+          <div style="background:var(--sand);border-radius:10px;padding:10px">
+            <p style="font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px">MEMBRO DESDE</p>
+            <p id="perfil-desde" style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)">···</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Códigos de convite -->
+      <p class="convites-titulo">CONVITES DA IRMANDADE</p>
       <div id="lista-convites">
         <div class="skeleton"><div class="sk-circle" style="width:32px;height:32px"></div><div class="sk-lines"><div class="sk-line" style="width:60%"></div></div></div>
       </div>
+
+      <button class="btn-sair" style="margin-top:20px;width:100%;height:44px;border-radius:25px" onclick="sairDaOrdem()">
+        SAIR DA ORDEM
+      </button>
     </section>
 
   </div>
 
   <!-- ── BOTTOM NAV ── -->
   <nav class="bottom-nav">
-    <div class="nav-item active-link" onclick="showSection('timeline', this)">
+    <div class="nav-item active-link" id="nav-feed" onclick="showSection('timeline', this)">
       <span class="nav-icon">🏠</span>
-      <span class="nav-label">TIMELINE</span>
+      <span class="nav-label">FEED</span>
     </div>
-    <a class="nav-item" href="praia.html" style="text-decoration:none">
-      <span class="nav-icon">🌊</span>
-      <span class="nav-label">PRAIA</span>
+    <a class="nav-item" href="investir.html">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">INVESTIR</span>
     </a>
-    <a class="nav-item" href="galeria.html" style="text-decoration:none">
-      <span class="nav-icon">🖼️</span>
-      <span class="nav-label">GALERIA</span>
+    <a class="nav-item" href="carteira.html">
+      <span class="nav-icon">💼</span>
+      <span class="nav-label">CARTEIRA</span>
     </a>
-    <div class="nav-item" onclick="showSection('saldo', this)">
-      <span class="nav-icon">💰</span>
-      <span class="nav-label">SALDO</span>
+    <div class="nav-item" id="nav-perfil" onclick="showSection('perfil', this)">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">PERFIL</span>
     </div>
   </nav>
 
@@ -806,14 +863,50 @@
                 : d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
             }
 
-            // Sanitiza texto para evitar XSS
+            const avatarFallback = `https://api.dicebear.com/7.x/identicon/svg?seed=${post.uid}`;
+
+            // Post de TRADE (automático da ordem)
+            if (post.tipo === 'trade') {
+              const isCompra = post.lado === 'compra';
+              const emoji    = isCompra ? '📈' : '📉';
+              const corLabel = isCompra ? 'var(--green)' : 'var(--red)';
+              const label    = isCompra ? 'COMPROU' : 'VENDEU';
+
+              feedLista.innerHTML += `
+                <div class="post-card" style="border-left:3px solid ${corLabel}">
+                  <img
+                    src="${post.foto_perfil || avatarFallback}"
+                    class="post-avatar"
+                    onerror="this.src='${avatarFallback}'"
+                    alt="Avatar"
+                  >
+                  <div class="post-content">
+                    <div class="post-info">
+                      <span class="post-author">@${post.username || 'pombito'}</span>
+                      <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:${corLabel};background:${isCompra ? '#d4f5e2' : '#ffd5ce'};border-radius:20px;padding:2px 8px;font-weight:500">${emoji} ${label}</span>
+                      <span class="post-date">· ${tempo}</span>
+                    </div>
+                    <p class="post-text">
+                      <strong style="font-family:var(--mono);color:var(--wave)">${post.ticker}</strong>
+                      · ${post.quantidade} ${post.tipo === 'tesouro' ? 'títulos' : post.tipo === 'cripto' ? 'unidades' : 'cotas'}
+                      a <strong>R$ ${(post.preco || 0).toFixed(2)}</strong>
+                      · Total: <strong>R$ ${Number((post.total || 0).toFixed(2)).toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>
+                    </p>
+                    <a href="relatorio.html?ticker=${post.ticker}&tipo=${post.tipo || 'acoes'}"
+                       style="display:inline-block;margin-top:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);text-decoration:none;background:var(--foam);border-radius:20px;padding:3px 10px">
+                      Ver relatório →
+                    </a>
+                  </div>
+                </div>`;
+              return;
+            }
+
+            // Post NORMAL de texto
             const textoSafe = (post.texto || '')
               .replace(/&/g,'&amp;')
               .replace(/</g,'&lt;')
               .replace(/>/g,'&gt;')
               .replace(/\n/g,'<br>');
-
-            const avatarFallback = `https://api.dicebear.com/7.x/identicon/svg?seed=${post.uid}`;
 
             feedLista.innerHTML += `
               <div class="post-card">
@@ -852,24 +945,64 @@
       if (!user) return; // auth.js cuida do redirect
 
       try {
-        const doc = await db.collection('usuarios').doc(user.uid).get();
-        if (!doc.exists) return;
+        const [userDoc, carteiraDoc] = await Promise.all([
+          db.collection('usuarios').doc(user.uid).get(),
+          db.collection('carteiras').doc(user.uid).get(),
+        ]);
 
-        const dados = doc.data();
+        if (!userDoc.exists) return;
+
+        const dados    = userDoc.data();
+        const carteira = carteiraDoc.exists ? carteiraDoc.data() : {};
 
         // Avatar no topo e na caixa de post
-        const fotoUrl = dados.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
+        const fotoUrl    = dados.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
         const avatarTopo = document.getElementById('user-avatar-top');
         const avatarPost = document.getElementById('post-avatar-box');
         avatarTopo.src = fotoUrl;
         avatarTopo.style.display = 'block';
         avatarPost.src = fotoUrl;
 
-        // Saldo
-        document.getElementById('pombcoin-balance').textContent =
-          (dados.pombcoins ?? 0) + ' $POMB';
+        // Dados de perfil
+        const patrimonio = carteira.patrimonio_total ?? dados.patrimonio_total ?? 500000;
+        const saldoDisp  = carteira.saldo_disponivel ?? dados.saldo_disponivel ?? 500000;
+        const rentabPct  = ((patrimonio - 500000) / 500000) * 100;
+        const perfilMap  = { conservador:'🛡️ Conservador', moderado:'⚖️ Moderado', arrojado:'🚀 Arrojado' };
 
-        // Convites com status real
+        // Atualiza seção de perfil
+        const elPatrimonio = document.getElementById('patrimonio-display');
+        if (elPatrimonio) elPatrimonio.textContent = 'R$ ' + patrimonio.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        const elSaldoPerfil = document.getElementById('saldo-display-perfil');
+        if (elSaldoPerfil) elSaldoPerfil.textContent = 'R$ ' + saldoDisp.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        const elRentab = document.getElementById('rentab-display');
+        if (elRentab) {
+          elRentab.textContent = (rentabPct >= 0 ? '+' : '') + rentabPct.toFixed(2) + '%';
+          elRentab.style.color = rentabPct >= 0 ? 'var(--green)' : 'var(--coral)';
+        }
+
+        const elPerfil = document.getElementById('perfil-display');
+        if (elPerfil) elPerfil.textContent = perfilMap[dados.perfil_investidor] || '···';
+
+        const elPerfilAvatar = document.getElementById('perfil-avatar');
+        if (elPerfilAvatar) elPerfilAvatar.src = fotoUrl;
+
+        const elNome = document.getElementById('perfil-nome');
+        if (elNome) elNome.textContent = dados.nome || 'Pombito';
+
+        const elUsername = document.getElementById('perfil-username');
+        if (elUsername) elUsername.textContent = '@' + (dados.username || '···');
+
+        const elInvestidor = document.getElementById('perfil-investidor-label');
+        if (elInvestidor) elInvestidor.textContent = perfilMap[dados.perfil_investidor] || '···';
+
+        const elDesde = document.getElementById('perfil-desde');
+        if (elDesde && dados.data_adesao) {
+          elDesde.textContent = dados.data_adesao.toDate().toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+        }
+
+        // Convites
         await renderizarConvites(user.uid, dados.meus_codigos || []);
 
         // Timeline
