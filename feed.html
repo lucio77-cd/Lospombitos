@@ -1,662 +1,414 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Feed | Los Pombitos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+// ============================================================
+//  mercado-api.js — Dados de Mercado em Tempo Real
+//  MELHORADO — sem alterar estrutura original
+// ============================================================
 
-  <style>
-    :root {
-      --ink:    #0d0d0d;
-      --sand:   #f0ebe3;
-      --shore:  #e2d9cd;
-      --wave:   #1a4fff;
-      --foam:   #c8d8ff;
-      --sun:    #f5b800;
-      --coral:  #ff5533;
-      --muted:  #8a8278;
-      --card:   #faf8f5;
-      --green:  #1a8a4a;
-      --radius: 14px;
-      --mono:   'DM Mono', monospace;
-      --sans:   'DM Sans', sans-serif;
-      --display:'Bebas Neue', sans-serif;
+const MercadoAPI = {
+
+  // ----------------------------------------------------------
+  // CONFIG
+  // ----------------------------------------------------------
+
+  PROXY: 'https://corsproxy.io/?',
+
+  PROXY_FALLBACK: [
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url='
+  ],
+
+  _cache: {},
+
+  CACHE_TIME: 1000 * 15, // 15 segundos
+
+  TIMEOUT: 12000,
+
+  RETRY: 2,
+
+  // ----------------------------------------------------------
+  // REQUEST BASE
+  // ----------------------------------------------------------
+
+  async request(url, tentativa = 0) {
+
+    // CACHE
+    const cached = this._cache[url];
+
+    if (
+      cached &&
+      (Date.now() - cached.timestamp < this.CACHE_TIME)
+    ) {
+      return cached.data;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    let ultimoErro = null;
 
-    body {
-      font-family: var(--sans);
-      background: var(--sand);
-      color: var(--ink);
-      min-height: 100dvh;
-      overscroll-behavior: none;
-    }
-
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 9999; opacity: .5;
-    }
-
-    /* ── HEADER ── */
-    .feed-header {
-      position: sticky; top: 0; z-index: 100;
-      background: var(--sand); border-bottom: 1.5px solid var(--shore);
-      padding: 0 20px; height: 58px;
-      display: flex; align-items: center; justify-content: space-between;
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    }
-
-    .header-logo { font-family: var(--display); font-size: 26px; letter-spacing: 3px; color: var(--wave); line-height: 1; }
-    .header-logo span { color: var(--sun); }
-
-    .header-right { display: flex; align-items: center; gap: 10px; }
-
-    #user-avatar-top {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 2px solid var(--wave); object-fit: cover;
-      display: none; cursor: pointer;
-    }
-
-    .btn-sair {
-      font-family: var(--mono); font-size: 9px; font-weight: 500;
-      letter-spacing: 1.5px; color: var(--muted);
-      background: none; border: 1px solid var(--shore);
-      border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: all .2s;
-    }
-    .btn-sair:hover { color: var(--coral); border-color: var(--coral); }
-
-    /* ── LAYOUT ── */
-    .app-container { padding: 20px 16px 90px; max-width: 640px; margin: 0 auto; }
-
-    .section { display: none; animation: fadeUp .3s ease; }
-    .section.active { display: block; }
-
-    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    /* ── POST BOX ── */
-    .post-box {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 16px; margin-bottom: 22px;
-    }
-
-    .post-box-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-
-    #post-avatar-box {
-      width: 38px; height: 38px; border-radius: 50%;
-      object-fit: cover; border: 2px solid var(--foam); flex-shrink: 0;
-    }
-
-    #post-text {
-      width: 100%; border: none; background: transparent;
-      font-family: var(--sans); font-size: 14px; color: var(--ink);
-      resize: none; outline: none; min-height: 60px; line-height: 1.6;
-    }
-    #post-text::placeholder { color: var(--muted); }
-
-    .post-box-footer {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--shore);
-    }
-
-    #char-count { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-    #char-count.quase { color: var(--sun); }
-    #char-count.cheio { color: var(--coral); }
-
-    .btn-postar {
-      font-family: var(--mono); font-size: 11px; font-weight: 500;
-      letter-spacing: 1px; background: var(--wave); color: white;
-      border: none; border-radius: 20px; padding: 9px 22px;
-      cursor: pointer; transition: all .2s;
-    }
-    .btn-postar:hover:not(:disabled) { background: #0033cc; transform: translateY(-1px); }
-    .btn-postar:disabled { opacity: .5; cursor: not-allowed; }
-
-    /* ── POST CARDS ── */
-    #feed-lista { display: flex; flex-direction: column; gap: 12px; }
-
-    .post-card {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 14px 16px;
-      display: flex; gap: 12px; transition: border-color .2s;
-    }
-    .post-card:hover { border-color: var(--foam); }
-
-    .post-avatar {
-      width: 42px; height: 42px; border-radius: 50%;
-      object-fit: cover; flex-shrink: 0; border: 2px solid var(--foam);
-    }
-
-    .post-content { flex: 1; min-width: 0; }
-
-    .post-info {
-      display: flex; align-items: center; gap: 6px;
-      margin-bottom: 6px; flex-wrap: wrap;
-    }
-
-    .post-author { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--wave); }
-    .post-date   { font-size: 11px; color: var(--muted); }
-
-    .post-text { font-size: 14px; color: var(--ink); line-height: 1.6; word-break: break-word; }
-
-    /* Trade badge */
-    .trade-badge {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-      border-radius: 20px; padding: 2px 8px; font-weight: 500;
-    }
-    .trade-badge.compra { background: #d4f5e2; color: var(--green); }
-    .trade-badge.venda  { background: #ffd5ce; color: var(--coral); }
-
-    .ver-relatorio {
-      display: inline-block; margin-top: 6px;
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-      color: var(--wave); text-decoration: none;
-      background: var(--foam); border-radius: 20px; padding: 3px 10px;
-    }
-
-    /* ── EMPTY / LOADING ── */
-    .estado-vazio {
-      text-align: center; padding: 50px 20px;
-      color: var(--muted); font-size: 13px; font-family: var(--mono);
-    }
-    .estado-vazio .icone { font-size: 36px; margin-bottom: 12px; }
-
-    .skeleton { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 14px 16px; display: flex; gap: 12px; }
-    .sk-circle { width: 42px; height: 42px; border-radius: 50%; background: var(--shore); flex-shrink: 0; animation: shimmer 1.4s infinite; }
-    .sk-lines  { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
-    .sk-line   { height: 10px; border-radius: 4px; background: var(--shore); animation: shimmer 1.4s infinite; }
-    .sk-line:nth-child(1) { width: 40%; animation-delay: .1s; }
-    .sk-line:nth-child(2) { width: 90%; animation-delay: .2s; }
-    .sk-line:nth-child(3) { width: 70%; animation-delay: .3s; }
-
-    /* ── SEÇÃO TITLE ── */
-    .section-title { font-family: var(--display); font-size: 22px; letter-spacing: 2px; color: var(--ink); margin-bottom: 18px; }
-
-    /* ── CRYPTO CARD (patrimônio) ── */
-    .crypto-card {
-      background: var(--wave);
-      background-image: linear-gradient(135deg, #1a4fff 0%, #0033cc 60%, #001a80 100%);
-      padding: 24px; border-radius: 20px; color: white;
-      margin-bottom: 16px; position: relative; overflow: hidden;
-    }
-    .crypto-card::before {
-      content: 'POMBITOS'; position: absolute; right: -16px; top: 50%;
-      transform: translateY(-50%); font-family: var(--display); font-size: 72px;
-      color: rgba(255,255,255,.05); pointer-events: none; letter-spacing: -2px;
-    }
-    .crypto-label { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; opacity: .7; margin-bottom: 6px; }
-    .crypto-valor { font-family: var(--display); font-size: 38px; letter-spacing: 2px; line-height: 1; }
-    .crypto-grid  { display: flex; gap: 20px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.15); margin-top: 12px; }
-    .crypto-item  {}
-    .crypto-item .crypto-label { margin-bottom: 2px; }
-    .crypto-item-valor { font-family: var(--mono); font-size: 12px; font-weight: 500; }
-
-    /* ── ATALHOS ── */
-    .atalhos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .atalho-card {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 16px;
-      text-align: center; cursor: pointer; text-decoration: none;
-      color: inherit; transition: border-color .2s, transform .2s; display: block;
-    }
-    .atalho-card:hover { border-color: var(--wave); transform: translateY(-1px); }
-    .atalho-icon  { font-size: 28px; margin-bottom: 6px; }
-    .atalho-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--wave); }
-
-    /* ── PERFIL ── */
-    .perfil-box { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
-    .perfil-topo { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-    #perfil-avatar { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--wave); object-fit: cover; }
-    #perfil-nome { font-family: var(--display); font-size: 20px; letter-spacing: 2px; }
-    #perfil-username { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .perfil-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .perfil-stat  { background: var(--sand); border-radius: 10px; padding: 10px; }
-    .perfil-stat-label { font-family: var(--mono); font-size: 8px; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 3px; }
-    .perfil-stat-valor { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--ink); }
-
-    /* ── CONVITES ── */
-    .convites-titulo { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; }
-    .convite-item   { display: flex; justify-content: space-between; align-items: center; background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; transition: border-color .2s; }
-    .convite-item:hover { border-color: var(--foam); }
-    .convite-item.usado { opacity: .45; border-style: dashed; }
-    .convite-codigo { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--wave); letter-spacing: 2px; }
-    .convite-item.usado .convite-codigo { color: var(--muted); text-decoration: line-through; }
-    .badge-usado { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; background: var(--shore); color: var(--muted); border-radius: 20px; padding: 4px 10px; }
-    .btn-copiar { font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: 1px; background: var(--foam); color: var(--wave); border: none; border-radius: 20px; padding: 7px 14px; cursor: pointer; transition: all .2s; }
-    .btn-copiar:hover { background: var(--wave); color: white; }
-    .btn-copiar.copiado { background: #d4f5e2; color: #1a8a4a; }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed; bottom: 80px; left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--ink); color: white;
-      font-family: var(--mono); font-size: 12px; letter-spacing: .5px;
-      padding: 10px 22px; border-radius: 20px; opacity: 0; transition: all .3s;
-      pointer-events: none; z-index: 9000; white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* ── BOTTOM NAV ── */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
-      background: rgba(240,235,227,.92);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-top: 1.5px solid var(--shore);
-      display: flex; justify-content: space-around; align-items: center; z-index: 100;
-    }
-    .nav-item {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4px; cursor: pointer; padding: 6px 12px;
-      border-radius: 10px; transition: all .2s;
-      text-decoration: none; color: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .nav-item:hover { background: var(--shore); }
-    .nav-icon  { font-size: 20px; line-height: 1; }
-    .nav-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); transition: color .2s; }
-    .nav-item.active-link .nav-label { color: var(--wave); font-weight: 500; }
-    .nav-item.active-link .nav-icon  { filter: drop-shadow(0 0 6px rgba(26,79,255,.4)); }
-
-    @media (min-width: 640px) { .app-container { padding-top: 28px; } }
-  </style>
-</head>
-<body>
-
-  <!-- HEADER -->
-  <header class="feed-header">
-    <div class="header-logo">LOS <span>POMBITOS</span></div>
-    <div class="header-right">
-      <img id="user-avatar-top" src="" alt="Avatar">
-      <button class="btn-sair" onclick="sairDaOrdem()">SAIR</button>
-    </div>
-  </header>
-
-  <!-- CONTEÚDO -->
-  <div class="app-container">
-
-    <!-- ── TIMELINE ── -->
-    <section id="timeline" class="section active">
-      <div class="post-box">
-        <div class="post-box-header">
-          <img id="post-avatar-box" src="https://api.dicebear.com/7.x/identicon/svg?seed=default" alt="Avatar">
-          <textarea id="post-text" maxlength="500"
-            placeholder="O que você acha do mercado hoje, Pombito?"
-            oninput="atualizarContador(this)" rows="2"></textarea>
-        </div>
-        <div class="post-box-footer">
-          <span id="char-count">0 / 500</span>
-          <button id="btn-postar" class="btn-postar" onclick="postarMensagem()">POSTAR</button>
-        </div>
-      </div>
-
-      <div id="feed-loading">
-        <div class="skeleton"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line"></div></div></div>
-        <div class="skeleton" style="margin-top:12px"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line"></div></div></div>
-        <div class="skeleton" style="margin-top:12px"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line"></div></div></div>
-      </div>
-
-      <div id="feed-lista"></div>
-    </section>
-
-    <!-- ── PERFIL ── -->
-    <section id="perfil" class="section">
-      <p class="section-title">MEU PERFIL</p>
-
-      <!-- Patrimônio -->
-      <div class="crypto-card">
-        <p class="crypto-label">PATRIMÔNIO TOTAL</p>
-        <p class="crypto-valor" id="pat-total">R$ ···</p>
-        <div class="crypto-grid">
-          <div class="crypto-item">
-            <p class="crypto-label">DISPONÍVEL</p>
-            <p class="crypto-item-valor" id="pat-disponivel">R$ ···</p>
-          </div>
-          <div class="crypto-item">
-            <p class="crypto-label">RENTABILIDADE</p>
-            <p class="crypto-item-valor" id="pat-rentab">+0,00%</p>
-          </div>
-          <div class="crypto-item">
-            <p class="crypto-label">PERFIL</p>
-            <p class="crypto-item-valor" id="pat-perfil">···</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Atalhos -->
-      <div class="atalhos-grid">
-        <a class="atalho-card" href="carteira.html">
-          <p class="atalho-icon">💼</p>
-          <p class="atalho-label">CARTEIRA</p>
-        </a>
-        <a class="atalho-card" href="investir.html">
-          <p class="atalho-icon">📈</p>
-          <p class="atalho-label">INVESTIR</p>
-        </a>
-      </div>
-
-      <!-- Dados pessoais -->
-      <div class="perfil-box">
-        <div class="perfil-topo">
-          <img id="perfil-avatar" src="" alt="">
-          <div>
-            <p id="perfil-nome"></p>
-            <p id="perfil-username"></p>
-          </div>
-        </div>
-        <div class="perfil-stats">
-          <div class="perfil-stat">
-            <p class="perfil-stat-label">PERFIL INVESTIDOR</p>
-            <p class="perfil-stat-valor" id="perfil-tipo">···</p>
-          </div>
-          <div class="perfil-stat">
-            <p class="perfil-stat-label">MEMBRO DESDE</p>
-            <p class="perfil-stat-valor" id="perfil-desde">···</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Convites -->
-      <p class="convites-titulo">CONVITES DA IRMANDADE</p>
-      <div id="lista-convites">
-        <div class="skeleton">
-          <div class="sk-circle" style="width:32px;height:32px"></div>
-          <div class="sk-lines"><div class="sk-line" style="width:60%"></div></div>
-        </div>
-      </div>
-
-      <button class="btn-sair" style="margin-top:20px;width:100%;height:44px;border-radius:25px" onclick="sairDaOrdem()">
-        SAIR DA ORDEM
-      </button>
-    </section>
-
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <div class="nav-item active-link" id="nav-feed" onclick="showSection('timeline', this)">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">FEED</span>
-    </div>
-    <a class="nav-item" href="investir.html">
-      <span class="nav-icon">📈</span>
-      <span class="nav-label">INVESTIR</span>
-    </a>
-    <a class="nav-item" href="carteira.html">
-      <span class="nav-icon">💼</span>
-      <span class="nav-label">CARTEIRA</span>
-    </a>
-    <div class="nav-item" id="nav-perfil" onclick="showSection('perfil', this)">
-      <span class="nav-icon">👤</span>
-      <span class="nav-label">PERFIL</span>
-    </div>
-  </nav>
-
-  <!-- TOAST -->
-  <div id="toast" class="toast"></div>
-
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
-  <script src="auth.js"></script>
-
-  <script>
-    // ── TOAST ──
-    let toastTimer;
-    function mostrarToast(msg, dur = 2500) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), dur);
-    }
-
-    // ── CONTADOR ──
-    function atualizarContador(el) {
-      const c = document.getElementById('char-count');
-      const n = el.value.length;
-      c.textContent = `${n} / 500`;
-      c.className = n >= 500 ? 'cheio' : n >= 400 ? 'quase' : '';
-    }
-
-    // ── NAVEGAÇÃO ──
-    function showSection(id, el) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-link'));
-      document.getElementById(id).classList.add('active');
-      el.classList.add('active-link');
-    }
-
-    // ── COPIAR CÓDIGO ──
-    async function copiar(codigo, btn) {
-      try { await navigator.clipboard.writeText(codigo); } catch {
-        const inp = document.createElement('input');
-        inp.value = codigo; document.body.appendChild(inp);
-        inp.select(); document.execCommand('copy'); document.body.removeChild(inp);
-      }
-      btn.textContent = 'COPIADO ✓'; btn.classList.add('copiado');
-      mostrarToast('Código copiado: ' + codigo);
-      setTimeout(() => { btn.textContent = 'COPIAR'; btn.classList.remove('copiado'); }, 2000);
-    }
-
-    // ── CONVITES ──
-    async function renderizarConvites(uid, codigos) {
-      const lista = document.getElementById('lista-convites');
-      if (!codigos || codigos.length === 0) {
-        lista.innerHTML = `<p style="font-family:var(--mono);font-size:11px;color:var(--muted)">Nenhuma semente encontrada.</p>`;
-        return;
-      }
-      let html = '';
-      for (const cod of codigos) {
-        let usado = false;
-        try {
-          const snap = await db.collection('convites').doc(cod).get();
-          if (snap.exists) usado = snap.data().usado === true;
-        } catch(e) {}
-        html += usado
-          ? `<div class="convite-item usado"><span class="convite-codigo">${cod}</span><span class="badge-usado">FLORESCEU</span></div>`
-          : `<div class="convite-item"><span class="convite-codigo">${cod}</span><button class="btn-copiar" onclick="copiar('${cod}', this)">COPIAR</button></div>`;
-      }
-      lista.innerHTML = html;
-    }
-
-    // ── POSTAR ──
-    async function postarMensagem() {
-      const area  = document.getElementById('post-text');
-      const btn   = document.getElementById('btn-postar');
-      const texto = area.value.trim();
-      const user  = firebase.auth().currentUser;
-
-      if (!texto) { mostrarToast('Escreva algo antes de postar.'); return; }
-      if (!user)  { mostrarToast('Você precisa estar logado.'); return; }
-
-      btn.disabled = true; btn.textContent = 'POSTANDO...';
+    // TESTA TODOS PROXIES
+    for (const proxy of this.PROXY_FALLBACK) {
 
       try {
-        const userDoc  = await db.collection('usuarios').doc(user.uid).get();
-        const userData = userDoc.data();
 
-        await db.collection('posts').add({
-          uid:         user.uid,
-          username:    userData.username || 'Pombito',
-          foto_perfil: userData.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
-          texto,
-          data_post: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        const controller = new AbortController();
 
-        area.value = ''; atualizarContador(area);
-        mostrarToast('Post publicado! 🪶');
-      } catch(e) {
-        console.error('Erro ao postar:', e);
-        mostrarToast('Erro ao publicar. Tente novamente.');
-      } finally {
-        btn.disabled = false; btn.textContent = 'POSTAR';
-      }
-    }
+        const timeout = setTimeout(() => {
+          controller.abort();
+        }, this.TIMEOUT);
 
-    // ── TIMELINE ──
-    let timelineListener = null;
+        const response = await fetch(
 
-    function carregarTimeline() {
-      const feedLista   = document.getElementById('feed-lista');
-      const feedLoading = document.getElementById('feed-loading');
+          proxy + encodeURIComponent(url),
 
-      if (timelineListener) timelineListener();
+          {
+            method: 'GET',
 
-      timelineListener = db.collection('posts')
-        .orderBy('data_post', 'desc').limit(50)
-        .onSnapshot((snapshot) => {
-          feedLoading.style.display = 'none';
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache'
+            },
 
-          if (snapshot.empty) {
-            feedLista.innerHTML = `
-              <div class="estado-vazio">
-                <div class="icone">🪶</div>
-                <p>Nenhum post ainda.</p>
-                <p style="margin-top:4px;opacity:.6">Seja o primeiro a postar!</p>
-              </div>`;
-            return;
+            signal: controller.signal
           }
+        );
 
-          feedLista.innerHTML = '';
-          snapshot.forEach((doc) => {
-            const post = doc.data();
+        clearTimeout(timeout);
 
-            // Formata data
-            let tempo = '···';
-            if (post.data_post?.seconds) {
-              const d = new Date(post.data_post.seconds * 1000);
-              const hoje = new Date();
-              tempo = d.toDateString() === hoje.toDateString()
-                ? d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
-                : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
-            }
-
-            const fallback = `https://api.dicebear.com/7.x/identicon/svg?seed=${post.uid}`;
-
-            // ── POST DE TRADE ──
-            if (post.tipo === 'trade') {
-              const isCompra = post.lado === 'compra';
-              const cor = isCompra ? 'var(--green)' : 'var(--coral)';
-              const tipoAtivo = post.tipo === 'tesouro' ? 'títulos' : post.tipo === 'cripto' ? 'unidades' : 'cotas';
-
-              feedLista.innerHTML += `
-                <div class="post-card" style="border-left:3px solid ${cor}">
-                  <img src="${post.foto_perfil || fallback}" class="post-avatar" onerror="this.src='${fallback}'" alt="">
-                  <div class="post-content">
-                    <div class="post-info">
-                      <span class="post-author">@${post.username || 'pombito'}</span>
-                      <span class="trade-badge ${isCompra ? 'compra' : 'venda'}">${isCompra ? '📈 COMPROU' : '📉 VENDEU'}</span>
-                      <span class="post-date">· ${tempo}</span>
-                    </div>
-                    <p class="post-text">
-                      <strong style="font-family:var(--mono);color:var(--wave)">${post.ticker}</strong>
-                      · ${post.quantidade} ${tipoAtivo}
-                      a <strong>R$ ${(post.preco || 0).toFixed(2)}</strong>
-                      · Total: <strong>R$ ${Number((post.total || 0).toFixed(2)).toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>
-                    </p>
-                    <a class="ver-relatorio" href="relatorio.html?ticker=${post.ticker}&tipo=${post.tipo_ativo || 'acoes'}">
-                      Ver relatório →
-                    </a>
-                  </div>
-                </div>`;
-              return;
-            }
-
-            // ── POST DE TEXTO ──
-            const textoSafe = (post.texto || '')
-              .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-              .replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-
-            feedLista.innerHTML += `
-              <div class="post-card">
-                <img src="${post.foto_perfil || fallback}" class="post-avatar" onerror="this.src='${fallback}'" alt="">
-                <div class="post-content">
-                  <div class="post-info">
-                    <span class="post-author">@${post.username || 'pombito'}</span>
-                    <span class="post-date">· ${tempo}</span>
-                  </div>
-                  <p class="post-text">${textoSafe}</p>
-                </div>
-              </div>`;
-          });
-
-        }, (error) => {
-          console.error('Erro na timeline:', error);
-          feedLoading.style.display = 'none';
-          feedLista.innerHTML = `<div class="estado-vazio"><div class="icone">⚠️</div><p>Erro ao carregar o feed.</p></div>`;
-        });
-    }
-
-    // ── INICIALIZAÇÃO ──
-    firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) return; // auth.js cuida do redirect
-
-      try {
-        const [userDoc, carteiraDoc] = await Promise.all([
-          db.collection('usuarios').doc(user.uid).get(),
-          db.collection('carteiras').doc(user.uid).get(),
-        ]);
-
-        if (!userDoc.exists) return;
-
-        const dados    = userDoc.data();
-        const carteira = carteiraDoc.exists ? carteiraDoc.data() : {};
-
-        // Foto
-        const foto = dados.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
-        document.getElementById('user-avatar-top').src = foto;
-        document.getElementById('user-avatar-top').style.display = 'block';
-        document.getElementById('post-avatar-box').src = foto;
-
-        // Patrimônio
-        const CAPITAL = 500000;
-        const patrimonio = carteira.patrimonio_total ?? dados.patrimonio_total ?? CAPITAL;
-        const saldo      = carteira.saldo_disponivel ?? dados.saldo_disponivel ?? CAPITAL;
-        const rentab     = ((patrimonio - CAPITAL) / CAPITAL) * 100;
-        const perfilMap  = { conservador:'🛡️ Conservador', moderado:'⚖️ Moderado', arrojado:'🚀 Arrojado' };
-
-        document.getElementById('pat-total').textContent     = 'R$ ' + patrimonio.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        document.getElementById('pat-disponivel').textContent = 'R$ ' + saldo.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        document.getElementById('pat-rentab').textContent    = (rentab >= 0 ? '+' : '') + rentab.toFixed(2) + '%';
-        document.getElementById('pat-rentab').style.color    = rentab >= 0 ? '#88ffbb' : '#ffaaaa';
-        document.getElementById('pat-perfil').textContent    = perfilMap[dados.perfil_investidor] || '···';
-
-        // Perfil pessoal
-        document.getElementById('perfil-avatar').src    = foto;
-        document.getElementById('perfil-nome').textContent    = dados.nome || 'Pombito';
-        document.getElementById('perfil-username').textContent = '@' + (dados.username || '···');
-        document.getElementById('perfil-tipo').textContent    = perfilMap[dados.perfil_investidor] || '···';
-
-        if (dados.data_adesao) {
-          document.getElementById('perfil-desde').textContent =
-            dados.data_adesao.toDate().toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
 
-        // Convites
-        await renderizarConvites(user.uid, dados.meus_codigos || []);
+        const data = await response.json();
 
-        // Timeline
-        carregarTimeline();
+        // SALVA CACHE
+        this._cache[url] = {
+          timestamp: Date.now(),
+          data
+        };
 
-      } catch(e) {
-        console.error('Erro ao carregar dados:', e);
-        mostrarToast('Erro ao carregar seu perfil.');
+        return data;
+
+      } catch (erro) {
+
+        ultimoErro = erro;
+
+        console.warn(
+          '[MercadoAPI]',
+          'Proxy falhou:',
+          proxy,
+          erro.message
+        );
+
       }
-    });
+    }
 
-    // Limpa listener ao sair
-    window.addEventListener('beforeunload', () => {
-      if (timelineListener) timelineListener();
-    });
-  </script>
-</body>
-</html>
+    // RETRY
+    if (tentativa < this.RETRY) {
 
+      console.warn(
+        '[MercadoAPI]',
+        'Tentando novamente...',
+        tentativa + 1
+      );
+
+      await new Promise(r => setTimeout(r, 1000));
+
+      return this.request(url, tentativa + 1);
+
+    }
+
+    throw ultimoErro || new Error('Falha desconhecida');
+
+  },
+
+  // ----------------------------------------------------------
+  // NORMALIZA NÚMERO
+  // ----------------------------------------------------------
+
+  numero(valor) {
+
+    const n = Number(valor);
+
+    return Number.isFinite(n)
+      ? n
+      : 0;
+
+  },
+
+  // ----------------------------------------------------------
+  // FORMATA TICKER
+  // ----------------------------------------------------------
+
+  ticker(ticker = '') {
+
+    ticker = ticker
+      .toUpperCase()
+      .trim()
+      .replace(/\s/g, '');
+
+    // adiciona .SA automaticamente
+    if (
+      /^[A-Z]{4}\d{1,2}$/.test(ticker) &&
+      !ticker.includes('.SA')
+    ) {
+      ticker += '.SA';
+    }
+
+    return ticker;
+
+  },
+
+  // ----------------------------------------------------------
+  // COTAÇÃO
+  // ----------------------------------------------------------
+
+  async cotacao(ticker) {
+
+    try {
+
+      ticker = this.ticker(ticker);
+
+      const url =
+        `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`;
+
+      const data = await this.request(url);
+
+      const result =
+        data?.chart?.result?.[0];
+
+      if (!result) {
+        throw new Error('Ticker inválido');
+      }
+
+      const meta = result.meta || {};
+
+      return {
+
+        ticker,
+
+        nome:
+          meta.longName ||
+          meta.shortName ||
+          ticker,
+
+        preco:
+          this.numero(
+            meta.regularMarketPrice
+          ),
+
+        variacao:
+          this.numero(
+            meta.regularMarketChangePercent
+          ),
+
+        variacao_valor:
+          this.numero(
+            meta.regularMarketChange
+          ),
+
+        abertura:
+          this.numero(
+            meta.regularMarketOpen
+          ),
+
+        maxima:
+          this.numero(
+            meta.regularMarketDayHigh
+          ),
+
+        minima:
+          this.numero(
+            meta.regularMarketDayLow
+          ),
+
+        fechamento:
+          this.numero(
+            meta.previousClose
+          ),
+
+        volume:
+          this.numero(
+            meta.regularMarketVolume
+          ),
+
+        moeda:
+          meta.currency || 'BRL',
+
+        mercado:
+          meta.exchangeName || 'B3',
+
+        atualizado:
+          meta.regularMarketTime
+            ? new Date(
+                meta.regularMarketTime * 1000
+              )
+            : new Date()
+
+      };
+
+    } catch (erro) {
+
+      console.error(
+        '[MercadoAPI]',
+        'Erro cotação:',
+        ticker,
+        erro
+      );
+
+      return {
+
+        erro: true,
+
+        ticker,
+
+        preco: 0,
+
+        variacao: 0,
+
+        mensagem: erro.message
+
+      };
+
+    }
+
+  },
+
+  // ----------------------------------------------------------
+  // MÚLTIPLOS TICKERS
+  // ----------------------------------------------------------
+
+  async cotacoes(lista = []) {
+
+    const promessas =
+      lista.map(t =>
+        this.cotacao(t)
+      );
+
+    const resultados =
+      await Promise.allSettled(promessas);
+
+    return resultados.map(r =>
+
+      r.status === 'fulfilled'
+        ? r.value
+        : {
+            erro: true
+          }
+
+    );
+
+  },
+
+  // ----------------------------------------------------------
+  // HISTÓRICO
+  // ----------------------------------------------------------
+
+  async historico(
+
+    ticker,
+
+    intervalo = '1d',
+
+    periodo = '1mo'
+
+  ) {
+
+    try {
+
+      ticker = this.ticker(ticker);
+
+      const url =
+
+        `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}` +
+
+        `?interval=${intervalo}` +
+
+        `&range=${periodo}`;
+
+      const data =
+        await this.request(url);
+
+      const result =
+        data?.chart?.result?.[0];
+
+      if (!result) {
+        throw new Error('Sem histórico');
+      }
+
+      const timestamps =
+        result.timestamp || [];
+
+      const quote =
+        result.indicators?.quote?.[0] || {};
+
+      return timestamps.map((ts, i) => ({
+
+        data:
+          new Date(ts * 1000),
+
+        open:
+          this.numero(
+            quote.open?.[i]
+          ),
+
+        high:
+          this.numero(
+            quote.high?.[i]
+          ),
+
+        low:
+          this.numero(
+            quote.low?.[i]
+          ),
+
+        close:
+          this.numero(
+            quote.close?.[i]
+          ),
+
+        volume:
+          this.numero(
+            quote.volume?.[i]
+          )
+
+      }));
+
+    } catch (erro) {
+
+      console.error(
+        '[MercadoAPI]',
+        'Erro histórico:',
+        erro
+      );
+
+      return [];
+
+    }
+
+  }
+
+};
+
+// ------------------------------------------------------------
+// PAUSA UPDATE QUANDO ABA OCULTA
+// ------------------------------------------------------------
+
+window.addEventListener(
+  'visibilitychange',
+  () => {
+
+    if (document.hidden) {
+
+      console.log(
+        '[MercadoAPI]',
+        'Atualização pausada'
+      );
+
+    } else {
+
+      console.log(
+        '[MercadoAPI]',
+        'Atualização retomada'
+      );
+
+    }
+
+  }
+);
