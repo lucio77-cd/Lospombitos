@@ -1,414 +1,126 @@
-// ============================================================
-//  mercado-api.js — Dados de Mercado em Tempo Real
-//  MELHORADO — sem alterar estrutura original
-// ============================================================
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Feed | Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-const MercadoAPI = {
-
-  // ----------------------------------------------------------
-  // CONFIG
-  // ----------------------------------------------------------
-
-  PROXY: 'https://corsproxy.io/?',
-
-  PROXY_FALLBACK: [
-    'https://corsproxy.io/?',
-    'https://api.allorigins.win/raw?url='
-  ],
-
-  _cache: {},
-
-  CACHE_TIME: 1000 * 15, // 15 segundos
-
-  TIMEOUT: 12000,
-
-  RETRY: 2,
-
-  // ----------------------------------------------------------
-  // REQUEST BASE
-  // ----------------------------------------------------------
-
-  async request(url, tentativa = 0) {
-
-    // CACHE
-    const cached = this._cache[url];
-
-    if (
-      cached &&
-      (Date.now() - cached.timestamp < this.CACHE_TIME)
-    ) {
-      return cached.data;
+  <style>
+    :root {
+      --ink:    #0d0d0d;
+      --sand:   #f0ebe3;
+      --shore:  #e2d9cd;
+      --wave:   #1a4fff;
+      --foam:   #c8d8ff;
+      --sun:    #f5b800;
+      --coral:  #ff5533;
+      --muted:  #8a8278;
+      --card:   #faf8f5;
+      --green:  #1a8a4a;
+      --radius: 14px;
+      --mono:   'DM Mono', monospace;
+      --sans:   'DM Sans', sans-serif;
+      --display:'Bebas Neue', sans-serif;
     }
 
-    let ultimoErro = null;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
-    // TESTA TODOS PROXIES
-    for (const proxy of this.PROXY_FALLBACK) {
-
-      try {
-
-        const controller = new AbortController();
-
-        const timeout = setTimeout(() => {
-          controller.abort();
-        }, this.TIMEOUT);
-
-        const response = await fetch(
-
-          proxy + encodeURIComponent(url),
-
-          {
-            method: 'GET',
-
-            headers: {
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache'
-            },
-
-            signal: controller.signal
-          }
-        );
-
-        clearTimeout(timeout);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // SALVA CACHE
-        this._cache[url] = {
-          timestamp: Date.now(),
-          data
-        };
-
-        return data;
-
-      } catch (erro) {
-
-        ultimoErro = erro;
-
-        console.warn(
-          '[MercadoAPI]',
-          'Proxy falhou:',
-          proxy,
-          erro.message
-        );
-
-      }
+    body {
+      font-family: var(--sans);
+      background: var(--sand);
+      color: var(--ink);
+      min-height: 100dvh;
+      overscroll-behavior: none;
     }
 
-    // RETRY
-    if (tentativa < this.RETRY) {
-
-      console.warn(
-        '[MercadoAPI]',
-        'Tentando novamente...',
-        tentativa + 1
-      );
-
-      await new Promise(r => setTimeout(r, 1000));
-
-      return this.request(url, tentativa + 1);
-
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: .5;
     }
 
-    throw ultimoErro || new Error('Falha desconhecida');
-
-  },
-
-  // ----------------------------------------------------------
-  // NORMALIZA NÚMERO
-  // ----------------------------------------------------------
-
-  numero(valor) {
-
-    const n = Number(valor);
-
-    return Number.isFinite(n)
-      ? n
-      : 0;
-
-  },
-
-  // ----------------------------------------------------------
-  // FORMATA TICKER
-  // ----------------------------------------------------------
-
-  ticker(ticker = '') {
-
-    ticker = ticker
-      .toUpperCase()
-      .trim()
-      .replace(/\s/g, '');
-
-    // adiciona .SA automaticamente
-    if (
-      /^[A-Z]{4}\d{1,2}$/.test(ticker) &&
-      !ticker.includes('.SA')
-    ) {
-      ticker += '.SA';
+    .feed-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--sand); border-bottom: 1.5px solid var(--shore);
+      padding: 0 20px; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
 
-    return ticker;
+    .header-logo { font-family: var(--display); font-size: 26px; letter-spacing: 3px; color: var(--wave); line-height: 1; }
+    .header-logo span { color: var(--sun); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
 
-  },
-
-  // ----------------------------------------------------------
-  // COTAÇÃO
-  // ----------------------------------------------------------
-
-  async cotacao(ticker) {
-
-    try {
-
-      ticker = this.ticker(ticker);
-
-      const url =
-        `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`;
-
-      const data = await this.request(url);
-
-      const result =
-        data?.chart?.result?.[0];
-
-      if (!result) {
-        throw new Error('Ticker inválido');
-      }
-
-      const meta = result.meta || {};
-
-      return {
-
-        ticker,
-
-        nome:
-          meta.longName ||
-          meta.shortName ||
-          ticker,
-
-        preco:
-          this.numero(
-            meta.regularMarketPrice
-          ),
-
-        variacao:
-          this.numero(
-            meta.regularMarketChangePercent
-          ),
-
-        variacao_valor:
-          this.numero(
-            meta.regularMarketChange
-          ),
-
-        abertura:
-          this.numero(
-            meta.regularMarketOpen
-          ),
-
-        maxima:
-          this.numero(
-            meta.regularMarketDayHigh
-          ),
-
-        minima:
-          this.numero(
-            meta.regularMarketDayLow
-          ),
-
-        fechamento:
-          this.numero(
-            meta.previousClose
-          ),
-
-        volume:
-          this.numero(
-            meta.regularMarketVolume
-          ),
-
-        moeda:
-          meta.currency || 'BRL',
-
-        mercado:
-          meta.exchangeName || 'B3',
-
-        atualizado:
-          meta.regularMarketTime
-            ? new Date(
-                meta.regularMarketTime * 1000
-              )
-            : new Date()
-
-      };
-
-    } catch (erro) {
-
-      console.error(
-        '[MercadoAPI]',
-        'Erro cotação:',
-        ticker,
-        erro
-      );
-
-      return {
-
-        erro: true,
-
-        ticker,
-
-        preco: 0,
-
-        variacao: 0,
-
-        mensagem: erro.message
-
-      };
-
+    #user-avatar-top {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid var(--wave); object-fit: cover;
+      display: none; cursor: pointer;
     }
 
-  },
+    .btn-sair {
+      font-family: var(--mono); font-size: 9px; font-weight: 500;
+      letter-spacing: 1.5px; color: var(--muted);
+      background: none; border: 1px solid var(--shore);
+      border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: all .2s;
+    }
+    .btn-sair:hover { color: var(--coral); border-color: var(--coral); }
 
-  // ----------------------------------------------------------
-  // MÚLTIPLOS TICKERS
-  // ----------------------------------------------------------
+    .app-container { padding: 20px 16px 90px; max-width: 640px; margin: 0 auto; }
+    .section { display: none; animation: fadeUp .3s ease; }
+    .section.active { display: block; }
 
-  async cotacoes(lista = []) {
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    const promessas =
-      lista.map(t =>
-        this.cotacao(t)
-      );
-
-    const resultados =
-      await Promise.allSettled(promessas);
-
-    return resultados.map(r =>
-
-      r.status === 'fulfilled'
-        ? r.value
-        : {
-            erro: true
-          }
-
-    );
-
-  },
-
-  // ----------------------------------------------------------
-  // HISTÓRICO
-  // ----------------------------------------------------------
-
-  async historico(
-
-    ticker,
-
-    intervalo = '1d',
-
-    periodo = '1mo'
-
-  ) {
-
-    try {
-
-      ticker = this.ticker(ticker);
-
-      const url =
-
-        `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}` +
-
-        `?interval=${intervalo}` +
-
-        `&range=${periodo}`;
-
-      const data =
-        await this.request(url);
-
-      const result =
-        data?.chart?.result?.[0];
-
-      if (!result) {
-        throw new Error('Sem histórico');
-      }
-
-      const timestamps =
-        result.timestamp || [];
-
-      const quote =
-        result.indicators?.quote?.[0] || {};
-
-      return timestamps.map((ts, i) => ({
-
-        data:
-          new Date(ts * 1000),
-
-        open:
-          this.numero(
-            quote.open?.[i]
-          ),
-
-        high:
-          this.numero(
-            quote.high?.[i]
-          ),
-
-        low:
-          this.numero(
-            quote.low?.[i]
-          ),
-
-        close:
-          this.numero(
-            quote.close?.[i]
-          ),
-
-        volume:
-          this.numero(
-            quote.volume?.[i]
-          )
-
-      }));
-
-    } catch (erro) {
-
-      console.error(
-        '[MercadoAPI]',
-        'Erro histórico:',
-        erro
-      );
-
-      return [];
-
+    .post-box {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 22px;
     }
 
-  }
+    .post-box-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    #post-avatar-box { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--foam); flex-shrink: 0; }
 
-};
+    #post-text {
+      width: 100%; border: none; background: transparent;
+      font-family: var(--sans); font-size: 14px; color: var(--ink);
+      resize: none; outline: none; min-height: 60px; line-height: 1.6;
+    }
+    #post-text::placeholder { color: var(--muted); }
 
-// ------------------------------------------------------------
-// PAUSA UPDATE QUANDO ABA OCULTA
-// ------------------------------------------------------------
-
-window.addEventListener(
-  'visibilitychange',
-  () => {
-
-    if (document.hidden) {
-
-      console.log(
-        '[MercadoAPI]',
-        'Atualização pausada'
-      );
-
-    } else {
-
-      console.log(
-        '[MercadoAPI]',
-        'Atualização retomada'
-      );
-
+    .post-box-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--shore);
     }
 
-  }
-);
+    #char-count { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    #char-count.quase { color: var(--sun); }
+    #char-count.cheio { color: var(--coral); }
+
+    .btn-postar {
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      letter-spacing: 1px; background: var(--wave); color: white;
+      border: none; border-radius: 20px; padding: 9px 22px;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-postar:hover:not(:disabled) { background: #0033cc; transform: translateY(-1px); }
+    .btn-postar:disabled { opacity: .5; cursor: not-allowed; }
+
+    #feed-lista { display: flex; flex-direction: column; gap: 12px; }
+
+    .post-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; gap: 12px; transition: border-color .2s;
+    }
+    .post-card:hover { border-color: var(--foam); }
+
+    .post-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--foam); }
+    .post-content { flex: 1; min-width: 0; }
+    .post-info { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+    .post-author { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--wave); }
+    .post-date { font-size: 11px; color: var(--muted); }
+    .post-text { font
