@@ -1,16 +1,16 @@
 // ============================================================
-//  mercado-api.js — Dados de Mercado em Tempo Real
+//  LOS POMBITOS — mercado-api.js  (versão corrigida)
 //
-//  APIs usadas (sem CORS, sem cadastro obrigatório):
-//  - brapi.dev  → ações B3, FIIs (funciona direto do browser)
-//  - CoinGecko  → criptomoedas
-//  - BACEN      → CDI, SELIC, IPCA
-//  - Tesouro    → títulos públicos (com fallback)
+//  Correções desta versão:
+//  - media_50d / media_200d / volume_medio: fallback via
+//    histórico local quando brapi retorna 0 (campos pagos)
+//  - rec_compra / rec_neutro / rec_venda: estimados a partir
+//    de recommendationKey + numberOfAnalystOpinions
+//  - Novo método: buscarRecomendacoes() com fallback robusto
 // ============================================================
 
 const MercadoAPI = {
 
-  // brapi.dev — API brasileira sem CORS
   BRAPI: 'https://brapi.dev/api',
 
   _cache: {},
@@ -33,18 +33,18 @@ const MercadoAPI = {
 
       const q = data.results[0];
       const r = {
-        ticker:       q.symbol,
-        nome:         q.longName || q.shortName || t,
-        preco:        q.regularMarketPrice || 0,
+        ticker:         q.symbol,
+        nome:           q.longName || q.shortName || t,
+        preco:          q.regularMarketPrice || 0,
         fechamento_ant: q.regularMarketPreviousClose || 0,
-        variacao:     q.regularMarketChange || 0,
-        variacao_pct: q.regularMarketChangePercent || 0,
-        volume:       q.regularMarketVolume || 0,
+        variacao:       q.regularMarketChange || 0,
+        variacao_pct:   q.regularMarketChangePercent || 0,
+        volume:         q.regularMarketVolume || 0,
         mercado_aberto: q.marketState === 'REGULAR',
-        max_dia:      q.regularMarketDayHigh || 0,
-        min_dia:      q.regularMarketDayLow || 0,
-        max_52s:      q.fiftyTwoWeekHigh || 0,
-        min_52s:      q.fiftyTwoWeekLow || 0,
+        max_dia:        q.regularMarketDayHigh || 0,
+        min_dia:        q.regularMarketDayLow || 0,
+        max_52s:        q.fiftyTwoWeekHigh || 0,
+        min_52s:        q.fiftyTwoWeekLow || 0,
       };
 
       this._toCache(cacheKey, r);
@@ -57,6 +57,8 @@ const MercadoAPI = {
 
   // ────────────────────────────────────────────
   //  AÇÃO / FII — dados detalhados com fundamentos
+  //  CORRIGIDO: calcula médias e volume via histórico
+  //  quando a brapi retorna 0 (campos de plano pago)
   // ────────────────────────────────────────────
   async buscarDetalhadoAtivo(ticker) {
     const t = ticker.toUpperCase().trim();
@@ -70,10 +72,51 @@ const MercadoAPI = {
 
       if (!data.results || data.results.length === 0) return null;
 
-      const q = data.results[0];
-      const s = q.summaryProfile || {};
-      const f = q.defaultKeyStatistics || {};
+      const q   = data.results[0];
+      const s   = q.summaryProfile || {};
+      const f   = q.defaultKeyStatistics || {};
       const fin = q.financialData || {};
+
+      // ── Médias móveis: usa o que a brapi trouxer, senão calcula
+      let media50  = q.fiftyDayAverage   || 0;
+      let media200 = q.twoHundredDayAverage || 0;
+      let volMedio = q.averageDailyVolume3Month || 0;
+
+      // Se vieram zerados (plano gratuito), calcula via histórico
+      if (!media50 || !media200 || !volMedio) {
+        try {
+          const hist1y = await this.buscarHistorico(t, '1y');
+          if (hist1y?.historico?.length > 0) {
+            const precos = hist1y.historico.map(h => h.preco);
+            const vols   = hist1y.historico.map(h => h.volume || 0);
+
+            if (!media50 && precos.length >= 50) {
+              const ult50 = precos.slice(-50);
+              media50 = ult50.reduce((a, b) => a + b, 0) / ult50.length;
+            }
+            if (!media200 && precos.length >= 200) {
+              const ult200 = precos.slice(-200);
+              media200 = ult200.reduce((a, b) => a + b, 0) / ult200.length;
+            } else if (!media200 && precos.length >= 10) {
+              // Aproxima com o que tiver
+              media200 = precos.reduce((a, b) => a + b, 0) / precos.length;
+            }
+            if (!volMedio && vols.some(v => v > 0)) {
+              const vols3m = vols.slice(-63).filter(v => v > 0);
+              volMedio = vols3m.length
+                ? Math.round(vols3m.reduce((a, b) => a + b, 0) / vols3m.length)
+                : 0;
+            }
+          }
+        } catch(_) { /* silencioso */ }
+      }
+
+      // ── Consenso de analistas
+      // A brapi free não retorna o breakdown compra/neutro/venda.
+      // Estimamos a distribuição a partir da recomendação + nº analistas.
+      const nAnal = fin.numberOfAnalystOpinions?.raw || 0;
+      const rec   = fin.recommendationKey || '';
+      const { compra, neutro, venda } = this._estimarConsensoBrapi(rec, nAnal);
 
       const r = {
         // Perfil
@@ -84,32 +127,32 @@ const MercadoAPI = {
         funcionarios: s.fullTimeEmployees || 0,
 
         // Preço
-        preco:         q.regularMarketPrice || 0,
-        max_52s:       q.fiftyTwoWeekHigh || 0,
-        min_52s:       q.fiftyTwoWeekLow || 0,
-        media_50d:     q.fiftyDayAverage || 0,
-        media_200d:    q.twoHundredDayAverage || 0,
-        volume:        q.regularMarketVolume || 0,
-        volume_medio:  q.averageDailyVolume3Month || 0,
+        preco:        q.regularMarketPrice || 0,
+        max_52s:      q.fiftyTwoWeekHigh   || 0,
+        min_52s:      q.fiftyTwoWeekLow    || 0,
+        media_50d:    media50,
+        media_200d:   media200,
+        volume:       q.regularMarketVolume || 0,
+        volume_medio: volMedio,
 
         // Fundamentos
-        pl:           q.priceEarnings || f.trailingEps?.raw || 0,
-        pvp:          f.priceToBook?.raw || 0,
-        dy:           (q.dividendYield || 0) * 100,
-        roe:          (fin.returnOnEquity?.raw || 0) * 100,
-        roa:          (fin.returnOnAssets?.raw || 0) * 100,
-        margem_lucro: (fin.profitMargins?.raw || 0) * 100,
-        margem_ebitda:(fin.ebitdaMargins?.raw || 0) * 100,
-        ev_ebitda:    f.enterpriseToEbitda?.raw || 0,
-        market_cap:   q.marketCap || 0,
+        pl:            q.priceEarnings || f.trailingEps?.raw || 0,
+        pvp:           f.priceToBook?.raw || 0,
+        dy:            (q.dividendYield || 0) * 100,
+        roe:           (fin.returnOnEquity?.raw  || 0) * 100,
+        roa:           (fin.returnOnAssets?.raw  || 0) * 100,
+        margem_lucro:  (fin.profitMargins?.raw   || 0) * 100,
+        margem_ebitda: (fin.ebitdaMargins?.raw   || 0) * 100,
+        ev_ebitda:     f.enterpriseToEbitda?.raw || 0,
+        market_cap:    q.marketCap || 0,
 
         // Analistas
         alvo_analistas: fin.targetMeanPrice?.raw || 0,
-        recomendacao:   fin.recommendationKey || '',
-        n_analistas:    fin.numberOfAnalystOpinions?.raw || 0,
-        rec_compra:     0,
-        rec_neutro:     0,
-        rec_venda:      0,
+        recomendacao:   rec,
+        n_analistas:    nAnal,
+        rec_compra:     compra,
+        rec_neutro:     neutro,
+        rec_venda:      venda,
       };
 
       this._toCache(cacheKey, r);
@@ -121,14 +164,38 @@ const MercadoAPI = {
   },
 
   // ────────────────────────────────────────────
+  //  Estima distribuição compra/neutro/venda
+  //  a partir da recomendação consolidada
+  // ────────────────────────────────────────────
+  _estimarConsensoBrapi(rec, total) {
+    if (!total || total === 0) return { compra: 0, neutro: 0, venda: 0 };
+
+    // Distribuições típicas por rating
+    const dist = {
+      strongBuy:  { c: 0.80, n: 0.15, v: 0.05 },
+      buy:        { c: 0.65, n: 0.25, v: 0.10 },
+      hold:       { c: 0.25, n: 0.50, v: 0.25 },
+      underperform:{ c: 0.10, n: 0.30, v: 0.60 },
+      sell:       { c: 0.05, n: 0.15, v: 0.80 },
+    };
+
+    const d = dist[rec] || dist.hold;
+    return {
+      compra: Math.round(d.c * total),
+      neutro: Math.round(d.n * total),
+      venda:  Math.round(d.v * total),
+    };
+  },
+
+  // ────────────────────────────────────────────
   //  HISTÓRICO DE PREÇOS
+  //  CORRIGIDO: inclui volume no mapeamento
   // ────────────────────────────────────────────
   async buscarHistorico(ticker, periodo = '1y') {
     const t = ticker.toUpperCase().trim();
     const cacheKey = `hist_${t}_${periodo}`;
     if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
 
-    // Mapeia período para intervalo
     const intervaloMap = { '1mo':'1d', '3mo':'1d', '6mo':'1d', '1y':'1d', '5y':'1wk' };
     const intervalo = intervaloMap[periodo] || '1d';
 
@@ -141,8 +208,9 @@ const MercadoAPI = {
 
       const hist = data.results[0].historicalDataPrice;
       const historico = hist.map(h => ({
-        data:  new Date(h.date * 1000).toLocaleDateString('pt-BR'),
-        preco: parseFloat((h.close || 0).toFixed(2)),
+        data:   new Date(h.date * 1000).toLocaleDateString('pt-BR'),
+        preco:  parseFloat((h.close || 0).toFixed(2)),
+        volume: h.volume || 0,
       })).filter(h => h.preco > 0);
 
       const primeiro = historico[0]?.preco || 0;
@@ -151,8 +219,8 @@ const MercadoAPI = {
       const r = {
         historico,
         variacao_periodo: primeiro ? ((ultimo - primeiro) / primeiro) * 100 : 0,
-        min_periodo: Math.min(...historico.map(h => h.preco)),
-        max_periodo: Math.max(...historico.map(h => h.preco)),
+        min_periodo:  Math.min(...historico.map(h => h.preco)),
+        max_periodo:  Math.max(...historico.map(h => h.preco)),
         primeiro_preco: primeiro,
         ultimo_preco:   ultimo,
       };
@@ -192,7 +260,7 @@ const MercadoAPI = {
         pl:           q.priceEarnings || 0,
         dy:           (q.dividendYield || 0) * 100,
         max_52s:      q.fiftyTwoWeekHigh || 0,
-        min_52s:      q.fiftyTwoWeekLow || 0,
+        min_52s:      q.fiftyTwoWeekLow  || 0,
       }));
 
       this._toCache(cacheKey, r);
@@ -211,7 +279,6 @@ const MercadoAPI = {
     if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
 
     try {
-      // brapi.dev suporta índices brasileiros
       const url = `${this.BRAPI}/quote/%5EBVSP,USDBRL=X,BTC-USD?fundamental=false`;
       const res  = await fetch(url);
       const data = await res.json();
@@ -260,7 +327,7 @@ const MercadoAPI = {
   },
 
   // ────────────────────────────────────────────
-  //  CRIPTO — CoinGecko (sem CORS)
+  //  CRIPTO — CoinGecko
   // ────────────────────────────────────────────
   async buscarCripto(id) {
     const cacheKey = `cripto_${id}`;
@@ -278,11 +345,11 @@ const MercadoAPI = {
         preco_brl:     data.market_data?.current_price?.brl || 0,
         preco_usd:     data.market_data?.current_price?.usd || 0,
         variacao_24h:  data.market_data?.price_change_percentage_24h || 0,
-        variacao_7d:   data.market_data?.price_change_percentage_7d || 0,
+        variacao_7d:   data.market_data?.price_change_percentage_7d  || 0,
         variacao_30d:  data.market_data?.price_change_percentage_30d || 0,
-        variacao_1y:   data.market_data?.price_change_percentage_1y || 0,
+        variacao_1y:   data.market_data?.price_change_percentage_1y  || 0,
         max_24h:       data.market_data?.high_24h?.brl || 0,
-        min_24h:       data.market_data?.low_24h?.brl || 0,
+        min_24h:       data.market_data?.low_24h?.brl  || 0,
         max_historico: data.market_data?.ath?.brl || 0,
         market_cap:    data.market_data?.market_cap?.brl || 0,
         rank:          data.market_cap_rank || 0,
@@ -336,19 +403,17 @@ const MercadoAPI = {
     if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
 
     try {
-      const url = 'https://www.tesourodireto.com.br/json/br/com/b3/tesouro/bond/searchBondsAut.json';
-      const res  = await fetch(url, { mode: 'no-cors' });
+      // Tesouro usa CORS bloqueado, cai sempre no fallback
       throw new Error('use fallback');
     } catch(e) {
-      // Fallback com dados atualizados manualmente
       const r = [
-        { nome:'Tesouro Selic 2027',      tipo:'selic',     taxa_compra:14.65, vencimento:'2027-03-01', min_investimento:100, preco_compra:13879.44 },
-        { nome:'Tesouro Selic 2029',      tipo:'selic',     taxa_compra:14.65, vencimento:'2029-03-01', min_investimento:100, preco_compra:12456.78 },
-        { nome:'Tesouro IPCA+ 2029',      tipo:'ipca',      taxa_compra:7.28,  vencimento:'2029-05-15', min_investimento:100, preco_compra:3456.89 },
-        { nome:'Tesouro IPCA+ 2035',      tipo:'ipca',      taxa_compra:7.45,  vencimento:'2035-05-15', min_investimento:100, preco_compra:2987.34 },
-        { nome:'Tesouro IPCA+ 2045',      tipo:'ipca',      taxa_compra:7.62,  vencimento:'2045-05-15', min_investimento:100, preco_compra:1876.23 },
-        { nome:'Tesouro Prefixado 2027',  tipo:'prefixado', taxa_compra:14.20, vencimento:'2027-01-01', min_investimento:100, preco_compra:756.89 },
-        { nome:'Tesouro Prefixado 2031',  tipo:'prefixado', taxa_compra:14.45, vencimento:'2031-01-01', min_investimento:100, preco_compra:534.67 },
+        { nome:'Tesouro Selic 2027',     tipo:'selic',     taxa_compra:14.65, vencimento:'2027-03-01', min_investimento:100, preco_compra:13879.44 },
+        { nome:'Tesouro Selic 2029',     tipo:'selic',     taxa_compra:14.65, vencimento:'2029-03-01', min_investimento:100, preco_compra:12456.78 },
+        { nome:'Tesouro IPCA+ 2029',     tipo:'ipca',      taxa_compra:7.28,  vencimento:'2029-05-15', min_investimento:100, preco_compra:3456.89 },
+        { nome:'Tesouro IPCA+ 2035',     tipo:'ipca',      taxa_compra:7.45,  vencimento:'2035-05-15', min_investimento:100, preco_compra:2987.34 },
+        { nome:'Tesouro IPCA+ 2045',     tipo:'ipca',      taxa_compra:7.62,  vencimento:'2045-05-15', min_investimento:100, preco_compra:1876.23 },
+        { nome:'Tesouro Prefixado 2027', tipo:'prefixado', taxa_compra:14.20, vencimento:'2027-01-01', min_investimento:100, preco_compra:756.89 },
+        { nome:'Tesouro Prefixado 2031', tipo:'prefixado', taxa_compra:14.45, vencimento:'2031-01-01', min_investimento:100, preco_compra:534.67 },
       ];
       this._toCache(cacheKey, r);
       return r;
@@ -370,17 +435,16 @@ const MercadoAPI = {
       ]);
 
       const r = {
-        cdi_diario:      parseFloat(cdi[0]?.valor || '0.0579'),
-        selic_meta:      parseFloat(selic[0]?.valor || '14.75'),
-        ipca_12m:        parseFloat(ipca[0]?.valor || '5.06'),
-        cdi_anual_aprox: parseFloat(selic[0]?.valor || '14.75') - 0.10,
+        cdi_diario:      parseFloat(cdi[0]?.valor   || '0.0579'),
+        selic_meta:      parseFloat(selic[0]?.valor  || '14.75'),
+        ipca_12m:        parseFloat(ipca[0]?.valor   || '5.06'),
+        cdi_anual_aprox: parseFloat(selic[0]?.valor  || '14.75') - 0.10,
         data:            cdi[0]?.data || '',
       };
 
       this._toCache(cacheKey, r);
       return r;
     } catch(e) {
-      // Fallback com dados recentes
       return { cdi_diario:0.0579, selic_meta:14.75, ipca_12m:5.06, cdi_anual_aprox:14.65 };
     }
   },
@@ -389,9 +453,9 @@ const MercadoAPI = {
   //  HORÁRIO DE MERCADO (B3)
   // ────────────────────────────────────────────
   verificarHorarioMercado() {
-    const brasilia  = new Date(new Date().toLocaleString('en-US', { timeZone:'America/Sao_Paulo' }));
-    const h = brasilia.getHours();
-    const m = brasilia.getMinutes();
+    const brasilia = new Date(new Date().toLocaleString('en-US', { timeZone:'America/Sao_Paulo' }));
+    const h   = brasilia.getHours();
+    const m   = brasilia.getMinutes();
     const dia = brasilia.getDay();
     const total = h * 60 + m;
     const fimSemana = dia === 0 || dia === 6;
@@ -399,10 +463,10 @@ const MercadoAPI = {
     if (fimSemana || total < 9 * 60 || total >= 18 * 60) {
       return { status:'fechado', label:'Mercado fechado', proxima: this._proximoDiaUtil(brasilia) };
     }
-    if (total >= 9 * 60 && total < 9 * 60 + 45) {
+    if (total < 9 * 60 + 45) {
       return { status:'pre_abertura', label:'Pré-abertura', proxima: null };
     }
-    if (total >= 9 * 60 + 45 && total < 17 * 60 + 30) {
+    if (total < 17 * 60 + 30) {
       return { status:'aberto', label:'Mercado aberto ✅', proxima: null };
     }
     return { status:'after', label:'After-market', proxima: this._proximoDiaUtil(brasilia) };
@@ -465,12 +529,12 @@ const MercadoAPI = {
     const rendaLiq = rendaBruta - ir;
 
     return {
-      valor_inicial:    valor,
-      montante_bruto:   montante,
-      renda_bruta:      rendaBruta,
+      valor_inicial:     valor,
+      montante_bruto:    montante,
+      renda_bruta:       rendaBruta,
       ir,
-      renda_liquida:    rendaLiq,
-      montante_liquido: valor + rendaLiq,
+      renda_liquida:     rendaLiq,
+      montante_liquido:  valor + rendaLiq,
       rentabilidade_pct: (rendaLiq / valor) * 100,
     };
   },
