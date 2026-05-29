@@ -46,15 +46,18 @@
     .stat-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
     .stat-valor{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
     .stat-valor.pos{color:var(--green)} .stat-valor.neg{color:var(--red)}
-    .gemini-card{background:linear-gradient(135deg,#f0f3ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:18px;margin-bottom:12px}
-    .gemini-badge{font-family:var(--mono);font-size:8px;letter-spacing:2px;background:var(--wave);color:white;border-radius:20px;padding:3px 10px}
-    .gemini-titulo{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--wave)}
-    .gemini-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-    .gemini-sk{height:12px;border-radius:4px;background:var(--foam);animation:shimmer 1.4s infinite;margin-bottom:8px}
-    .gemini-texto{font-size:14px;line-height:1.7;color:var(--ink);margin-bottom:14px}
-    .gemini-lista{display:flex;flex-direction:column;gap:8px}
-    .gemini-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5}
-    .gemini-aviso{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:12px;line-height:1.6;padding-top:10px;border-top:1px solid var(--foam)}
+
+    /* ── Card de análise IA ── */
+    .ia-card{background:linear-gradient(135deg,#f0f3ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+    .ia-badge{font-family:var(--mono);font-size:8px;letter-spacing:2px;background:var(--wave);color:white;border-radius:20px;padding:3px 10px}
+    .ia-titulo{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--wave)}
+    .ia-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .ia-sk{height:12px;border-radius:4px;background:var(--foam);animation:shimmer 1.4s infinite;margin-bottom:8px}
+    .ia-texto{font-size:14px;line-height:1.7;color:var(--ink);margin-bottom:14px}
+    .ia-lista{display:flex;flex-direction:column;gap:8px}
+    .ia-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5}
+    .ia-aviso{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:12px;line-height:1.6;padding-top:10px;border-top:1px solid var(--foam)}
+
     .conc-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--shore);cursor:pointer}
     .conc-item:last-child{border-bottom:none}
     .conc-ticker{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--wave);background:var(--foam);border-radius:6px;padding:2px 8px;flex-shrink:0}
@@ -130,7 +133,6 @@
   <script src="mercado-api.js"></script>
 
   <script>
-    const GEMINI_KEY = "AIzaSyCdQ1MThqZ5Y1Ciir99U8u3vgLuSBJMj5Q";
     const params  = new URLSearchParams(window.location.search);
     const TICKER  = (params.get('ticker') || '').toUpperCase().trim();
     const TIPO    = params.get('tipo') || 'acoes';
@@ -152,17 +154,15 @@
       document.getElementById('conteudo').style.display = 'block';
     }
 
-    // ── INIT — sem auth.js, firebase direto ──
+    // ── INIT ──
     firebase.auth().onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'invite.html'; return; }
 
-      // Perfil do investidor (silencioso)
       try {
         const snap = await firebase.firestore().collection('usuarios').doc(user.uid).get();
         perfilUsuario = snap.data()?.perfil_investidor || 'moderado';
       } catch(e) { perfilUsuario = 'moderado'; }
 
-      // Rota: com ticker → relatório completo | sem ticker → lista da categoria
       if (TICKER) {
         await carregarRelatorio();
       } else {
@@ -171,7 +171,7 @@
     });
 
     // ══════════════════════════════════════════
-    //  LISTA DA CATEGORIA (sem ticker)
+    //  LISTA DA CATEGORIA
     // ══════════════════════════════════════════
     async function carregarListaCategoria() {
       document.getElementById('header-titulo').textContent = nomeTipo(TIPO);
@@ -179,7 +179,6 @@
 
       const conteudo = document.getElementById('conteudo');
 
-      // Mostra lista local IMEDIATAMENTE — sem esperar API
       if (TIPO === 'cdb' || TIPO === 'lci') {
         renderizarRendaFixaInfo(conteudo);
         esconderSkeleton();
@@ -213,7 +212,6 @@
         return;
       }
 
-      // AÇÕES ou FIIs — mostra lista local na hora
       const isFII = TIPO === 'fiis';
       const ativos = isFII ? [
         {ticker:'HGLG11',nome:'CSHG Logística',seg:'Logística'},
@@ -244,8 +242,7 @@
         {ticker:'CSAN3',nome:'Cosan ON',seg:'Petróleo'},
       ];
 
-      // Renderiza lista local instantaneamente
-      conteudo.innerHTML = `<p class="info-dica">💡 Clique em um ativo para ver o relatório completo com análise do Gemini</p>`;
+      conteudo.innerHTML = `<p class="info-dica">💡 Clique em um ativo para ver o relatório completo com análise por IA</p>`;
       ativos.forEach(a => {
         const div = document.createElement('div');
         div.className = 'lista-ativo';
@@ -266,7 +263,6 @@
 
       esconderSkeleton();
 
-      // Cotações em background — não trava a UI
       const tickers = ativos.map(a => a.ticker);
       for (let i = 0; i < tickers.length; i += 5) {
         const lote = tickers.slice(i, i+5);
@@ -286,7 +282,7 @@
     }
 
     // ══════════════════════════════════════════
-    //  RELATÓRIO COMPLETO (com ticker)
+    //  RELATÓRIO COMPLETO
     // ══════════════════════════════════════════
     async function carregarRelatorio() {
       document.getElementById('header-titulo').textContent = TICKER;
@@ -295,7 +291,6 @@
       const conteudo = document.getElementById('conteudo');
 
       try {
-        // Busca todos os dados em paralelo
         [dadosAtivo, dadosDetalhe, dadosHist1y, dadosHist6m] = await Promise.all([
           MercadoAPI.buscarAtivo(TICKER),
           MercadoAPI.buscarDetalhadoAtivo(TICKER),
@@ -306,7 +301,6 @@
         esconderSkeleton();
         conteudo.innerHTML = '';
 
-        // Seções
         conteudo.appendChild(renderizarHero());
         conteudo.appendChild(renderizarHistorico());
         conteudo.appendChild(renderizarFundamentos());
@@ -321,20 +315,20 @@
 
         conteudo.appendChild(renderizarRiscos());
 
-        // Gemini — análise com IA
-        const geminiEl = document.createElement('div');
-        geminiEl.className = 'gemini-card';
-        geminiEl.innerHTML = `
-          <div class="gemini-header">
-            <span class="gemini-badge">GEMINI AI</span>
-            <p class="gemini-titulo">ANÁLISE INTELIGENTE</p>
+        // ── Análise IA (Claude via Anthropic API) ──
+        const iaEl = document.createElement('div');
+        iaEl.className = 'ia-card';
+        iaEl.innerHTML = `
+          <div class="ia-header">
+            <span class="ia-badge">IA</span>
+            <p class="ia-titulo">ANÁLISE INTELIGENTE</p>
           </div>
-          <div class="gemini-sk" style="width:100%"></div>
-          <div class="gemini-sk" style="width:85%"></div>
-          <div class="gemini-sk" style="width:90%"></div>
-          <div class="gemini-sk" style="width:70%"></div>`;
-        conteudo.appendChild(geminiEl);
-        gerarGemini(geminiEl);
+          <div class="ia-sk" style="width:100%"></div>
+          <div class="ia-sk" style="width:85%"></div>
+          <div class="ia-sk" style="width:90%"></div>
+          <div class="ia-sk" style="width:70%"></div>`;
+        conteudo.appendChild(iaEl);
+        gerarAnaliseIA(iaEl);
 
         document.getElementById('btn-investir-wrap').style.display = 'block';
 
@@ -358,11 +352,11 @@
     //  SEÇÕES DO RELATÓRIO
     // ══════════════════════════════════════════
     function renderizarHero() {
-      const preco = dadosAtivo?.preco || dadosDetalhe?.preco || 0;
+      const preco  = dadosAtivo?.preco || dadosDetalhe?.preco || 0;
       const varpct = dadosAtivo?.variacao_pct || 0;
-      const pos = varpct >= 0;
+      const pos    = varpct >= 0;
       const hist1m = dadosHist1y?.historico?.slice(-22) || [];
-      const var1m = hist1m.length > 1 ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco)/hist1m[0].preco)*100 : 0;
+      const var1m  = hist1m.length > 1 ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco)/hist1m[0].preco)*100 : 0;
 
       const el = document.createElement('div');
       el.className = 'ativo-hero';
@@ -389,21 +383,24 @@
     }
 
     function renderizarHistorico() {
-      const p = dadosAtivo?.preco || 0;
-      const m50 = dadosDetalhe?.media_50d || 0;
+      const p    = dadosAtivo?.preco || 0;
+      const m50  = dadosDetalhe?.media_50d  || 0;
       const m200 = dadosDetalhe?.media_200d || 0;
+      // "acima" só é válido se temos a média 200d
+      const temMedia200 = m200 > 0;
       const acima = p > m200;
+
       const el = document.createElement('div');
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">📊 HISTÓRICO DE PREÇOS</p>
         ${item('Preço atual', MercadoAPI.R$(p))}
-        ${item('Média 50 dias', MercadoAPI.R$(m50))}
-        ${item('Média 200 dias', MercadoAPI.R$(m200))}
-        ${item('Vs. média 200d', acima?'Acima ✅':'Abaixo ⚠️', acima?'pos':'neg')}
+        ${m50  > 0 ? item('Média 50 dias',  MercadoAPI.R$(m50))  : item('Média 50 dias',  'Calculando...', '')}
+        ${m200 > 0 ? item('Média 200 dias', MercadoAPI.R$(m200)) : item('Média 200 dias', 'Calculando...', '')}
+        ${temMedia200 ? item('Vs. média 200d', acima?'Acima ✅':'Abaixo ⚠️', acima?'pos':'neg') : ''}
         ${item('Variação 6 meses', MercadoAPI.pct(dadosHist6m?.variacao_periodo||0), (dadosHist6m?.variacao_periodo||0)>=0?'pos':'neg')}
-        ${item('Variação 1 ano', MercadoAPI.pct(dadosHist1y?.variacao_periodo||0), (dadosHist1y?.variacao_periodo||0)>=0?'pos':'neg')}
-        ${item('Volume médio', Number(dadosDetalhe?.volume_medio||0).toLocaleString('pt-BR'))}`;
+        ${item('Variação 1 ano',   MercadoAPI.pct(dadosHist1y?.variacao_periodo||0), (dadosHist1y?.variacao_periodo||0)>=0?'pos':'neg')}
+        ${item('Volume médio (3m)', dadosDetalhe?.volume_medio > 0 ? Number(dadosDetalhe.volume_medio).toLocaleString('pt-BR') : 'Indisponível')}`;
       return el;
     }
 
@@ -413,17 +410,17 @@
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">🏛️ FUNDAMENTOS</p>
-        ${d.market_cap ? item('Market Cap', MercadoAPI.bigNum(d.market_cap)) : ''}
-        ${d.pl ? item('P/L', d.pl.toFixed(2), d.pl<15?'pos':d.pl>30?'neg':'') : ''}
-        ${d.pvp ? item('P/VP', d.pvp.toFixed(2), d.pvp<1?'pos':'') : ''}
-        ${d.dy ? item('Dividend Yield', MercadoAPI.pct(d.dy), d.dy>6?'pos':'') : ''}
-        ${d.roe ? item('ROE', MercadoAPI.pct(d.roe), d.roe>15?'pos':'') : ''}
-        ${d.roa ? item('ROA', MercadoAPI.pct(d.roa)) : ''}
-        ${d.margem_lucro ? item('Margem Líquida', MercadoAPI.pct(d.margem_lucro), d.margem_lucro>0?'pos':'neg') : ''}
-        ${d.margem_ebitda ? item('Margem EBITDA', MercadoAPI.pct(d.margem_ebitda)) : ''}
-        ${d.ev_ebitda ? item('EV/EBITDA', d.ev_ebitda.toFixed(2)) : ''}
-        ${d.setor ? item('Setor', d.setor) : ''}
-        ${d.industria ? item('Segmento', d.industria) : ''}`;
+        ${d.market_cap    ? item('Market Cap',     MercadoAPI.bigNum(d.market_cap)) : ''}
+        ${d.pl            ? item('P/L',             d.pl.toFixed(2), d.pl<15?'pos':d.pl>30?'neg':'') : ''}
+        ${d.pvp           ? item('P/VP',            d.pvp.toFixed(2), d.pvp<1?'pos':'') : ''}
+        ${d.dy            ? item('Dividend Yield',  MercadoAPI.pct(d.dy), d.dy>6?'pos':'') : ''}
+        ${d.roe           ? item('ROE',             MercadoAPI.pct(d.roe), d.roe>15?'pos':'') : ''}
+        ${d.roa           ? item('ROA',             MercadoAPI.pct(d.roa)) : ''}
+        ${d.margem_lucro  ? item('Margem Líquida',  MercadoAPI.pct(d.margem_lucro), d.margem_lucro>0?'pos':'neg') : ''}
+        ${d.margem_ebitda ? item('Margem EBITDA',   MercadoAPI.pct(d.margem_ebitda)) : ''}
+        ${d.ev_ebitda     ? item('EV/EBITDA',       d.ev_ebitda.toFixed(2)) : ''}
+        ${d.setor         ? item('Setor',           d.setor) : ''}
+        ${d.industria     ? item('Segmento',        d.industria) : ''}`;
       return el;
     }
 
@@ -432,12 +429,15 @@
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">🏢 SETOR: ${setor.toUpperCase()}</p>
-        <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:10px">Comparação no mesmo período</p>
+        <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:10px">Comparação no mesmo setor</p>
         <div id="conc-lista"><p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Carregando concorrentes...</p></div>`;
 
       MercadoAPI.buscarMultiplos(tickers.slice(0,5)).then(dados => {
         const lista = el.querySelector('#conc-lista');
-        if (!dados || dados.length === 0) { lista.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Indisponível</p>`; return; }
+        if (!dados || dados.length === 0) {
+          lista.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Indisponível</p>`;
+          return;
+        }
         lista.innerHTML = dados.map(d => `
           <div class="conc-item" onclick="location.href='relatorio.html?ticker=${d.ticker}&tipo=${TIPO}'">
             <span class="conc-ticker">${d.ticker}</span>
@@ -451,16 +451,21 @@
 
     function renderizarAnalistas() {
       const d = dadosDetalhe || {};
-      const c = d.rec_compra||0, n = d.rec_neutro||0, v = d.rec_venda||0;
-      const t = c+n+v||1;
+      const c = d.rec_compra || 0;
+      const n = d.rec_neutro || 0;
+      const v = d.rec_venda  || 0;
+      const t = c + n + v || 1;
+      const temDados = (c + n + v) > 0;
+
       const el = document.createElement('div');
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">👥 CONSENSO DE ANALISTAS</p>
-        ${item('Total analistas', d.n_analistas||'—')}
+        ${item('Total analistas', d.n_analistas > 0 ? d.n_analistas : '—')}
         ${item('Preço-alvo médio', d.alvo_analistas ? MercadoAPI.R$(d.alvo_analistas) : '—')}
         ${d.alvo_analistas && dadosAtivo?.preco ? item('Potencial', MercadoAPI.pct(((d.alvo_analistas-dadosAtivo.preco)/dadosAtivo.preco)*100), d.alvo_analistas>dadosAtivo.preco?'pos':'neg') : ''}
         ${item('Recomendação', traduzirRec(d.recomendacao), d.recomendacao==='buy'||d.recomendacao==='strongBuy'?'pos':d.recomendacao==='sell'?'neg':'')}
+        ${temDados ? `
         <div class="analistas-bar" style="margin-top:12px">
           <div class="bar-c" style="width:${Math.round(c/t*100)}%"></div>
           <div class="bar-n" style="width:${Math.round(n/t*100)}%"></div>
@@ -470,7 +475,9 @@
           <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Compra ${c}</div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--sun)"></div>Neutro ${n}</div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Venda ${v}</div>
-        </div>`;
+        </div>
+        <p style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">* Distribuição estimada com base na recomendação consolidada</p>
+        ` : `<p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px">Dados de analistas indisponíveis para este ativo.</p>`}`;
       return el;
     }
 
@@ -488,68 +495,92 @@
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">⚠️ RISCOS</p>
-        <div class="gemini-lista">
-          ${riscos.map(r=>`<div class="gemini-item"><span>⚠️</span><span>${r}</span></div>`).join('')}
+        <div class="ia-lista">
+          ${riscos.map(r=>`<div class="ia-item"><span>⚠️</span><span>${r}</span></div>`).join('')}
         </div>`;
       return el;
     }
 
     // ══════════════════════════════════════════
-    //  ANÁLISE GEMINI
+    //  ANÁLISE IA — Claude via Anthropic API
     // ══════════════════════════════════════════
-    async function gerarGemini(el) {
-      const d = dadosDetalhe || {};
+    async function gerarAnaliseIA(el) {
+      const d    = dadosDetalhe || {};
       const preco = dadosAtivo?.preco || 0;
       const var1y = dadosHist1y?.variacao_periodo || 0;
 
       const prompt = `Você é um analista financeiro educacional da plataforma Los Pombitos Investimentos.
 Analise o ativo ${TICKER} e gere um relatório em português brasileiro para um investidor com perfil: ${perfilUsuario}.
 
-DADOS:
-- Preço: R$ ${preco.toFixed(2)} | Variação hoje: ${MercadoAPI.pct(dadosAtivo?.variacao_pct||0)}
+DADOS DISPONÍVEIS:
+- Preço atual: R$ ${preco.toFixed(2)} | Variação hoje: ${MercadoAPI.pct(dadosAtivo?.variacao_pct||0)}
 - Variação 1 ano: ${MercadoAPI.pct(var1y)}
+- Variação 6 meses: ${MercadoAPI.pct(dadosHist6m?.variacao_periodo||0)}
 - P/L: ${d.pl?.toFixed(2)||'N/A'} | P/VP: ${d.pvp?.toFixed(2)||'N/A'}
 - Dividend Yield: ${MercadoAPI.pct(d.dy||0)} | ROE: ${MercadoAPI.pct(d.roe||0)}
 - Margem Líquida: ${MercadoAPI.pct(d.margem_lucro||0)} | Setor: ${d.setor||'N/A'}
 - Recomendação analistas: ${traduzirRec(d.recomendacao)} | Preço-alvo: R$ ${d.alvo_analistas?.toFixed(2)||'N/A'}
-- Mín 52s: R$ ${d.min_52s?.toFixed(2)||'N/A'} | Máx 52s: R$ ${d.max_52s?.toFixed(2)||'N/A'}
+- Mín 52 semanas: R$ ${d.min_52s?.toFixed(2)||'N/A'} | Máx 52 semanas: R$ ${d.max_52s?.toFixed(2)||'N/A'}
 
-Responda APENAS com JSON válido sem markdown:
-{"resumo":"2-3 frases sobre o ativo e momento atual","positivos":["p1","p2","p3"],"atencao":["a1","a2","a3"],"perfil_ideal":"uma frase","horizonte":"curto/médio/longo prazo","contexto_macro":"uma frase sobre macro"}`;
+Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
+{"resumo":"2-3 frases sobre o ativo e momento atual","positivos":["p1","p2","p3"],"atencao":["a1","a2","a3"],"perfil_ideal":"uma frase","horizonte":"curto/médio/longo prazo","contexto_macro":"uma frase sobre o contexto macroeconômico"}`;
 
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-          { method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:600} })
-          }
-        );
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
         const data = await res.json();
-        const texto = data.candidates[0].content.parts[0].text;
-        const limpo = texto.replace(/```json|```/g,'').trim();
+
+        // Extrai texto da resposta
+        const texto = data.content
+          ?.map(b => b.type === 'text' ? b.text : '')
+          .join('') || '';
+
+        // Remove possíveis blocos markdown
+        const limpo = texto.replace(/```json|```/g, '').trim();
         const a = JSON.parse(limpo);
 
         el.innerHTML = `
-          <div class="gemini-header">
-            <span class="gemini-badge">GEMINI AI</span>
-            <p class="gemini-titulo">ANÁLISE INTELIGENTE</p>
+          <div class="ia-header">
+            <span class="ia-badge">IA</span>
+            <p class="ia-titulo">ANÁLISE INTELIGENTE</p>
           </div>
-          <p class="gemini-texto">${a.resumo}</p>
+          <p class="ia-texto">${a.resumo}</p>
           <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--green);margin-bottom:8px">✅ PONTOS POSITIVOS</p>
-          <div class="gemini-lista">${a.positivos.map(p=>`<div class="gemini-item"><span>✅</span><span>${p}</span></div>`).join('')}</div>
+          <div class="ia-lista">${a.positivos.map(p=>`<div class="ia-item"><span>✅</span><span>${p}</span></div>`).join('')}</div>
           <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--coral);margin:14px 0 8px">⚠️ PONTOS DE ATENÇÃO</p>
-          <div class="gemini-lista">${a.atencao.map(x=>`<div class="gemini-item"><span>⚠️</span><span>${x}</span></div>`).join('')}</div>
+          <div class="ia-lista">${a.atencao.map(x=>`<div class="ia-item"><span>⚠️</span><span>${x}</span></div>`).join('')}</div>
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--foam)">
-            ${item('Perfil ideal', a.perfil_ideal)}
-            ${item('Horizonte sugerido', a.horizonte)}
-            ${item('Contexto macro', a.contexto_macro)}
+            ${item('Perfil ideal',     a.perfil_ideal)}
+            ${item('Horizonte',        a.horizonte)}
+            ${item('Contexto macro',   a.contexto_macro)}
           </div>
-          <p class="gemini-aviso">⚠️ Esta análise é educacional e não constitui recomendação de investimento.</p>`;
+          <p class="ia-aviso">⚠️ Esta análise é educacional e não constitui recomendação de investimento. Consulte um assessor antes de investir.</p>`;
+
       } catch(e) {
-        console.error('[Gemini]', e);
+        console.error('[IA]', e);
+        // Fallback elegante com os dados disponíveis
+        const var1yVal = dadosHist1y?.variacao_periodo || 0;
+        const pl = dadosDetalhe?.pl || 0;
+        const dy = dadosDetalhe?.dy || 0;
         el.innerHTML = `
-          <div class="gemini-header"><span class="gemini-badge">ANÁLISE</span><p class="gemini-titulo">DADOS DO ATIVO</p></div>
-          <p class="gemini-texto">Análise automática indisponível. Consulte os dados acima para sua decisão.</p>`;
+          <div class="ia-header">
+            <span class="ia-badge">ANÁLISE</span>
+            <p class="ia-titulo">DADOS DO ATIVO</p>
+          </div>
+          <p class="ia-texto">
+            ${TICKER} negocia a R$ ${preco.toFixed(2)}${var1yVal !== 0 ? `, com ${var1yVal > 0 ? 'valorização' : 'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses` : ''}.
+            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl < 15 ? ' indica valuation atrativo' : pl > 30 ? ' está elevado em relação ao setor' : ' está em linha com o setor'}.` : ''}
+            ${dy > 4 ? `Dividend Yield de ${dy.toFixed(1)}% é um ponto positivo para renda passiva.` : ''}
+          </p>
+          <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Consulte os dados acima para sua decisão de investimento.</p>`;
       }
     }
 
