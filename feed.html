@@ -1139,10 +1139,12 @@
       setMercado();
       carregarCotacoes();
       initTimeline();
-
-    } catch(e){
-      console.error('Init error:',e);
-      toast('Erro ao carregar. Recarregue a página.');
+}catch(e){
+  console.error('Init:',e);
+  const d=document.getElementById('debug');
+  if(d){d.textContent='ERRO: '+e.message+' | '+e.code;d.style.display='block';}
+  toast('Erro ao carregar. Recarregue.');
+    }
     }
   });
 
