@@ -3,249 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ordem | Los Pombitos</title>
+  <title>Carteira | Los Pombitos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--coral:#ff5533;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:100px;overscroll-behavior:none}
+    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
     .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
     .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
     .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
-    .mkt-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;padding:4px 10px;font-weight:500}
-    .mkt-badge.open{background:#d4f5e2;color:var(--green)}
-    .mkt-badge.closed{background:var(--shore);color:var(--muted)}
     .container{padding:20px 16px;max-width:640px;margin:0 auto}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .ativo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease;display:flex;justify-content:space-between;align-items:center}
-    .ativo-ticker{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--wave);line-height:1}
-    .ativo-nome{font-size:12px;color:var(--muted);margin-top:3px}
-    .ativo-preco{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
-    .ativo-var{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:3px;text-align:right}
-    .pos{color:var(--green)}.neg{color:var(--red)}
-    .tabs{display:flex;background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:4px;margin-bottom:16px}
-    .tab{flex:1;height:40px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1.5px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;background:none;color:var(--muted)}
-    .tab.buy.on{background:var(--green);color:white}
-    .tab.sell.on{background:var(--red);color:white}
-    .card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease}
-    .field-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;display:block}
-    .qtd-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .btn-qtd{width:40px;height:40px;border-radius:10px;background:var(--sand);border:1.5px solid var(--shore);font-size:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
-    .btn-qtd:hover{border-color:var(--wave);color:var(--wave)}
-    .qtd-input{flex:1;height:52px;text-align:center;background:var(--sand);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--ink);outline:none;transition:border-color .2s}
-    .qtd-input:focus{border-color:var(--wave)}
-    .qtd-unit{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);flex-shrink:0}
-    .tipo-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
-    .tipo-opt{border:1.5px solid var(--shore);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;background:var(--sand)}
-    .tipo-opt:hover{border-color:var(--wave)}
-    .tipo-opt.on{border-color:var(--wave);background:#f0f3ff}
-    .tipo-opt-name{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--ink);margin-bottom:2px}
-    .tipo-opt-desc{font-size:11px;color:var(--muted);line-height:1.4}
-    .price-limit-wrap{margin-bottom:18px;display:none}
-    .price-limit-wrap.show{display:block}
-    .price-limit-input{width:100%;height:48px;background:var(--sand);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);padding:0 16px;outline:none;transition:border-color .2s}
-    .price-limit-input:focus{border-color:var(--wave)}
-    .saldo-box{background:linear-gradient(135deg,#f0f3ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-    .saldo-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px}
-    .saldo-valor{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
-    .saldo-insuf{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--red);margin-top:2px;display:none}
-    .saldo-insuf.show{display:block}
-    .aviso-fechado{background:#fff8d4;border:1.5px solid #f5d800;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
-    .aviso-fechado.show{display:block}
-    .aviso-title{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;color:#8a6a00;margin-bottom:4px}
-    .aviso-text{font-size:12px;color:#8a6a00;line-height:1.5}
-    .posicao-box{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
-    .posicao-box.show{display:block}
-    .resumo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px}
-    .resumo-title{font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--ink);margin-bottom:14px}
-    .resumo-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--shore)}
-    .resumo-row:last-child{border-bottom:none}
-    .resumo-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--muted)}
-    .resumo-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
-    .resumo-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--wave)}
-    .btn-wrap{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 20px;background:linear-gradient(to top,var(--sand) 70%,transparent);z-index:50}
-    .btn-confirm{width:100%;max-width:640px;margin:0 auto;height:54px;display:flex;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;align-items:center;justify-content:center;gap:10px}
-    .btn-confirm.buy{background:var(--green);color:white}
-    .btn-confirm.buy:hover{background:#156b3a;transform:translateY(-1px)}
-    .btn-confirm.sell{background:var(--red);color:white}
-    .btn-confirm.sell:hover{background:#a01a00;transform:translateY(-1px)}
-    .btn-confirm:disabled{opacity:.5;cursor:not-allowed;transform:none}
-    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(13,13,13,.55);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
-    .modal-overlay.open{display:flex}
-    .modal{width:100%;max-width:640px;background:var(--card);border-top:1.5px solid var(--shore);border-radius:var(--radius) var(--radius) 0 0;padding:24px 20px 40px;animation:slideUp .3s ease}
-    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-    .modal-handle{width:36px;height:4px;background:var(--shore);border-radius:2px;margin:0 auto 20px}
-    .modal-title{font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:4px}
-    .modal-title.buy{color:var(--green)}.modal-title.sell{color:var(--red)}
-    .modal-sub{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:20px}
-    .modal-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--shore);font-family:var(--mono);font-size:12px}
-    .modal-row:last-child{border-bottom:none}
-    .modal-row-lbl{color:var(--muted)}
-    .modal-row-val{font-weight:500;color:var(--ink)}
-    .modal-row-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px}
-    .modal-row-val.buy{color:var(--green)}.modal-row-val.sell{color:var(--red)}
-    .modal-btns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .btn-modal-ok{width:100%;height:50px;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s}
-    .btn-modal-ok.buy{background:var(--green);color:white}
-    .btn-modal-ok.sell{background:var(--red);color:white}
-    .btn-modal-ok:disabled{opacity:.5;cursor:not-allowed}
-    .btn-modal-cancel{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .2s}
-    .btn-modal-cancel:hover{border-color:var(--coral);color:var(--coral)}
-    .sucesso{display:none;flex-direction:column;align-items:center;padding:40px 20px;text-align:center}
-    .sucesso.show{display:flex}
-    .sucesso-icon{font-size:64px;margin-bottom:20px}
-    .sucesso-title{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--ink);margin-bottom:8px}
-    .sucesso-desc{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);line-height:1.8;margin-bottom:24px;white-space:pre-line}
-    .btn-carteira{width:100%;height:50px;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;margin-bottom:10px}
-    .btn-carteira:hover{background:#0033cc}
-    .btn-novo{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer}
-    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:white;font-family:var(--mono);font-size:12px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* PATRIMÔNIO CARD */
+    .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);padding:22px;border-radius:20px;color:white;margin-bottom:16px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
+    .pat-card::before{content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:72px;color:rgba(255,255,255,.05);pointer-events:none;letter-spacing:-2px}
+    .pat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;opacity:.7;margin-bottom:4px}
+    .pat-valor{font-family:var(--display);font-size:40px;letter-spacing:2px;line-height:1;margin-bottom:4px}
+    .pat-rentab{font-family:var(--mono);font-size:11px;opacity:.8;margin-bottom:14px}
+    .pat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
+    .pat-item .pat-label{margin-bottom:2px}
+    .pat-item-val{font-family:var(--mono);font-size:12px;font-weight:500}
+
+    /* SEÇÃO */
+    .sec-title{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--ink);margin-bottom:12px;margin-top:4px}
+
+    /* POSIÇÃO CARD */
+    .pos-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,transform .2s;animation:fadeUp .3s ease}
+    .pos-card:hover{border-color:var(--wave);transform:translateY(-1px)}
+    .pos-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+    .pos-ticker{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
+    .pos-nome{font-size:11px;color:var(--muted);margin-top:2px}
+    .pos-tipo-badge{font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:2px 8px;margin-top:4px;display:inline-block}
+    .pos-valor-atual{font-family:var(--display);font-size:20px;letter-spacing:1px;color:var(--ink);text-align:right}
+    .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;text-align:right;margin-top:2px}
+    .pos-rentab.pos{color:var(--green)}.pos-rentab.neg{color:var(--red)}
+    .pos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:12px;border-top:1px solid var(--shore)}
+    .pos-stat{display:flex;flex-direction:column;gap:2px}
+    .pos-stat-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
+    .pos-stat-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
+    .pos-actions{display:flex;gap:8px;margin-top:12px}
+    .btn-comprar-mais{flex:1;height:36px;background:var(--wave);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-comprar-mais:hover{background:#0033cc}
+    .btn-vender{flex:1;height:36px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-vender:hover{background:var(--red);color:white}
+
+    /* HISTÓRICO */
+    .hist-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;animation:fadeUp .3s ease}
+    .hist-row{display:flex;justify-content:space-between;align-items:center}
+    .hist-left{display:flex;align-items:center;gap:10px}
+    .hist-pill{font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;padding:3px 9px}
+    .hist-pill.c{background:#d4f5e2;color:var(--green)}
+    .hist-pill.v{background:#ffd5ce;color:var(--red)}
+    .hist-ticker{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--wave)}
+    .hist-info{font-size:11px;color:var(--muted);margin-top:2px}
+    .hist-total{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);text-align:right}
+    .hist-data{font-size:10px;color:var(--muted);text-align:right;margin-top:2px}
+
+    /* SKELETON */
+    .skel{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+    .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--mono);font-size:11px}
+    .empty-ico{font-size:40px;margin-bottom:12px;display:block}
+
+    /* TABS */
+    .tabs{display:flex;gap:8px;margin-bottom:16px}
+    .tab-btn{flex:1;height:36px;font-family:var(--mono);font-size:10px;letter-spacing:1px;border-radius:20px;border:1.5px solid var(--shore);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s}
+    .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
+
+    /* NAV */
+    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
+    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+    .ni:hover{background:var(--shore)}
+    .ni-ico{font-size:20px;line-height:1}
+    .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+    .ni.on .ni-lbl{color:var(--wave);font-weight:500}
   </style>
 </head>
 <body>
   <header class="hdr">
     <button class="btn-back" onclick="history.back()">←</button>
-    <div class="hdr-title" id="hdr-title">ORDEM</div>
-    <span class="mkt-badge closed" id="mkt-badge">···</span>
+    <div class="hdr-title">CARTEIRA</div>
   </header>
 
   <div class="container">
-    <div id="form-wrap">
-      <!-- Ativo -->
-      <div class="ativo-card">
-        <div>
-          <p class="ativo-ticker" id="a-ticker">···</p>
-          <p class="ativo-nome" id="a-nome">Carregando...</p>
-        </div>
-        <div>
-          <p class="ativo-preco" id="a-preco">R$ ···</p>
-          <p class="ativo-var" id="a-var">···</p>
-        </div>
-      </div>
-
-      <!-- Tabs compra/venda -->
-      <div class="tabs">
-        <button class="tab buy on" id="tab-buy" onclick="setLado('compra')">📈 COMPRAR</button>
-        <button class="tab sell" id="tab-sell" onclick="setLado('venda')">📉 VENDER</button>
-      </div>
-
-      <!-- Posição atual -->
-      <div class="posicao-box" id="posicao-box">
-        <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">SUA POSIÇÃO ATUAL</p>
-        <div style="display:flex;justify-content:space-between">
-          <div>
-            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-qtd">—</p>
-            <p style="font-family:var(--mono);font-size:10px;color:var(--muted)">PM: <span id="pos-pm">—</span></p>
-          </div>
-          <div style="text-align:right">
-            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-total">—</p>
-            <p style="font-family:var(--mono);font-size:10px" id="pos-rentab">—</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Saldo -->
-      <div class="saldo-box">
-        <div>
-          <p class="saldo-label">SALDO DISPONÍVEL</p>
-          <p class="saldo-valor" id="saldo-val">R$ ···</p>
-          <p class="saldo-insuf" id="saldo-insuf">⚠️ Saldo insuficiente</p>
-        </div>
-        <div style="text-align:right">
-          <p style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted)">CAPITAL</p>
-          <p style="font-family:var(--mono);font-size:11px;color:var(--ink)" id="capital-val">R$ ···</p>
-        </div>
-      </div>
-
-      <!-- Aviso fechado -->
-      <div class="aviso-fechado" id="aviso-fechado">
-        <p class="aviso-title">⏰ MERCADO FECHADO</p>
-        <p class="aviso-text" id="aviso-text">Ordem será executada na próxima abertura.</p>
-      </div>
-
-      <!-- Form -->
-      <div class="card">
-        <label class="field-label">QUANTIDADE</label>
-        <div class="qtd-row">
-          <button class="btn-qtd" onclick="ajustarQtd(-1)">−</button>
-          <input type="number" class="qtd-input" id="qtd" value="1" min="1" oninput="updateResumo()">
-          <span class="qtd-unit" id="qtd-unit">cotas</span>
-        </div>
-
-        <label class="field-label">TIPO DE ORDEM</label>
-        <div class="tipo-opts">
-          <div class="tipo-opt on" onclick="setTipo('mercado',this)">
-            <p class="tipo-opt-name">A MERCADO</p>
-            <p class="tipo-opt-desc">Executa imediatamente ao preço atual de mercado</p>
-          </div>
-          <div class="tipo-opt" onclick="setTipo('limitada',this)">
-            <p class="tipo-opt-name">LIMITADA</p>
-            <p class="tipo-opt-desc">Executa somente se o preço atingir o valor que você definir</p>
-          </div>
-          <div class="tipo-opt" onclick="setTipo('stop',this)">
-            <p class="tipo-opt-name">STOP</p>
-            <p class="tipo-opt-desc">Vende automaticamente se o preço cair abaixo do limite</p>
-          </div>
-        </div>
-
-        <div class="price-limit-wrap" id="price-limit-wrap">
-          <label class="field-label" id="price-limit-label">PREÇO LIMITE</label>
-          <input type="number" class="price-limit-input" id="price-limit" placeholder="0,00" step="0.01" oninput="updateResumo()">
-        </div>
-      </div>
-
-      <!-- Resumo -->
-      <div class="resumo-card">
-        <p class="resumo-title">RESUMO DA ORDEM</p>
-        <div class="resumo-row"><span class="resumo-lbl">Ativo</span><span class="resumo-val" id="r-ticker">—</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Operação</span><span class="resumo-val" id="r-lado">Compra</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Quantidade</span><span class="resumo-val" id="r-qtd">1 cota</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Preço unitário</span><span class="resumo-val" id="r-preco">R$ —</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Tipo</span><span class="resumo-val" id="r-tipo">A Mercado</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Execução</span><span class="resumo-val" id="r-exec">—</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">TOTAL DA ORDEM</span><span class="resumo-val big" id="r-total">R$ —</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Saldo após</span><span class="resumo-val" id="r-apos">R$ —</span></div>
+    <!-- Patrimônio -->
+    <div class="pat-card">
+      <p class="pat-label">PATRIMÔNIO TOTAL</p>
+      <p class="pat-valor" id="pat-total">R$ ···</p>
+      <p class="pat-rentab" id="pat-rentab">+0,00% desde o início</p>
+      <div class="pat-grid">
+        <div class="pat-item"><p class="pat-label">DISPONÍVEL</p><p class="pat-item-val" id="pat-disp">R$ ···</p></div>
+        <div class="pat-item"><p class="pat-label">INVESTIDO</p><p class="pat-item-val" id="pat-inv">R$ ···</p></div>
+        <div class="pat-item"><p class="pat-label">POSIÇÕES</p><p class="pat-item-val" id="pat-pos">···</p></div>
       </div>
     </div>
 
-    <!-- Sucesso -->
-    <div class="sucesso" id="sucesso">
-      <div class="sucesso-icon" id="s-icon">✅</div>
-      <p class="sucesso-title" id="s-title">ORDEM EXECUTADA</p>
-      <p class="sucesso-desc" id="s-desc">···</p>
-      <button class="btn-carteira" onclick="location.href='carteira.html'">💼 VER MINHA CARTEIRA</button>
-      <button class="btn-novo" onclick="location.href='investir.html'">NOVO INVESTIMENTO</button>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn on" id="tab-pos" onclick="showTab('posicoes')">POSIÇÕES</button>
+      <button class="tab-btn" id="tab-hist" onclick="showTab('historico')">HISTÓRICO</button>
     </div>
-  </div>
 
-  <!-- Botão fixo -->
-  <div class="btn-wrap" id="btn-wrap">
-    <button class="btn-confirm buy" id="btn-confirm" onclick="abrirModal()">✅ CONFIRMAR COMPRA</button>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal-overlay" id="modal" onclick="if(event.target===this)fecharModal()">
-    <div class="modal">
-      <div class="modal-handle"></div>
-      <p class="modal-title buy" id="mod-title">CONFIRMAR COMPRA</p>
-      <p class="modal-sub">REVISE OS DETALHES ANTES DE CONFIRMAR</p>
-      <div class="modal-row"><span class="modal-row-lbl">Ativo</span><span class="modal-row-val" id="mod-ticker">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Operação</span><span class="modal-row-val" id="mod-lado">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Quantidade</span><span class="modal-row-val" id="mod-qtd">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Preço</span><span class="modal-row-val" id="mod-preco">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Execução</span><span class="modal-row-val" id="mod-exec">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">TOTAL</span><span class="modal-row-val big buy" id="mod-total">R$ —</span></div>
-      <div class="modal-btns">
-        <button class="btn-modal-ok buy" id="btn-modal-ok" onclick="executar()">CONFIRMAR</button>
-        <button class="btn-modal-cancel" onclick="fecharModal()">CANCELAR</button>
+    <!-- Posições -->
+    <div id="sec-posicoes">
+      <div id="pos-loading">
+        <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
+        <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
       </div>
+      <div id="pos-list"></div>
+    </div>
+
+    <!-- Histórico -->
+    <div id="sec-historico" style="display:none">
+      <div id="hist-loading">
+        <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
+        <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
+      </div>
+      <div id="hist-list"></div>
     </div>
   </div>
 
-  <div id="toast" class="toast"></div>
+  <nav class="nav">
+    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
+    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
+    <a class="ni on" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
+    <a class="ni" href="feed.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+  </nav>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -253,38 +142,26 @@
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>
-  // db inicializado após Firebase carregar
-  let meuUID, saldoDisp=0, patrimonioTotal=0;
-  // Usa window.db e window.auth definidos pelo firebase.js
   const db = window.db;
-  let precoAtual=0, lado='compra', tipoOrdem='mercado';
-  let posicao=null, mercadoStatus=null;
+  let meuUID;
+  const CAPITAL=500000;
+  const R$=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct=v=>(v>=0?'+':'')+v.toFixed(2)+'%';
 
-  const params  = new URLSearchParams(location.search);
-  const TICKER  = decodeURIComponent(params.get('ticker')||'').toUpperCase();
-  const TIPO    = params.get('tipo')||'acoes';
-  const PRECO_P = parseFloat(params.get('preco')||'0');
-  precoAtual    = PRECO_P;
-
-  let toastT;
-  function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),d)}
-
-  const R$ = v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const pct = v=>(v>=0?'+':'')+v.toFixed(2)+'%';
-  const unit = ()=>TIPO==='tesouro'?'títulos':TIPO==='cripto'?'unidades':'cotas';
-
-  // Mercado status
-  function getMercado(){
-    const br=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
-    const h=br.getHours(),m=br.getMinutes(),d=br.getDay(),t=h*60+m;
-    const ab=d>0&&d<6&&t>=9*60+45&&t<17*60+30;
-    return ab?'aberto':'fechado';
+  function showTab(t){
+    document.getElementById('sec-posicoes').style.display=t==='posicoes'?'block':'none';
+    document.getElementById('sec-historico').style.display=t==='historico'?'block':'none';
+    document.getElementById('tab-pos').classList.toggle('on',t==='posicoes');
+    document.getElementById('tab-hist').classList.toggle('on',t==='historico');
   }
 
   firebase.auth().onAuthStateChanged(async user=>{
     if(!user){location.href='invite.html';return}
     meuUID=user.uid;
+    await carregar();
+  });
 
+  async function carregar(){
     try{
       const[uS,cS]=await Promise.all([
         db.collection('usuarios').doc(meuUID).get(),
@@ -294,727 +171,136 @@
       const u=uS.data()||{};
       const c=cS.exists?cS.data():{};
 
-      saldoDisp      = c.saldo_disponivel ?? u.saldo_disponivel ?? 500000;
-      patrimonioTotal= c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
-
-      document.getElementById('saldo-val').textContent  = R$(saldoDisp);
-      document.getElementById('capital-val').textContent= R$(patrimonioTotal);
-
-      // Posição atual
+      const saldo   =c.saldo_disponivel??u.saldo_disponivel??CAPITAL;
+      const investido=c.saldo_investido??u.saldo_investido??0;
+      const patrimonio=c.patrimonio_total??u.patrimonio_total??(saldo+investido);
       const posicoes=c.posicoes||[];
-      posicao=posicoes.find(p=>p.ticker===TICKER)||null;
-      if(posicao) mostrarPosicao();
+      const rentab=((patrimonio-CAPITAL)/CAPITAL)*100;
 
-      // Mercado
-      mercadoStatus=getMercado();
-      const badge=document.getElementById('mkt-badge');
-      if(mercadoStatus==='aberto'){badge.textContent='● Aberto';badge.className='mkt-badge open'}
-      else{badge.textContent='○ Fechado';badge.className='mkt-badge closed';document.getElementById('aviso-fechado').classList.add('show')}
+      document.getElementById('pat-total').textContent=R$(patrimonio);
+      document.getElementById('pat-disp').textContent=R$(saldo);
+      document.getElementById('pat-inv').textContent=R$(investido);
+      document.getElementById('pat-pos').textContent=posicoes.length+(posicoes.length===1?' ativo':' ativos');
+      const rel=document.getElementById('pat-rentab');
+      rel.textContent=(rentab>=0?'+':'')+rentab.toFixed(2)+'% desde o início';
+      rel.style.color=rentab>=0?'rgba(255,255,255,.9)':'#ffaaaa';
 
-      // Cotação atualizada
-      document.getElementById('hdr-title').textContent='ORDEM — '+TICKER;
-      document.getElementById('a-ticker').textContent=TICKER;
+      renderPosicoes(posicoes);
+      carregarHistorico();
 
+    }catch(e){
+      console.error('Carteira:',e);
+      document.getElementById('pos-loading').innerHTML='<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar carteira.</div>';
+    }
+  }
+
+  async function renderPosicoes(posicoes){
+    document.getElementById('pos-loading').style.display='none';
+    const list=document.getElementById('pos-list');
+
+    if(!posicoes.length){
+      list.innerHTML='<div class="empty"><span class="empty-ico">📭</span>Nenhuma posição ainda.<br><span style="opacity:.6;display:block;margin-top:4px">Comece investindo!</span></div>';
+      return;
+    }
+
+    // Busca cotações atuais em lote
+    const tickers=posicoes.filter(p=>p.tipo==='acoes'||p.tipo==='fiis').map(p=>p.ticker);
+    let cotacoes={};
+    if(tickers.length){
       try{
-        const d=await MercadoAPI.buscarAtivo(TICKER);
-        if(d){
-          precoAtual=d.preco||PRECO_P||1;
-          document.getElementById('a-nome').textContent=d.nome||TICKER;
-          document.getElementById('a-preco').textContent=R$(precoAtual);
-          const vp=d.variacao_pct||0;
-          const vel=document.getElementById('a-var');
-          vel.textContent=pct(vp);vel.className='ativo-var '+(vp>=0?'pos':'neg');
-          document.getElementById('price-limit').value=precoAtual.toFixed(2);
-        }
-      }catch(e){
-        precoAtual=PRECO_P||1;
-        document.getElementById('a-nome').textContent=TICKER;
-        document.getElementById('a-preco').textContent=R$(precoAtual);
-      }
-
-      updateResumo();
-    }catch(e){
-      console.error('Init ordem:',e);
-      toast('Erro ao carregar: '+e.message);
+        const dados=await MercadoAPI.buscarMultiplos(tickers);
+        dados.forEach(d=>cotacoes[d.ticker]=d.preco||0);
+      }catch(e){}
     }
-  });
 
-  function mostrarPosicao(){
-    const el=document.getElementById('posicao-box');
-    el.classList.add('show');
-    const va=posicao.quantidade*(precoAtual||posicao.preco_medio);
-    const vp=posicao.quantidade*posicao.preco_medio;
-    const r=vp?((va-vp)/vp)*100:0;
-    document.getElementById('pos-qtd').textContent=posicao.quantidade+' '+unit();
-    document.getElementById('pos-pm').textContent=R$(posicao.preco_medio||0);
-    document.getElementById('pos-total').textContent=R$(va);
-    const rel=document.getElementById('pos-rentab');
-    rel.textContent=pct(r);rel.style.color=r>=0?'var(--green)':'var(--red)';
-  }
+    list.innerHTML='';
+    posicoes.forEach(pos=>{
+      const precoAtual=cotacoes[pos.ticker]||pos.preco_medio||0;
+      const valorAtual=pos.quantidade*precoAtual;
+      const valorPago=pos.quantidade*pos.preco_medio;
+      const rentab=valorPago?((valorAtual-valorPago)/valorPago)*100:0;
+      const unit=pos.tipo==='tesouro'?'títulos':pos.tipo==='cripto'?'unidades':'cotas';
 
-  function setLado(l){
-    lado=l;
-    document.getElementById('tab-buy').classList.toggle('on',l==='compra');
-    document.getElementById('tab-sell').classList.toggle('on',l==='venda');
-    const btn=document.getElementById('btn-confirm');
-    btn.className='btn-confirm '+(l==='compra'?'buy':'sell');
-    btn.textContent=l==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
-    if(l==='venda'&&!posicao)toast('Você não possui este ativo na carteira.');
-    updateResumo();
-  }
-
-  function setTipo(tipo,el){
-    tipoOrdem=tipo;
-    document.querySelectorAll('.tipo-opt').forEach(o=>o.classList.remove('on'));
-    el.classList.add('on');
-    const w=document.getElementById('price-limit-wrap');
-    const l=document.getElementById('price-limit-label');
-    if(tipo==='limitada'){w.classList.add('show');l.textContent='PREÇO LIMITE (executa ≤ este valor)'}
-    else if(tipo==='stop'){w.classList.add('show');l.textContent='PREÇO STOP (vende abaixo deste valor)'}
-    else w.classList.remove('show');
-    updateResumo();
-  }
-
-  function ajustarQtd(d){
-    const i=document.getElementById('qtd');
-    i.value=Math.max(1,(parseInt(i.value)||1)+d);
-    updateResumo();
-  }
-
-  function updateResumo(){
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-    const u=unit();
-
-    document.getElementById('qtd-unit').textContent=u;
-    document.getElementById('r-ticker').textContent=TICKER;
-    document.getElementById('r-lado').textContent=lado==='compra'?'Compra':'Venda';
-    document.getElementById('r-qtd').textContent=qtd+' '+u;
-    document.getElementById('r-preco').textContent=R$(preco);
-    document.getElementById('r-tipo').textContent=tipoOrdem==='mercado'?'A Mercado':tipoOrdem==='limitada'?'Limitada':'Stop';
-    document.getElementById('r-total').textContent=R$(total);
-
-    const exec=mercadoStatus==='aberto'&&tipoOrdem==='mercado'?'Imediata ao preço atual':'Próxima abertura — dia útil';
-    document.getElementById('r-exec').textContent=exec;
-
-    if(lado==='compra'){
-      const apos=saldoDisp-total;
-      const el=document.getElementById('r-apos');
-      el.textContent=R$(apos);el.className='resumo-val '+(apos<0?'neg':'');
-      document.getElementById('saldo-insuf').classList.toggle('show',total>saldoDisp);
-      document.getElementById('btn-confirm').disabled=total>saldoDisp;
-    }else{
-      document.getElementById('r-apos').textContent='+'+R$(total);
-      document.getElementById('r-apos').className='resumo-val pos';
-      document.getElementById('btn-confirm').disabled=false;
-    }
-  }
-
-  function abrirModal(){
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-    const u=unit();
-
-    if(lado==='compra'&&total>saldoDisp){toast('Saldo insuficiente.');return}
-    if(lado==='venda'&&!posicao){toast('Você não possui este ativo.');return}
-    if(lado==='venda'&&qtd>(posicao?.quantidade||0)){toast('Quantidade maior que sua posição.');return}
-
-    document.getElementById('mod-title').textContent=lado==='compra'?'CONFIRMAR COMPRA':'CONFIRMAR VENDA';
-    document.getElementById('mod-title').className='modal-title '+(lado==='compra'?'buy':'sell');
-    document.getElementById('mod-ticker').textContent=TICKER;
-    document.getElementById('mod-lado').textContent=lado==='compra'?'COMPRA':'VENDA';
-    document.getElementById('mod-qtd').textContent=qtd+' '+u;
-    document.getElementById('mod-preco').textContent=R$(preco);
-    document.getElementById('mod-exec').textContent=mercadoStatus==='aberto'?'Imediata':'Próximo dia útil';
-    document.getElementById('mod-total').textContent=R$(total);
-    document.getElementById('mod-total').className='modal-row-val big '+(lado==='compra'?'buy':'sell');
-    const ok=document.getElementById('btn-modal-ok');
-    ok.className='btn-modal-ok '+(lado==='compra'?'buy':'sell');
-    ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
-    document.getElementById('modal').classList.add('open');
-  }
-
-  function fecharModal(){document.getElementById('modal').classList.remove('open')}
-
-  async function executar(){
-    const ok=document.getElementById('btn-modal-ok');
-    ok.disabled=true;ok.textContent='PROCESSANDO...';
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-
-    try{
-      await db.runTransaction(async t=>{
-        const cRef=db.collection('carteiras').doc(meuUID);
-        const cSnap=await t.get(cRef);
-        const c=cSnap.exists?cSnap.data():{};
-        let saldo=c.saldo_disponivel??500000;
-        let posicoes=[...(c.posicoes||[])];
-
-        if(lado==='compra'){
-          if(total>saldo)throw new Error('Saldo insuficiente.');
-          saldo-=total;
-          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
-          if(idx>=0){
-            const qtdAnt=posicoes[idx].quantidade;
-            const totAnt=qtdAnt*posicoes[idx].preco_medio;
-            posicoes[idx].quantidade+=qtd;
-            posicoes[idx].preco_medio=(totAnt+total)/posicoes[idx].quantidade;
-            posicoes[idx].ultima_atualizacao=new Date().toISOString();
-          }else{
-            posicoes.push({ticker:TICKER,tipo:TIPO,quantidade:qtd,preco_medio:preco,data_compra:new Date().toISOString(),ultima_atualizacao:new Date().toISOString()});
-          }
-        }else{
-          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
-          if(idx<0)throw new Error('Ativo não encontrado na carteira.');
-          if(posicoes[idx].quantidade<qtd)throw new Error('Quantidade insuficiente.');
-          saldo+=total;
-          posicoes[idx].quantidade-=qtd;
-          if(posicoes[idx].quantidade===0)posicoes.splice(idx,1);
-        }
-
-        const investido=posicoes.reduce((a,p)=>a+p.quantidade*p.preco_medio,0);
-        const patrimonio=saldo+investido;
-
-        // Salva ou cria carteira
-        t.set(cRef,{uid:meuUID,saldo_disponivel:saldo,saldo_investido:investido,patrimonio_total:patrimonio,posicoes,ultima_atualizacao:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-
-        // Histórico da ordem
-        t.set(db.collection('ordens').doc(),{uid:meuUID,ticker:TICKER,tipo:TIPO,lado,quantidade:qtd,preco,total,tipo_ordem:tipoOrdem,status:mercadoStatus==='aberto'?'executada':'agendada',data:firebase.firestore.FieldValue.serverTimestamp()});
-
-        // Post automático no feed
-        t.set(db.collection('posts').doc(),{uid:meuUID,tipo:'trade',tipo_ativo:TIPO,ticker:TICKER,lado,quantidade:qtd,preco,total,auto:true,data_post:firebase.firestore.FieldValue.serverTimestamp()});
-
-        // Atualiza usuário também
-        const uRef=db.collection('usuarios').doc(meuUID);
-        t.update(uRef,{saldo_disponivel:saldo,patrimonio_total:patrimonio});
-      });
-
-      fecharModal();
-      // Mostra sucesso
-      document.getElementById('form-wrap').style.display='none';
-      document.getElementById('btn-wrap').style.display='none';
-      const s=document.getElementById('sucesso');s.classList.add('show');
-      document.getElementById('s-icon').textContent=lado==='compra'?'✅':'💰';
-      document.getElementById('s-title').textContent=mercadoStatus==='aberto'?'ORDEM EXECUTADA':'ORDEM AGENDADA';
-      document.getElementById('s-desc').textContent=`${lado==='compra'?'Compra':'Venda'} de ${qtd} ${unit()} de ${TICKER}\na ${R$(preco)} por unidade\nTotal: ${R$(total)}\n${mercadoStatus==='aberto'?'Executada imediatamente ✅':'Agendada para o próximo dia útil ⏰'}`;
-
-    }catch(e){
-      console.error(e);toast(e.message||'Erro ao executar ordem.');
-      ok.disabled=false;ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
-    }
-  }
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ordem | Los Pombitos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>
-    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--coral:#ff5533;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:100px;overscroll-behavior:none}
-    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
-    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
-    .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
-    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
-    .mkt-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;padding:4px 10px;font-weight:500}
-    .mkt-badge.open{background:#d4f5e2;color:var(--green)}
-    .mkt-badge.closed{background:var(--shore);color:var(--muted)}
-    .container{padding:20px 16px;max-width:640px;margin:0 auto}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .ativo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease;display:flex;justify-content:space-between;align-items:center}
-    .ativo-ticker{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--wave);line-height:1}
-    .ativo-nome{font-size:12px;color:var(--muted);margin-top:3px}
-    .ativo-preco{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
-    .ativo-var{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:3px;text-align:right}
-    .pos{color:var(--green)}.neg{color:var(--red)}
-    .tabs{display:flex;background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:4px;margin-bottom:16px}
-    .tab{flex:1;height:40px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1.5px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;background:none;color:var(--muted)}
-    .tab.buy.on{background:var(--green);color:white}
-    .tab.sell.on{background:var(--red);color:white}
-    .card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease}
-    .field-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;display:block}
-    .qtd-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .btn-qtd{width:40px;height:40px;border-radius:10px;background:var(--sand);border:1.5px solid var(--shore);font-size:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
-    .btn-qtd:hover{border-color:var(--wave);color:var(--wave)}
-    .qtd-input{flex:1;height:52px;text-align:center;background:var(--sand);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--ink);outline:none;transition:border-color .2s}
-    .qtd-input:focus{border-color:var(--wave)}
-    .qtd-unit{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);flex-shrink:0}
-    .tipo-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
-    .tipo-opt{border:1.5px solid var(--shore);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;background:var(--sand)}
-    .tipo-opt:hover{border-color:var(--wave)}
-    .tipo-opt.on{border-color:var(--wave);background:#f0f3ff}
-    .tipo-opt-name{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--ink);margin-bottom:2px}
-    .tipo-opt-desc{font-size:11px;color:var(--muted);line-height:1.4}
-    .price-limit-wrap{margin-bottom:18px;display:none}
-    .price-limit-wrap.show{display:block}
-    .price-limit-input{width:100%;height:48px;background:var(--sand);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);padding:0 16px;outline:none;transition:border-color .2s}
-    .price-limit-input:focus{border-color:var(--wave)}
-    .saldo-box{background:linear-gradient(135deg,#f0f3ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-    .saldo-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px}
-    .saldo-valor{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
-    .saldo-insuf{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--red);margin-top:2px;display:none}
-    .saldo-insuf.show{display:block}
-    .aviso-fechado{background:#fff8d4;border:1.5px solid #f5d800;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
-    .aviso-fechado.show{display:block}
-    .aviso-title{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;color:#8a6a00;margin-bottom:4px}
-    .aviso-text{font-size:12px;color:#8a6a00;line-height:1.5}
-    .posicao-box{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
-    .posicao-box.show{display:block}
-    .resumo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px}
-    .resumo-title{font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--ink);margin-bottom:14px}
-    .resumo-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--shore)}
-    .resumo-row:last-child{border-bottom:none}
-    .resumo-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--muted)}
-    .resumo-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
-    .resumo-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--wave)}
-    .btn-wrap{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 20px;background:linear-gradient(to top,var(--sand) 70%,transparent);z-index:50}
-    .btn-confirm{width:100%;max-width:640px;margin:0 auto;height:54px;display:flex;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;align-items:center;justify-content:center;gap:10px}
-    .btn-confirm.buy{background:var(--green);color:white}
-    .btn-confirm.buy:hover{background:#156b3a;transform:translateY(-1px)}
-    .btn-confirm.sell{background:var(--red);color:white}
-    .btn-confirm.sell:hover{background:#a01a00;transform:translateY(-1px)}
-    .btn-confirm:disabled{opacity:.5;cursor:not-allowed;transform:none}
-    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(13,13,13,.55);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
-    .modal-overlay.open{display:flex}
-    .modal{width:100%;max-width:640px;background:var(--card);border-top:1.5px solid var(--shore);border-radius:var(--radius) var(--radius) 0 0;padding:24px 20px 40px;animation:slideUp .3s ease}
-    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-    .modal-handle{width:36px;height:4px;background:var(--shore);border-radius:2px;margin:0 auto 20px}
-    .modal-title{font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:4px}
-    .modal-title.buy{color:var(--green)}.modal-title.sell{color:var(--red)}
-    .modal-sub{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:20px}
-    .modal-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--shore);font-family:var(--mono);font-size:12px}
-    .modal-row:last-child{border-bottom:none}
-    .modal-row-lbl{color:var(--muted)}
-    .modal-row-val{font-weight:500;color:var(--ink)}
-    .modal-row-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px}
-    .modal-row-val.buy{color:var(--green)}.modal-row-val.sell{color:var(--red)}
-    .modal-btns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .btn-modal-ok{width:100%;height:50px;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s}
-    .btn-modal-ok.buy{background:var(--green);color:white}
-    .btn-modal-ok.sell{background:var(--red);color:white}
-    .btn-modal-ok:disabled{opacity:.5;cursor:not-allowed}
-    .btn-modal-cancel{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .2s}
-    .btn-modal-cancel:hover{border-color:var(--coral);color:var(--coral)}
-    .sucesso{display:none;flex-direction:column;align-items:center;padding:40px 20px;text-align:center}
-    .sucesso.show{display:flex}
-    .sucesso-icon{font-size:64px;margin-bottom:20px}
-    .sucesso-title{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--ink);margin-bottom:8px}
-    .sucesso-desc{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);line-height:1.8;margin-bottom:24px;white-space:pre-line}
-    .btn-carteira{width:100%;height:50px;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;margin-bottom:10px}
-    .btn-carteira:hover{background:#0033cc}
-    .btn-novo{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer}
-    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:white;font-family:var(--mono);font-size:12px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  </style>
-</head>
-<body>
-  <header class="hdr">
-    <button class="btn-back" onclick="history.back()">←</button>
-    <div class="hdr-title" id="hdr-title">ORDEM</div>
-    <span class="mkt-badge closed" id="mkt-badge">···</span>
-  </header>
-
-  <div class="container">
-    <div id="form-wrap">
-      <!-- Ativo -->
-      <div class="ativo-card">
-        <div>
-          <p class="ativo-ticker" id="a-ticker">···</p>
-          <p class="ativo-nome" id="a-nome">Carregando...</p>
-        </div>
-        <div>
-          <p class="ativo-preco" id="a-preco">R$ ···</p>
-          <p class="ativo-var" id="a-var">···</p>
-        </div>
-      </div>
-
-      <!-- Tabs compra/venda -->
-      <div class="tabs">
-        <button class="tab buy on" id="tab-buy" onclick="setLado('compra')">📈 COMPRAR</button>
-        <button class="tab sell" id="tab-sell" onclick="setLado('venda')">📉 VENDER</button>
-      </div>
-
-      <!-- Posição atual -->
-      <div class="posicao-box" id="posicao-box">
-        <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">SUA POSIÇÃO ATUAL</p>
-        <div style="display:flex;justify-content:space-between">
+      const card=document.createElement('div');
+      card.className='pos-card';
+      card.innerHTML=`
+        <div class="pos-top">
           <div>
-            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-qtd">—</p>
-            <p style="font-family:var(--mono);font-size:10px;color:var(--muted)">PM: <span id="pos-pm">—</span></p>
+            <p class="pos-ticker">${pos.ticker}</p>
+            <p class="pos-nome">${pos.tipo?.toUpperCase()||'AÇÃO'}</p>
+            <span class="pos-tipo-badge">${pos.tipo?.toUpperCase()||'AÇÕES'}</span>
           </div>
-          <div style="text-align:right">
-            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-total">—</p>
-            <p style="font-family:var(--mono);font-size:10px" id="pos-rentab">—</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Saldo -->
-      <div class="saldo-box">
-        <div>
-          <p class="saldo-label">SALDO DISPONÍVEL</p>
-          <p class="saldo-valor" id="saldo-val">R$ ···</p>
-          <p class="saldo-insuf" id="saldo-insuf">⚠️ Saldo insuficiente</p>
-        </div>
-        <div style="text-align:right">
-          <p style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted)">CAPITAL</p>
-          <p style="font-family:var(--mono);font-size:11px;color:var(--ink)" id="capital-val">R$ ···</p>
-        </div>
-      </div>
-
-      <!-- Aviso fechado -->
-      <div class="aviso-fechado" id="aviso-fechado">
-        <p class="aviso-title">⏰ MERCADO FECHADO</p>
-        <p class="aviso-text" id="aviso-text">Ordem será executada na próxima abertura.</p>
-      </div>
-
-      <!-- Form -->
-      <div class="card">
-        <label class="field-label">QUANTIDADE</label>
-        <div class="qtd-row">
-          <button class="btn-qtd" onclick="ajustarQtd(-1)">−</button>
-          <input type="number" class="qtd-input" id="qtd" value="1" min="1" oninput="updateResumo()">
-          <span class="qtd-unit" id="qtd-unit">cotas</span>
-        </div>
-
-        <label class="field-label">TIPO DE ORDEM</label>
-        <div class="tipo-opts">
-          <div class="tipo-opt on" onclick="setTipo('mercado',this)">
-            <p class="tipo-opt-name">A MERCADO</p>
-            <p class="tipo-opt-desc">Executa imediatamente ao preço atual de mercado</p>
-          </div>
-          <div class="tipo-opt" onclick="setTipo('limitada',this)">
-            <p class="tipo-opt-name">LIMITADA</p>
-            <p class="tipo-opt-desc">Executa somente se o preço atingir o valor que você definir</p>
-          </div>
-          <div class="tipo-opt" onclick="setTipo('stop',this)">
-            <p class="tipo-opt-name">STOP</p>
-            <p class="tipo-opt-desc">Vende automaticamente se o preço cair abaixo do limite</p>
+          <div>
+            <p class="pos-valor-atual">${R$(valorAtual)}</p>
+            <p class="pos-rentab ${rentab>=0?'pos':'neg'}">${pct(rentab)}</p>
           </div>
         </div>
-
-        <div class="price-limit-wrap" id="price-limit-wrap">
-          <label class="field-label" id="price-limit-label">PREÇO LIMITE</label>
-          <input type="number" class="price-limit-input" id="price-limit" placeholder="0,00" step="0.01" oninput="updateResumo()">
+        <div class="pos-grid">
+          <div class="pos-stat"><span class="pos-stat-label">QUANTIDADE</span><span class="pos-stat-val">${pos.quantidade} ${unit}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">PREÇO MÉDIO</span><span class="pos-stat-val">${R$(pos.preco_medio||0)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">PREÇO ATUAL</span><span class="pos-stat-val">${R$(precoAtual)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">RESULTADO</span><span class="pos-stat-val" style="color:${rentab>=0?'var(--green)':'var(--red)'}">${R$(valorAtual-valorPago)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">DESDE</span><span class="pos-stat-val">${pos.data_compra?new Date(pos.data_compra).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—'}</span></div>
         </div>
-      </div>
-
-      <!-- Resumo -->
-      <div class="resumo-card">
-        <p class="resumo-title">RESUMO DA ORDEM</p>
-        <div class="resumo-row"><span class="resumo-lbl">Ativo</span><span class="resumo-val" id="r-ticker">—</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Operação</span><span class="resumo-val" id="r-lado">Compra</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Quantidade</span><span class="resumo-val" id="r-qtd">1 cota</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Preço unitário</span><span class="resumo-val" id="r-preco">R$ —</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Tipo</span><span class="resumo-val" id="r-tipo">A Mercado</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Execução</span><span class="resumo-val" id="r-exec">—</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">TOTAL DA ORDEM</span><span class="resumo-val big" id="r-total">R$ —</span></div>
-        <div class="resumo-row"><span class="resumo-lbl">Saldo após</span><span class="resumo-val" id="r-apos">R$ —</span></div>
-      </div>
-    </div>
-
-    <!-- Sucesso -->
-    <div class="sucesso" id="sucesso">
-      <div class="sucesso-icon" id="s-icon">✅</div>
-      <p class="sucesso-title" id="s-title">ORDEM EXECUTADA</p>
-      <p class="sucesso-desc" id="s-desc">···</p>
-      <button class="btn-carteira" onclick="location.href='carteira.html'">💼 VER MINHA CARTEIRA</button>
-      <button class="btn-novo" onclick="location.href='investir.html'">NOVO INVESTIMENTO</button>
-    </div>
-  </div>
-
-  <!-- Botão fixo -->
-  <div class="btn-wrap" id="btn-wrap">
-    <button class="btn-confirm buy" id="btn-confirm" onclick="abrirModal()">✅ CONFIRMAR COMPRA</button>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal-overlay" id="modal" onclick="if(event.target===this)fecharModal()">
-    <div class="modal">
-      <div class="modal-handle"></div>
-      <p class="modal-title buy" id="mod-title">CONFIRMAR COMPRA</p>
-      <p class="modal-sub">REVISE OS DETALHES ANTES DE CONFIRMAR</p>
-      <div class="modal-row"><span class="modal-row-lbl">Ativo</span><span class="modal-row-val" id="mod-ticker">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Operação</span><span class="modal-row-val" id="mod-lado">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Quantidade</span><span class="modal-row-val" id="mod-qtd">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Preço</span><span class="modal-row-val" id="mod-preco">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">Execução</span><span class="modal-row-val" id="mod-exec">—</span></div>
-      <div class="modal-row"><span class="modal-row-lbl">TOTAL</span><span class="modal-row-val big buy" id="mod-total">R$ —</span></div>
-      <div class="modal-btns">
-        <button class="btn-modal-ok buy" id="btn-modal-ok" onclick="executar()">CONFIRMAR</button>
-        <button class="btn-modal-cancel" onclick="fecharModal()">CANCELAR</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
-  <script src="mercado-api.js"></script>
-  <script>
-  // db inicializado após Firebase carregar
-  let meuUID, saldoDisp=0, patrimonioTotal=0;
-  // Usa window.db e window.auth definidos pelo firebase.js
-  const db = window.db;
-  let precoAtual=0, lado='compra', tipoOrdem='mercado';
-  let posicao=null, mercadoStatus=null;
-
-  const params  = new URLSearchParams(location.search);
-  const TICKER  = decodeURIComponent(params.get('ticker')||'').toUpperCase();
-  const TIPO    = params.get('tipo')||'acoes';
-  const PRECO_P = parseFloat(params.get('preco')||'0');
-  precoAtual    = PRECO_P;
-
-  let toastT;
-  function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),d)}
-
-  const R$ = v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const pct = v=>(v>=0?'+':'')+v.toFixed(2)+'%';
-  const unit = ()=>TIPO==='tesouro'?'títulos':TIPO==='cripto'?'unidades':'cotas';
-
-  // Mercado status
-  function getMercado(){
-    const br=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
-    const h=br.getHours(),m=br.getMinutes(),d=br.getDay(),t=h*60+m;
-    const ab=d>0&&d<6&&t>=9*60+45&&t<17*60+30;
-    return ab?'aberto':'fechado';
+        <div class="pos-actions">
+          <button class="btn-comprar-mais" onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}'">📊 VER RELATÓRIO</button>
+          <button class="btn-comprar-mais" style="background:var(--green)" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}'">+ COMPRAR</button>
+          <button class="btn-vender" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}&lado=venda'">VENDER</button>
+        </div>`;
+      list.appendChild(card);
+    });
   }
 
-  firebase.auth().onAuthStateChanged(async user=>{
-    if(!user){location.href='invite.html';return}
-    meuUID=user.uid;
-
+  async function carregarHistorico(){
+    const loading=document.getElementById('hist-loading');
+    const list=document.getElementById('hist-list');
     try{
-      const[uS,cS]=await Promise.all([
-        db.collection('usuarios').doc(meuUID).get(),
-        db.collection('carteiras').doc(meuUID).get()
-      ]);
-
-      const u=uS.data()||{};
-      const c=cS.exists?cS.data():{};
-
-      saldoDisp      = c.saldo_disponivel ?? u.saldo_disponivel ?? 500000;
-      patrimonioTotal= c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
-
-      document.getElementById('saldo-val').textContent  = R$(saldoDisp);
-      document.getElementById('capital-val').textContent= R$(patrimonioTotal);
-
-      // Posição atual
-      const posicoes=c.posicoes||[];
-      posicao=posicoes.find(p=>p.ticker===TICKER)||null;
-      if(posicao) mostrarPosicao();
-
-      // Mercado
-      mercadoStatus=getMercado();
-      const badge=document.getElementById('mkt-badge');
-      if(mercadoStatus==='aberto'){badge.textContent='● Aberto';badge.className='mkt-badge open'}
-      else{badge.textContent='○ Fechado';badge.className='mkt-badge closed';document.getElementById('aviso-fechado').classList.add('show')}
-
-      // Cotação atualizada
-      document.getElementById('hdr-title').textContent='ORDEM — '+TICKER;
-      document.getElementById('a-ticker').textContent=TICKER;
-
-      try{
-        const d=await MercadoAPI.buscarAtivo(TICKER);
-        if(d){
-          precoAtual=d.preco||PRECO_P||1;
-          document.getElementById('a-nome').textContent=d.nome||TICKER;
-          document.getElementById('a-preco').textContent=R$(precoAtual);
-          const vp=d.variacao_pct||0;
-          const vel=document.getElementById('a-var');
-          vel.textContent=pct(vp);vel.className='ativo-var '+(vp>=0?'pos':'neg');
-          document.getElementById('price-limit').value=precoAtual.toFixed(2);
-        }
-      }catch(e){
-        precoAtual=PRECO_P||1;
-        document.getElementById('a-nome').textContent=TICKER;
-        document.getElementById('a-preco').textContent=R$(precoAtual);
-      }
-
-      updateResumo();
-    }catch(e){
-      console.error('Init ordem:',e);
-      toast('Erro ao carregar: '+e.message);
-    }
-  });
-
-  function mostrarPosicao(){
-    const el=document.getElementById('posicao-box');
-    el.classList.add('show');
-    const va=posicao.quantidade*(precoAtual||posicao.preco_medio);
-    const vp=posicao.quantidade*posicao.preco_medio;
-    const r=vp?((va-vp)/vp)*100:0;
-    document.getElementById('pos-qtd').textContent=posicao.quantidade+' '+unit();
-    document.getElementById('pos-pm').textContent=R$(posicao.preco_medio||0);
-    document.getElementById('pos-total').textContent=R$(va);
-    const rel=document.getElementById('pos-rentab');
-    rel.textContent=pct(r);rel.style.color=r>=0?'var(--green)':'var(--red)';
-  }
-
-  function setLado(l){
-    lado=l;
-    document.getElementById('tab-buy').classList.toggle('on',l==='compra');
-    document.getElementById('tab-sell').classList.toggle('on',l==='venda');
-    const btn=document.getElementById('btn-confirm');
-    btn.className='btn-confirm '+(l==='compra'?'buy':'sell');
-    btn.textContent=l==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
-    if(l==='venda'&&!posicao)toast('Você não possui este ativo na carteira.');
-    updateResumo();
-  }
-
-  function setTipo(tipo,el){
-    tipoOrdem=tipo;
-    document.querySelectorAll('.tipo-opt').forEach(o=>o.classList.remove('on'));
-    el.classList.add('on');
-    const w=document.getElementById('price-limit-wrap');
-    const l=document.getElementById('price-limit-label');
-    if(tipo==='limitada'){w.classList.add('show');l.textContent='PREÇO LIMITE (executa ≤ este valor)'}
-    else if(tipo==='stop'){w.classList.add('show');l.textContent='PREÇO STOP (vende abaixo deste valor)'}
-    else w.classList.remove('show');
-    updateResumo();
-  }
-
-  function ajustarQtd(d){
-    const i=document.getElementById('qtd');
-    i.value=Math.max(1,(parseInt(i.value)||1)+d);
-    updateResumo();
-  }
-
-  function updateResumo(){
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-    const u=unit();
-
-    document.getElementById('qtd-unit').textContent=u;
-    document.getElementById('r-ticker').textContent=TICKER;
-    document.getElementById('r-lado').textContent=lado==='compra'?'Compra':'Venda';
-    document.getElementById('r-qtd').textContent=qtd+' '+u;
-    document.getElementById('r-preco').textContent=R$(preco);
-    document.getElementById('r-tipo').textContent=tipoOrdem==='mercado'?'A Mercado':tipoOrdem==='limitada'?'Limitada':'Stop';
-    document.getElementById('r-total').textContent=R$(total);
-
-    const exec=mercadoStatus==='aberto'&&tipoOrdem==='mercado'?'Imediata ao preço atual':'Próxima abertura — dia útil';
-    document.getElementById('r-exec').textContent=exec;
-
-    if(lado==='compra'){
-      const apos=saldoDisp-total;
-      const el=document.getElementById('r-apos');
-      el.textContent=R$(apos);el.className='resumo-val '+(apos<0?'neg':'');
-      document.getElementById('saldo-insuf').classList.toggle('show',total>saldoDisp);
-      document.getElementById('btn-confirm').disabled=total>saldoDisp;
-    }else{
-      document.getElementById('r-apos').textContent='+'+R$(total);
-      document.getElementById('r-apos').className='resumo-val pos';
-      document.getElementById('btn-confirm').disabled=false;
-    }
-  }
-
-  function abrirModal(){
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-    const u=unit();
-
-    if(lado==='compra'&&total>saldoDisp){toast('Saldo insuficiente.');return}
-    if(lado==='venda'&&!posicao){toast('Você não possui este ativo.');return}
-    if(lado==='venda'&&qtd>(posicao?.quantidade||0)){toast('Quantidade maior que sua posição.');return}
-
-    document.getElementById('mod-title').textContent=lado==='compra'?'CONFIRMAR COMPRA':'CONFIRMAR VENDA';
-    document.getElementById('mod-title').className='modal-title '+(lado==='compra'?'buy':'sell');
-    document.getElementById('mod-ticker').textContent=TICKER;
-    document.getElementById('mod-lado').textContent=lado==='compra'?'COMPRA':'VENDA';
-    document.getElementById('mod-qtd').textContent=qtd+' '+u;
-    document.getElementById('mod-preco').textContent=R$(preco);
-    document.getElementById('mod-exec').textContent=mercadoStatus==='aberto'?'Imediata':'Próximo dia útil';
-    document.getElementById('mod-total').textContent=R$(total);
-    document.getElementById('mod-total').className='modal-row-val big '+(lado==='compra'?'buy':'sell');
-    const ok=document.getElementById('btn-modal-ok');
-    ok.className='btn-modal-ok '+(lado==='compra'?'buy':'sell');
-    ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
-    document.getElementById('modal').classList.add('open');
-  }
-
-  function fecharModal(){document.getElementById('modal').classList.remove('open')}
-
-  async function executar(){
-    const ok=document.getElementById('btn-modal-ok');
-    ok.disabled=true;ok.textContent='PROCESSANDO...';
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-
-    try{
-      await db.runTransaction(async t=>{
-        const cRef=db.collection('carteiras').doc(meuUID);
-        const cSnap=await t.get(cRef);
-        const c=cSnap.exists?cSnap.data():{};
-        let saldo=c.saldo_disponivel??500000;
-        let posicoes=[...(c.posicoes||[])];
-
-        if(lado==='compra'){
-          if(total>saldo)throw new Error('Saldo insuficiente.');
-          saldo-=total;
-          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
-          if(idx>=0){
-            const qtdAnt=posicoes[idx].quantidade;
-            const totAnt=qtdAnt*posicoes[idx].preco_medio;
-            posicoes[idx].quantidade+=qtd;
-            posicoes[idx].preco_medio=(totAnt+total)/posicoes[idx].quantidade;
-            posicoes[idx].ultima_atualizacao=new Date().toISOString();
-          }else{
-            posicoes.push({ticker:TICKER,tipo:TIPO,quantidade:qtd,preco_medio:preco,data_compra:new Date().toISOString(),ultima_atualizacao:new Date().toISOString()});
-          }
-        }else{
-          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
-          if(idx<0)throw new Error('Ativo não encontrado na carteira.');
-          if(posicoes[idx].quantidade<qtd)throw new Error('Quantidade insuficiente.');
-          saldo+=total;
-          posicoes[idx].quantidade-=qtd;
-          if(posicoes[idx].quantidade===0)posicoes.splice(idx,1);
-        }
-
-        const investido=posicoes.reduce((a,p)=>a+p.quantidade*p.preco_medio,0);
-        const patrimonio=saldo+investido;
-
-        // Salva ou cria carteira
-        t.set(cRef,{uid:meuUID,saldo_disponivel:saldo,saldo_investido:investido,patrimonio_total:patrimonio,posicoes,ultima_atualizacao:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-
-        // Histórico da ordem
-        t.set(db.collection('ordens').doc(),{uid:meuUID,ticker:TICKER,tipo:TIPO,lado,quantidade:qtd,preco,total,tipo_ordem:tipoOrdem,status:mercadoStatus==='aberto'?'executada':'agendada',data:firebase.firestore.FieldValue.serverTimestamp()});
-
-        // Post automático no feed
-        t.set(db.collection('posts').doc(),{uid:meuUID,tipo:'trade',tipo_ativo:TIPO,ticker:TICKER,lado,quantidade:qtd,preco,total,auto:true,data_post:firebase.firestore.FieldValue.serverTimestamp()});
-
-        // Atualiza usuário também
-        const uRef=db.collection('usuarios').doc(meuUID);
-        t.update(uRef,{saldo_disponivel:saldo,patrimonio_total:patrimonio});
+      const snap=await db.collection('ordens').where('uid','==',meuUID).orderBy('data','desc').limit(30).get();
+      loading.style.display='none';
+      if(snap.empty){list.innerHTML='<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';return}
+      list.innerHTML='';
+      snap.forEach(doc=>{
+        const o=doc.data();
+        const isC=o.lado==='compra';
+        const data=o.data?.toDate?o.data.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+        const unit=o.tipo==='tesouro'?'títulos':o.tipo==='cripto'?'und':'cotas';
+        const card=document.createElement('div');
+        card.className='hist-card';
+        card.innerHTML=`
+          <div class="hist-row">
+            <div class="hist-left">
+              <span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span>
+              <div>
+                <p class="hist-ticker">${o.ticker}</p>
+                <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
+              </div>
+            </div>
+            <div>
+              <p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p>
+              <p class="hist-data">${data}</p>
+            </div>
+          </div>`;
+        list.appendChild(card);
       });
-
-      fecharModal();
-      // Mostra sucesso
-      document.getElementById('form-wrap').style.display='none';
-      document.getElementById('btn-wrap').style.display='none';
-      const s=document.getElementById('sucesso');s.classList.add('show');
-      document.getElementById('s-icon').textContent=lado==='compra'?'✅':'💰';
-      document.getElementById('s-title').textContent=mercadoStatus==='aberto'?'ORDEM EXECUTADA':'ORDEM AGENDADA';
-      document.getElementById('s-desc').textContent=`${lado==='compra'?'Compra':'Venda'} de ${qtd} ${unit()} de ${TICKER}\na ${R$(preco)} por unidade\nTotal: ${R$(total)}\n${mercadoStatus==='aberto'?'Executada imediatamente ✅':'Agendada para o próximo dia útil ⏰'}`;
-
     }catch(e){
-      console.error(e);toast(e.message||'Erro ao executar ordem.');
-      ok.disabled=false;ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
+      loading.style.display='none';
+      // Tenta sem orderBy se não tiver índice
+      try{
+        const snap=await db.collection('ordens').where('uid','==',meuUID).limit(30).get();
+        if(snap.empty){list.innerHTML='<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';return}
+        const ordens=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.data?.seconds||0)-(a.data?.seconds||0));
+        list.innerHTML='';
+        ordens.forEach(o=>{
+          const isC=o.lado==='compra';
+          const data=o.data?.toDate?o.data.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
+          const unit=o.tipo==='tesouro'?'títulos':o.tipo==='cripto'?'und':'cotas';
+          const card=document.createElement('div');
+          card.className='hist-card';
+          card.innerHTML=`<div class="hist-row"><div class="hist-left"><span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span><div><p class="hist-ticker">${o.ticker}</p><p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p></div></div><div><p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p><p class="hist-data">${data}</p></div></div>`;
+          list.appendChild(card);
+        });
+      }catch(e2){list.innerHTML='<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar histórico.</div>'}
     }
   }
   </script>
