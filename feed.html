@@ -342,65 +342,61 @@
     if(ab)document.getElementById('mkt').classList.add('open');
   }
 
-  // COTAÇÕES — brapi.dev para B3 (sem CORS) + exchangerate-api para USD + coingecko para BTC
+  // COTAÇÕES — tudo via brapi.dev (única API brasileira sem CORS garantido)
+  // USDBRL=X e BTC-USD são suportados pela brapi como índices do Yahoo Finance
   async function cotacoes(){
-    // B3: IBOV + ações
+    // brapi.dev — suporta índices do Yahoo sem token no plano free
+    // Índices precisam de encoding correto: ^ = %5E, = = %3D
+    const syms = '%5EBVSP,USDBRL%3DX,BTC-USD,PETR4,VALE3,ITUB4';
     try{
-      const r=await fetch('https://brapi.dev/api/quote/%5EBVSP,PETR4,VALE3,ITUB4?fundamental=false');
-      const d=await r.json();
+      const r = await fetch(`https://brapi.dev/api/quote/${syms}?fundamental=false&token=demo`);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const d = await r.json();
       (d.results||[]).forEach(q=>{
-        const p=q.regularMarketPrice||0;
-        const v=q.regularMarketChangePercent||0;
-        const cls=v>=0?'up':'dn';
-        const c=fmtP(v);
-        if(q.symbol==='^BVSP'){
-          set('i-ibov',fmtN(p));setChg('i-ibov-c',c,cls);
-          set('t-ibov',fmtN(p));setChg('t-ibov-c',c,cls);
-          set('t-ibov2',fmtN(p));setChg('t-ibov-c2',c,cls);
+        const p = q.regularMarketPrice||0;
+        const v = q.regularMarketChangePercent||0;
+        const cls = v>=0?'up':'dn';
+        const cv = fmtP(v);
+        const sym = q.symbol;
+
+        if(sym==='^BVSP'){
+          const pf=fmtN(p);
+          set('i-ibov',pf);setChg('i-ibov-c',cv,cls);
+          set('t-ibov',pf);setChg('t-ibov-c',cv,cls);
+          set('t-ibov2',pf);setChg('t-ibov-c2',cv,cls);
         }
-        if(q.symbol==='PETR4'){
-          set('t-petr','R$'+p.toFixed(2));setChg('t-petr-c',c,cls);
-          set('t-petr2','R$'+p.toFixed(2));setChg('t-petr-c2',c,cls);
+        if(sym==='USDBRL=X'){
+          const pf='R$ '+p.toFixed(2);
+          set('i-usd',pf);setChg('i-usd-c',cv,cls);
+          set('t-usd',pf);setChg('t-usd-c',cv,cls);
+          set('t-usd2',pf);setChg('t-usd-c2',cv,cls);
         }
-        if(q.symbol==='VALE3'){
-          set('t-vale','R$'+p.toFixed(2));setChg('t-vale-c',c,cls);
-          set('t-vale2','R$'+p.toFixed(2));setChg('t-vale-c2',c,cls);
+        if(sym==='BTC-USD'){
+          const pf='$'+fmtN(p);
+          set('i-btc',pf);setChg('i-btc-c',cv,cls);
+          set('t-btc',pf);setChg('t-btc-c',cv,cls);
+          set('t-btc2',pf);setChg('t-btc-c2',cv,cls);
         }
-        if(q.symbol==='ITUB4'){
-          set('t-itub','R$'+p.toFixed(2));setChg('t-itub-c',c,cls);
-          set('t-itub2','R$'+p.toFixed(2));setChg('t-itub-c2',c,cls);
+        if(sym==='PETR4'){
+          const pf='R$'+p.toFixed(2);
+          set('t-petr',pf);setChg('t-petr-c',cv,cls);
+          set('t-petr2',pf);setChg('t-petr-c2',cv,cls);
+        }
+        if(sym==='VALE3'){
+          const pf='R$'+p.toFixed(2);
+          set('t-vale',pf);setChg('t-vale-c',cv,cls);
+          set('t-vale2',pf);setChg('t-vale-c2',cv,cls);
+        }
+        if(sym==='ITUB4'){
+          const pf='R$'+p.toFixed(2);
+          set('t-itub',pf);setChg('t-itub-c',cv,cls);
+          set('t-itub2',pf);setChg('t-itub-c2',cv,cls);
         }
       });
-    }catch(e){console.warn('[brapi]',e.message)}
-
-    // USD/BRL — exchangerate-api (sem CORS, gratuita)
-    try{
-      const r=await fetch('https://open.er-api.com/v6/latest/USD');
-      const d=await r.json();
-      const brl=d.rates?.BRL||0;
-      if(brl>0){
-        const v='R$ '+brl.toFixed(2);
-        set('i-usd',v);set('t-usd',v);set('t-usd2',v);
-        // sem variação disponível nessa API, mostra estático
-        setChg('i-usd-c','hoje','na');
-        setChg('t-usd-c','','na');setChg('t-usd-c2','','na');
-      }
-    }catch(e){console.warn('[USD]',e.message)}
-
-    // BTC — CoinGecko simples (sem CORS)
-    try{
-      const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl&include_24hr_change=true');
-      const d=await r.json();
-      const p=d.bitcoin?.brl||0;
-      const v=d.bitcoin?.brl_24h_change||0;
-      if(p>0){
-        const cls=v>=0?'up':'dn';
-        const pf='R$'+fmtN(p);const cf=fmtP(v);
-        set('i-btc',pf);setChg('i-btc-c',cf,cls);
-        set('t-btc',pf);setChg('t-btc-c',cf,cls);
-        set('t-btc2',pf);setChg('t-btc-c2',cf,cls);
-      }
-    }catch(e){console.warn('[BTC]',e.message)}
+    }catch(e){
+      console.warn('[cotacoes] brapi falhou:',e.message);
+      // Fallback: só mostra SELIC estática, resto fica com '···'
+    }
   }
 
   function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
