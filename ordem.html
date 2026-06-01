@@ -6,1114 +6,505 @@
   <title>Ordem | Los Pombitos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
   <style>
-    :root {
-      --ink:     #0d0d0d;
-      --sand:    #f0ebe3;
-      --shore:   #e2d9cd;
-      --wave:    #1a4fff;
-      --foam:    #c8d8ff;
-      --sun:     #f5b800;
-      --coral:   #ff5533;
-      --muted:   #8a8278;
-      --card:    #faf8f5;
-      --green:   #1a8a4a;
-      --red:     #cc2200;
-      --radius:  14px;
-      --mono:    'DM Mono', monospace;
-      --sans:    'DM Sans', sans-serif;
-      --display: 'Bebas Neue', sans-serif;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--sans);
-      background: var(--sand);
-      color: var(--ink);
-      min-height: 100dvh;
-      padding-bottom: 100px;
-      overscroll-behavior: none;
-    }
-
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 9999; opacity: .5;
-    }
-
-    /* ── HEADER ── */
-    .feed-header {
-      position: sticky; top: 0; z-index: 100;
-      background: var(--sand); border-bottom: 1.5px solid var(--shore);
-      padding: 0 20px; height: 58px;
-      display: flex; align-items: center; gap: 14px;
-      backdrop-filter: blur(12px);
-    }
-
-    .btn-voltar {
-      background: none; border: none; font-size: 22px;
-      cursor: pointer; color: var(--ink); padding: 4px;
-    }
-
-    .header-titulo {
-      font-family: var(--display); font-size: 22px;
-      letter-spacing: 2px; color: var(--ink); flex: 1;
-    }
-
-    .mercado-badge {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-      border-radius: 20px; padding: 4px 10px; font-weight: 500;
-    }
-    .mercado-badge.aberto  { background: #d4f5e2; color: var(--green); }
-    .mercado-badge.fechado { background: var(--shore); color: var(--muted); }
-    .mercado-badge.pre     { background: #fff8d4; color: #8a6a00; }
-
-    /* ── CONTAINER ── */
-    .container { padding: 20px 16px; max-width: 640px; margin: 0 auto; }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── ATIVO CARD ── */
-    .ativo-card {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 18px;
-      margin-bottom: 16px; animation: fadeUp .3s ease;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-
-    .ativo-ticker {
-      font-family: var(--display); font-size: 28px;
-      letter-spacing: 2px; color: var(--wave); line-height: 1;
-    }
-
-    .ativo-nome {
-      font-size: 12px; color: var(--muted); margin-top: 3px;
-    }
-
-    .ativo-preco-wrap { text-align: right; }
-
-    .ativo-preco {
-      font-family: var(--display); font-size: 24px;
-      letter-spacing: 2px; color: var(--ink); line-height: 1;
-    }
-
-    .ativo-var {
-      font-family: var(--mono); font-size: 11px; font-weight: 500; margin-top: 3px;
-    }
-    .ativo-var.pos { color: var(--green); }
-    .ativo-var.neg { color: var(--red); }
-
-    /* ── TIPO DE ORDEM ── */
-    .tipo-ordem-tabs {
-      display: flex; background: var(--card);
-      border: 1.5px solid var(--shore); border-radius: var(--radius);
-      padding: 4px; margin-bottom: 16px;
-    }
-
-    .tipo-tab {
-      flex: 1; height: 40px;
-      font-family: var(--mono); font-size: 11px;
-      font-weight: 500; letter-spacing: 1.5px;
-      border: none; border-radius: 10px;
-      cursor: pointer; transition: all .2s;
-      background: none; color: var(--muted);
-    }
-
-    .tipo-tab.compra.ativo { background: var(--green); color: white; }
-    .tipo-tab.venda.ativo  { background: var(--red);   color: white; }
-
-    /* ── FORMULÁRIO ── */
-    .ordem-card {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 18px;
-      margin-bottom: 16px; animation: fadeUp .3s ease;
-    }
-
-    .campo-titulo {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
-      color: var(--muted); margin-bottom: 8px; display: block;
-    }
-
-    /* Quantidade */
-    .qtd-wrap {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .btn-qtd {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--sand); border: 1.5px solid var(--shore);
-      font-size: 20px; cursor: pointer; transition: all .2s;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; font-family: var(--mono);
-    }
-    .btn-qtd:hover { border-color: var(--wave); color: var(--wave); }
-
-    .qtd-input {
-      flex: 1; height: 52px; text-align: center;
-      background: var(--sand); border: 1.5px solid var(--shore);
-      border-radius: var(--radius);
-      font-family: var(--display); font-size: 28px;
-      letter-spacing: 2px; color: var(--ink);
-      outline: none; transition: border-color .2s;
-    }
-    .qtd-input:focus { border-color: var(--wave); }
-
-    .qtd-label {
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 1px; color: var(--muted); flex-shrink: 0;
-    }
-
-    /* Tipo de ordem */
-    .tipo-ordem-select {
-      display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;
-    }
-
-    .ordem-tipo-card {
-      border: 1.5px solid var(--shore); border-radius: 10px;
-      padding: 12px 14px; cursor: pointer;
-      display: flex; align-items: flex-start; gap: 12px;
-      transition: all .2s; background: var(--sand);
-    }
-    .ordem-tipo-card:hover { border-color: var(--wave); }
-    .ordem-tipo-card.selecionado { border-color: var(--wave); background: #f0f3ff; }
-    .ordem-tipo-card input[type="radio"] { display: none; }
-
-    .ordem-tipo-nome {
-      font-family: var(--mono); font-size: 11px;
-      font-weight: 500; letter-spacing: 1px; color: var(--ink); margin-bottom: 2px;
-    }
-    .ordem-tipo-desc {
-      font-size: 11px; color: var(--muted); line-height: 1.4;
-    }
-
-    /* Preço limite */
-    .preco-limite-wrap {
-      margin-bottom: 18px; display: none;
-    }
-    .preco-limite-wrap.visivel { display: block; }
-
-    .preco-limite-input {
-      width: 100%; height: 48px;
-      background: var(--sand); border: 1.5px solid var(--shore);
-      border-radius: var(--radius);
-      font-family: var(--display); font-size: 22px;
-      letter-spacing: 2px; color: var(--ink);
-      padding: 0 16px; outline: none;
-      transition: border-color .2s;
-    }
-    .preco-limite-input:focus { border-color: var(--wave); }
-
-    /* ── RESUMO ── */
-    .resumo-card {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 18px;
-      margin-bottom: 16px;
-    }
-
-    .resumo-titulo {
-      font-family: var(--display); font-size: 18px;
-      letter-spacing: 2px; color: var(--ink); margin-bottom: 14px;
-    }
-
-    .resumo-item {
-      display: flex; justify-content: space-between;
-      align-items: baseline; padding: 8px 0;
-      border-bottom: 1px solid var(--shore);
-    }
-    .resumo-item:last-child { border-bottom: none; }
-
-    .resumo-label {
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: .5px; color: var(--muted);
-    }
-
-    .resumo-valor {
-      font-family: var(--mono); font-size: 12px;
-      font-weight: 500; color: var(--ink);
-    }
-    .resumo-valor.destaque {
-      font-family: var(--display); font-size: 18px;
-      letter-spacing: 1px; color: var(--wave);
-    }
-    .resumo-valor.pos { color: var(--green); }
-    .resumo-valor.neg { color: var(--red); }
-
-    /* ── AVISO MERCADO FECHADO ── */
-    .aviso-fechado {
-      background: #fff8d4; border: 1.5px solid #f5d800;
-      border-radius: var(--radius); padding: 14px 16px;
-      margin-bottom: 16px; display: none;
-    }
-    .aviso-fechado.visivel { display: block; }
-
-    .aviso-titulo {
-      font-family: var(--mono); font-size: 11px;
-      font-weight: 500; letter-spacing: 1px; color: #8a6a00; margin-bottom: 4px;
-    }
-    .aviso-texto {
-      font-size: 12px; color: #8a6a00; line-height: 1.5;
-    }
-
-    /* ── SALDO DISPONÍVEL ── */
-    .saldo-wrap {
-      background: linear-gradient(135deg, #f0f3ff, var(--card));
-      border: 1.5px solid var(--foam); border-radius: var(--radius);
-      padding: 14px 18px; margin-bottom: 16px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-
-    .saldo-label {
-      font-family: var(--mono); font-size: 9px;
-      letter-spacing: 2px; color: var(--muted); margin-bottom: 3px;
-    }
-
-    .saldo-valor {
-      font-family: var(--display); font-size: 22px;
-      letter-spacing: 2px; color: var(--wave);
-    }
-
-    .saldo-insuf {
-      font-family: var(--mono); font-size: 9px;
-      letter-spacing: 1px; color: var(--red); margin-top: 2px;
-      display: none;
-    }
-    .saldo-insuf.visivel { display: block; }
-
-    /* ── POSIÇÃO ATUAL (se tiver) ── */
-    .posicao-atual {
-      background: var(--card); border: 1.5px solid var(--shore);
-      border-radius: var(--radius); padding: 14px 16px;
-      margin-bottom: 16px; display: none;
-    }
-    .posicao-atual.visivel { display: block; }
-
-    /* ── BOTÃO CONFIRMAR ── */
-    .btn-confirmar-wrap {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      padding: 12px 16px 20px;
-      background: linear-gradient(to top, var(--sand) 70%, transparent);
-      z-index: 50;
-    }
-
-    .btn-confirmar {
-      width: 100%; max-width: 640px; margin: 0 auto;
-      height: 54px; display: flex;
-      border: none; border-radius: 25px;
-      font-family: var(--mono); font-size: 13px;
-      font-weight: 500; letter-spacing: 1.5px;
-      cursor: pointer; transition: all .2s;
-      align-items: center; justify-content: center; gap: 10px;
-    }
-
-    .btn-confirmar.compra { background: var(--green); color: white; }
-    .btn-confirmar.compra:hover { background: #156b3a; transform: translateY(-1px); }
-    .btn-confirmar.venda  { background: var(--red); color: white; }
-    .btn-confirmar.venda:hover  { background: #a01a00; transform: translateY(-1px); }
-    .btn-confirmar:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-
-    /* ── MODAL CONFIRMAÇÃO ── */
-    .modal-overlay {
-      position: fixed; inset: 0; z-index: 200;
-      background: rgba(13,13,13,.55); backdrop-filter: blur(8px);
-      display: none; align-items: flex-end; justify-content: center;
-    }
-    .modal-overlay.aberto { display: flex; }
-
-    .modal {
-      width: 100%; max-width: 640px;
-      background: var(--card); border-top: 1.5px solid var(--shore);
-      border-radius: var(--radius) var(--radius) 0 0;
-      padding: 24px 20px 40px; position: relative;
-      animation: slideUp .3s ease;
-    }
-    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-
-    .modal-handle {
-      width: 36px; height: 4px; background: var(--shore);
-      border-radius: 2px; margin: 0 auto 20px;
-    }
-
-    .modal-titulo {
-      font-family: var(--display); font-size: 22px;
-      letter-spacing: 2px; margin-bottom: 4px;
-    }
-    .modal-titulo.compra { color: var(--green); }
-    .modal-titulo.venda  { color: var(--red); }
-
-    .modal-sub {
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 1.5px; color: var(--muted); margin-bottom: 20px;
-    }
-
-    .modal-resumo { margin-bottom: 20px; }
-
-    .modal-item {
-      display: flex; justify-content: space-between; padding: 10px 0;
-      border-bottom: 1px solid var(--shore);
-      font-family: var(--mono); font-size: 12px;
-    }
-    .modal-item:last-child { border-bottom: none; }
-    .modal-item-label { color: var(--muted); }
-    .modal-item-valor { font-weight: 500; color: var(--ink); }
-    .modal-item-valor.destaque {
-      font-family: var(--display); font-size: 18px;
-      letter-spacing: 1px;
-    }
-    .modal-item-valor.compra { color: var(--green); }
-    .modal-item-valor.venda  { color: var(--red); }
-
-    .modal-btns { display: flex; flex-direction: column; gap: 10px; }
-
-    .btn-modal-confirmar {
-      width: 100%; height: 50px; border: none; border-radius: 25px;
-      font-family: var(--mono); font-size: 12px;
-      font-weight: 500; letter-spacing: 1.5px;
-      cursor: pointer; transition: all .2s;
-    }
-    .btn-modal-confirmar.compra { background: var(--green); color: white; }
-    .btn-modal-confirmar.venda  { background: var(--red);   color: white; }
-    .btn-modal-confirmar:disabled { opacity: .5; cursor: not-allowed; }
-
-    .btn-modal-cancelar {
-      width: 100%; height: 44px;
-      background: none; color: var(--muted);
-      border: 1.5px solid var(--shore); border-radius: 25px;
-      font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-      cursor: pointer; transition: all .2s;
-    }
-    .btn-modal-cancelar:hover { border-color: var(--coral); color: var(--coral); }
-
-    /* ── SUCESSO ── */
-    .sucesso-wrap {
-      display: none; flex-direction: column; align-items: center;
-      padding: 40px 20px; text-align: center;
-    }
-    .sucesso-wrap.visivel { display: flex; }
-
-    .sucesso-icone { font-size: 64px; margin-bottom: 20px; }
-
-    .sucesso-titulo {
-      font-family: var(--display); font-size: 28px;
-      letter-spacing: 3px; color: var(--ink); margin-bottom: 8px;
-    }
-
-    .sucesso-desc {
-      font-family: var(--mono); font-size: 11px;
-      letter-spacing: 1px; color: var(--muted); line-height: 1.8;
-      margin-bottom: 24px;
-    }
-
-    .btn-ver-carteira {
-      width: 100%; height: 50px;
-      background: var(--wave); color: white;
-      border: none; border-radius: 25px;
-      font-family: var(--mono); font-size: 12px;
-      font-weight: 500; letter-spacing: 1.5px;
-      cursor: pointer; transition: all .2s; margin-bottom: 10px;
-    }
-    .btn-ver-carteira:hover { background: #0033cc; }
-
-    .btn-novo-investimento {
-      width: 100%; height: 44px;
-      background: none; color: var(--muted);
-      border: 1.5px solid var(--shore); border-radius: 25px;
-      font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-      cursor: pointer; transition: all .2s;
-    }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed; bottom: 80px; left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--ink); color: white;
-      font-family: var(--mono); font-size: 12px;
-      padding: 10px 22px; border-radius: 20px;
-      opacity: 0; transition: all .3s;
-      pointer-events: none; z-index: 9000; white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--coral:#ff5533;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:100px;overscroll-behavior:none}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
+    .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
+    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
+    .mkt-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;padding:4px 10px;font-weight:500}
+    .mkt-badge.open{background:#d4f5e2;color:var(--green)}
+    .mkt-badge.closed{background:var(--shore);color:var(--muted)}
+    .container{padding:20px 16px;max-width:640px;margin:0 auto}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .ativo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease;display:flex;justify-content:space-between;align-items:center}
+    .ativo-ticker{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--wave);line-height:1}
+    .ativo-nome{font-size:12px;color:var(--muted);margin-top:3px}
+    .ativo-preco{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
+    .ativo-var{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:3px;text-align:right}
+    .pos{color:var(--green)}.neg{color:var(--red)}
+    .tabs{display:flex;background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:4px;margin-bottom:16px}
+    .tab{flex:1;height:40px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1.5px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;background:none;color:var(--muted)}
+    .tab.buy.on{background:var(--green);color:white}
+    .tab.sell.on{background:var(--red);color:white}
+    .card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease}
+    .field-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;display:block}
+    .qtd-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .btn-qtd{width:40px;height:40px;border-radius:10px;background:var(--sand);border:1.5px solid var(--shore);font-size:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+    .btn-qtd:hover{border-color:var(--wave);color:var(--wave)}
+    .qtd-input{flex:1;height:52px;text-align:center;background:var(--sand);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--ink);outline:none;transition:border-color .2s}
+    .qtd-input:focus{border-color:var(--wave)}
+    .qtd-unit{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);flex-shrink:0}
+    .tipo-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+    .tipo-opt{border:1.5px solid var(--shore);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;background:var(--sand)}
+    .tipo-opt:hover{border-color:var(--wave)}
+    .tipo-opt.on{border-color:var(--wave);background:#f0f3ff}
+    .tipo-opt-name{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--ink);margin-bottom:2px}
+    .tipo-opt-desc{font-size:11px;color:var(--muted);line-height:1.4}
+    .price-limit-wrap{margin-bottom:18px;display:none}
+    .price-limit-wrap.show{display:block}
+    .price-limit-input{width:100%;height:48px;background:var(--sand);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);padding:0 16px;outline:none;transition:border-color .2s}
+    .price-limit-input:focus{border-color:var(--wave)}
+    .saldo-box{background:linear-gradient(135deg,#f0f3ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+    .saldo-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px}
+    .saldo-valor{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
+    .saldo-insuf{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--red);margin-top:2px;display:none}
+    .saldo-insuf.show{display:block}
+    .aviso-fechado{background:#fff8d4;border:1.5px solid #f5d800;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
+    .aviso-fechado.show{display:block}
+    .aviso-title{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;color:#8a6a00;margin-bottom:4px}
+    .aviso-text{font-size:12px;color:#8a6a00;line-height:1.5}
+    .posicao-box{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
+    .posicao-box.show{display:block}
+    .resumo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+    .resumo-title{font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--ink);margin-bottom:14px}
+    .resumo-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--shore)}
+    .resumo-row:last-child{border-bottom:none}
+    .resumo-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--muted)}
+    .resumo-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
+    .resumo-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--wave)}
+    .btn-wrap{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 20px;background:linear-gradient(to top,var(--sand) 70%,transparent);z-index:50}
+    .btn-confirm{width:100%;max-width:640px;margin:0 auto;height:54px;display:flex;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;align-items:center;justify-content:center;gap:10px}
+    .btn-confirm.buy{background:var(--green);color:white}
+    .btn-confirm.buy:hover{background:#156b3a;transform:translateY(-1px)}
+    .btn-confirm.sell{background:var(--red);color:white}
+    .btn-confirm.sell:hover{background:#a01a00;transform:translateY(-1px)}
+    .btn-confirm:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(13,13,13,.55);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{width:100%;max-width:640px;background:var(--card);border-top:1.5px solid var(--shore);border-radius:var(--radius) var(--radius) 0 0;padding:24px 20px 40px;animation:slideUp .3s ease}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-handle{width:36px;height:4px;background:var(--shore);border-radius:2px;margin:0 auto 20px}
+    .modal-title{font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:4px}
+    .modal-title.buy{color:var(--green)}.modal-title.sell{color:var(--red)}
+    .modal-sub{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:20px}
+    .modal-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--shore);font-family:var(--mono);font-size:12px}
+    .modal-row:last-child{border-bottom:none}
+    .modal-row-lbl{color:var(--muted)}
+    .modal-row-val{font-weight:500;color:var(--ink)}
+    .modal-row-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px}
+    .modal-row-val.buy{color:var(--green)}.modal-row-val.sell{color:var(--red)}
+    .modal-btns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+    .btn-modal-ok{width:100%;height:50px;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s}
+    .btn-modal-ok.buy{background:var(--green);color:white}
+    .btn-modal-ok.sell{background:var(--red);color:white}
+    .btn-modal-ok:disabled{opacity:.5;cursor:not-allowed}
+    .btn-modal-cancel{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-modal-cancel:hover{border-color:var(--coral);color:var(--coral)}
+    .sucesso{display:none;flex-direction:column;align-items:center;padding:40px 20px;text-align:center}
+    .sucesso.show{display:flex}
+    .sucesso-icon{font-size:64px;margin-bottom:20px}
+    .sucesso-title{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--ink);margin-bottom:8px}
+    .sucesso-desc{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);line-height:1.8;margin-bottom:24px;white-space:pre-line}
+    .btn-carteira{width:100%;height:50px;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;margin-bottom:10px}
+    .btn-carteira:hover{background:#0033cc}
+    .btn-novo{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer}
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:white;font-family:var(--mono);font-size:12px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   </style>
 </head>
 <body>
-
-  <!-- HEADER -->
-  <header class="feed-header">
-    <button class="btn-voltar" onclick="history.back()">←</button>
-    <div class="header-titulo" id="header-titulo">ORDEM</div>
-    <span class="mercado-badge fechado" id="mercado-badge">···</span>
+  <header class="hdr">
+    <button class="btn-back" onclick="history.back()">←</button>
+    <div class="hdr-title" id="hdr-title">ORDEM</div>
+    <span class="mkt-badge closed" id="mkt-badge">···</span>
   </header>
 
   <div class="container">
-
-    <!-- ESTADO: FORMULÁRIO -->
-    <div id="estado-form">
-
-      <!-- ATIVO -->
+    <div id="form-wrap">
+      <!-- Ativo -->
       <div class="ativo-card">
         <div>
-          <p class="ativo-ticker" id="ativo-ticker">···</p>
-          <p class="ativo-nome"   id="ativo-nome">Carregando...</p>
+          <p class="ativo-ticker" id="a-ticker">···</p>
+          <p class="ativo-nome" id="a-nome">Carregando...</p>
         </div>
-        <div class="ativo-preco-wrap">
-          <p class="ativo-preco" id="ativo-preco">R$ ···</p>
-          <p class="ativo-var"   id="ativo-var">···</p>
+        <div>
+          <p class="ativo-preco" id="a-preco">R$ ···</p>
+          <p class="ativo-var" id="a-var">···</p>
         </div>
       </div>
 
-      <!-- COMPRA / VENDA -->
-      <div class="tipo-ordem-tabs">
-        <button class="tipo-tab compra ativo" id="tab-compra" onclick="setLado('compra')">📈 COMPRAR</button>
-        <button class="tipo-tab venda"        id="tab-venda"  onclick="setLado('venda')">📉 VENDER</button>
+      <!-- Tabs compra/venda -->
+      <div class="tabs">
+        <button class="tab buy on" id="tab-buy" onclick="setLado('compra')">📈 COMPRAR</button>
+        <button class="tab sell" id="tab-sell" onclick="setLado('venda')">📉 VENDER</button>
       </div>
 
-      <!-- POSIÇÃO ATUAL (aparece se já tiver o ativo) -->
-      <div class="posicao-atual" id="posicao-atual">
+      <!-- Posição atual -->
+      <div class="posicao-box" id="posicao-box">
         <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">SUA POSIÇÃO ATUAL</p>
         <div style="display:flex;justify-content:space-between">
           <div>
-            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-qtd">— cotas</p>
-            <p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Preço médio: <span id="pos-preco-medio">—</span></p>
+            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-qtd">—</p>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--muted)">PM: <span id="pos-pm">—</span></p>
           </div>
           <div style="text-align:right">
-            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-total">R$ —</p>
+            <p style="font-family:var(--mono);font-size:12px;font-weight:500" id="pos-total">—</p>
             <p style="font-family:var(--mono);font-size:10px" id="pos-rentab">—</p>
           </div>
         </div>
       </div>
 
-      <!-- SALDO DISPONÍVEL -->
-      <div class="saldo-wrap">
+      <!-- Saldo -->
+      <div class="saldo-box">
         <div>
           <p class="saldo-label">SALDO DISPONÍVEL</p>
-          <p class="saldo-valor" id="saldo-display">R$ ···</p>
+          <p class="saldo-valor" id="saldo-val">R$ ···</p>
           <p class="saldo-insuf" id="saldo-insuf">⚠️ Saldo insuficiente</p>
         </div>
         <div style="text-align:right">
           <p style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted)">CAPITAL</p>
-          <p style="font-family:var(--mono);font-size:11px;color:var(--ink)" id="capital-display">R$ ···</p>
+          <p style="font-family:var(--mono);font-size:11px;color:var(--ink)" id="capital-val">R$ ···</p>
         </div>
       </div>
 
-      <!-- AVISO MERCADO FECHADO -->
+      <!-- Aviso fechado -->
       <div class="aviso-fechado" id="aviso-fechado">
-        <p class="aviso-titulo">⏰ MERCADO FECHADO</p>
-        <p class="aviso-texto" id="aviso-fechado-texto">
-          Sua ordem será executada na próxima abertura do mercado ao preço de abertura.
-        </p>
+        <p class="aviso-title">⏰ MERCADO FECHADO</p>
+        <p class="aviso-text" id="aviso-text">Ordem será executada na próxima abertura.</p>
       </div>
 
-      <!-- FORMULÁRIO DA ORDEM -->
-      <div class="ordem-card">
-
-        <!-- Quantidade -->
-        <label class="campo-titulo">QUANTIDADE</label>
-        <div class="qtd-wrap">
+      <!-- Form -->
+      <div class="card">
+        <label class="field-label">QUANTIDADE</label>
+        <div class="qtd-row">
           <button class="btn-qtd" onclick="ajustarQtd(-1)">−</button>
-          <input type="number" class="qtd-input" id="qtd-input"
-            value="1" min="1" oninput="atualizarResumo()">
-          <span class="qtd-label" id="qtd-unidade">cotas</span>
+          <input type="number" class="qtd-input" id="qtd" value="1" min="1" oninput="updateResumo()">
+          <span class="qtd-unit" id="qtd-unit">cotas</span>
         </div>
 
-        <!-- Tipo de ordem -->
-        <label class="campo-titulo">TIPO DE ORDEM</label>
-        <div class="tipo-ordem-select">
-
-          <label class="ordem-tipo-card selecionado" onclick="setTipoOrdem('mercado', this)">
-            <input type="radio" name="tipo_ordem" value="mercado" checked>
-            <div>
-              <p class="ordem-tipo-nome">A MERCADO</p>
-              <p class="ordem-tipo-desc">Executa imediatamente ao preço atual de mercado</p>
-            </div>
-          </label>
-
-          <label class="ordem-tipo-card" onclick="setTipoOrdem('limitada', this)">
-            <input type="radio" name="tipo_ordem" value="limitada">
-            <div>
-              <p class="ordem-tipo-nome">LIMITADA</p>
-              <p class="ordem-tipo-desc">Executa somente se o preço atingir o valor que você definir</p>
-            </div>
-          </label>
-
-          <label class="ordem-tipo-card" onclick="setTipoOrdem('stop', this)">
-            <input type="radio" name="tipo_ordem" value="stop">
-            <div>
-              <p class="ordem-tipo-nome">STOP</p>
-              <p class="ordem-tipo-desc">Vende automaticamente se o preço cair abaixo do limite</p>
-            </div>
-          </label>
-
+        <label class="field-label">TIPO DE ORDEM</label>
+        <div class="tipo-opts">
+          <div class="tipo-opt on" onclick="setTipo('mercado',this)">
+            <p class="tipo-opt-name">A MERCADO</p>
+            <p class="tipo-opt-desc">Executa imediatamente ao preço atual de mercado</p>
+          </div>
+          <div class="tipo-opt" onclick="setTipo('limitada',this)">
+            <p class="tipo-opt-name">LIMITADA</p>
+            <p class="tipo-opt-desc">Executa somente se o preço atingir o valor que você definir</p>
+          </div>
+          <div class="tipo-opt" onclick="setTipo('stop',this)">
+            <p class="tipo-opt-name">STOP</p>
+            <p class="tipo-opt-desc">Vende automaticamente se o preço cair abaixo do limite</p>
+          </div>
         </div>
 
-        <!-- Preço limite (aparece para ordem limitada e stop) -->
-        <div class="preco-limite-wrap" id="preco-limite-wrap">
-          <label class="campo-titulo" id="preco-limite-label">PREÇO LIMITE</label>
-          <input type="number" class="preco-limite-input" id="preco-limite-input"
-            placeholder="0,00" step="0.01" oninput="atualizarResumo()">
+        <div class="price-limit-wrap" id="price-limit-wrap">
+          <label class="field-label" id="price-limit-label">PREÇO LIMITE</label>
+          <input type="number" class="price-limit-input" id="price-limit" placeholder="0,00" step="0.01" oninput="updateResumo()">
         </div>
-
       </div>
 
-      <!-- RESUMO DA ORDEM -->
+      <!-- Resumo -->
       <div class="resumo-card">
-        <p class="resumo-titulo">RESUMO DA ORDEM</p>
-
-        <div class="resumo-item">
-          <span class="resumo-label">Ativo</span>
-          <span class="resumo-valor" id="res-ticker">—</span>
-        </div>
-        <div class="resumo-item">
-          <span class="resumo-label">Operação</span>
-          <span class="resumo-valor" id="res-lado">Compra</span>
-        </div>
-        <div class="resumo-item">
-          <span class="resumo-label">Quantidade</span>
-          <span class="resumo-valor" id="res-qtd">1 cota</span>
-        </div>
-        <div class="resumo-item">
-          <span class="resumo-label">Preço unitário</span>
-          <span class="resumo-valor" id="res-preco-unit">R$ —</span>
-        </div>
-        <div class="resumo-item">
-          <span class="resumo-label">Tipo</span>
-          <span class="resumo-valor" id="res-tipo">A Mercado</span>
-        </div>
-        <div class="resumo-item">
-          <span class="resumo-label">Execução</span>
-          <span class="resumo-valor" id="res-execucao">—</span>
-        </div>
-        <div class="resumo-item">
-          <span class="resumo-label">TOTAL DA ORDEM</span>
-          <span class="resumo-valor destaque" id="res-total">R$ —</span>
-        </div>
-        <div class="resumo-item" id="res-saldo-apos-wrap">
-          <span class="resumo-label">Saldo após operação</span>
-          <span class="resumo-valor" id="res-saldo-apos">R$ —</span>
-        </div>
+        <p class="resumo-title">RESUMO DA ORDEM</p>
+        <div class="resumo-row"><span class="resumo-lbl">Ativo</span><span class="resumo-val" id="r-ticker">—</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Operação</span><span class="resumo-val" id="r-lado">Compra</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Quantidade</span><span class="resumo-val" id="r-qtd">1 cota</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Preço unitário</span><span class="resumo-val" id="r-preco">R$ —</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Tipo</span><span class="resumo-val" id="r-tipo">A Mercado</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Execução</span><span class="resumo-val" id="r-exec">—</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">TOTAL DA ORDEM</span><span class="resumo-val big" id="r-total">R$ —</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Saldo após</span><span class="resumo-val" id="r-apos">R$ —</span></div>
       </div>
-
-    </div><!-- /estado-form -->
-
-    <!-- ESTADO: SUCESSO -->
-    <div class="sucesso-wrap" id="estado-sucesso">
-      <div class="sucesso-icone" id="sucesso-icone">✅</div>
-      <p class="sucesso-titulo" id="sucesso-titulo">ORDEM ENVIADA</p>
-      <p class="sucesso-desc" id="sucesso-desc">···</p>
-      <button class="btn-ver-carteira" onclick="window.location.href='carteira.html'">
-        💼 VER MINHA CARTEIRA
-      </button>
-      <button class="btn-novo-investimento" onclick="window.location.href='investir.html'">
-        NOVO INVESTIMENTO
-      </button>
     </div>
 
-  </div><!-- /container -->
-
-  <!-- BOTÃO CONFIRMAR (fixo) -->
-  <div class="btn-confirmar-wrap" id="btn-confirmar-wrap">
-    <button class="btn-confirmar compra" id="btn-confirmar" onclick="abrirModalConfirmacao()">
-      ✅ CONFIRMAR COMPRA
-    </button>
+    <!-- Sucesso -->
+    <div class="sucesso" id="sucesso">
+      <div class="sucesso-icon" id="s-icon">✅</div>
+      <p class="sucesso-title" id="s-title">ORDEM EXECUTADA</p>
+      <p class="sucesso-desc" id="s-desc">···</p>
+      <button class="btn-carteira" onclick="location.href='carteira.html'">💼 VER MINHA CARTEIRA</button>
+      <button class="btn-novo" onclick="location.href='investir.html'">NOVO INVESTIMENTO</button>
+    </div>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO -->
-  <div class="modal-overlay" id="modal-confirmacao">
+  <!-- Botão fixo -->
+  <div class="btn-wrap" id="btn-wrap">
+    <button class="btn-confirm buy" id="btn-confirm" onclick="abrirModal()">✅ CONFIRMAR COMPRA</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal" onclick="if(event.target===this)fecharModal()">
     <div class="modal">
       <div class="modal-handle"></div>
-      <p class="modal-titulo compra" id="modal-titulo">CONFIRMAR COMPRA</p>
-      <p class="modal-sub" id="modal-sub">REVISE OS DETALHES ANTES DE CONFIRMAR</p>
-
-      <div class="modal-resumo">
-        <div class="modal-item">
-          <span class="modal-item-label">Ativo</span>
-          <span class="modal-item-valor" id="mod-ticker">—</span>
-        </div>
-        <div class="modal-item">
-          <span class="modal-item-label">Operação</span>
-          <span class="modal-item-valor" id="mod-lado">—</span>
-        </div>
-        <div class="modal-item">
-          <span class="modal-item-label">Quantidade</span>
-          <span class="modal-item-valor" id="mod-qtd">—</span>
-        </div>
-        <div class="modal-item">
-          <span class="modal-item-label">Preço unitário</span>
-          <span class="modal-item-valor" id="mod-preco">—</span>
-        </div>
-        <div class="modal-item">
-          <span class="modal-item-label">Execução</span>
-          <span class="modal-item-valor" id="mod-execucao">—</span>
-        </div>
-        <div class="modal-item">
-          <span class="modal-item-label">TOTAL</span>
-          <span class="modal-item-valor destaque compra" id="mod-total">R$ —</span>
-        </div>
-      </div>
-
+      <p class="modal-title buy" id="mod-title">CONFIRMAR COMPRA</p>
+      <p class="modal-sub">REVISE OS DETALHES ANTES DE CONFIRMAR</p>
+      <div class="modal-row"><span class="modal-row-lbl">Ativo</span><span class="modal-row-val" id="mod-ticker">—</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">Operação</span><span class="modal-row-val" id="mod-lado">—</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">Quantidade</span><span class="modal-row-val" id="mod-qtd">—</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">Preço</span><span class="modal-row-val" id="mod-preco">—</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">Execução</span><span class="modal-row-val" id="mod-exec">—</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">TOTAL</span><span class="modal-row-val big buy" id="mod-total">R$ —</span></div>
       <div class="modal-btns">
-        <button class="btn-modal-confirmar compra" id="btn-modal-confirmar" onclick="executarOrdem()">
-          CONFIRMAR
-        </button>
-        <button class="btn-modal-cancelar" onclick="fecharModal()">CANCELAR</button>
+        <button class="btn-modal-ok buy" id="btn-modal-ok" onclick="executar()">CONFIRMAR</button>
+        <button class="btn-modal-cancel" onclick="fecharModal()">CANCELAR</button>
       </div>
     </div>
   </div>
 
-  <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="firebase.js"></script>
-  <script src="auth.js"></script>
   <script src="mercado-api.js"></script>
-
   <script>
-    // ── PARÂMETROS DA URL ──
-    const params  = new URLSearchParams(window.location.search);
-    const TICKER  = decodeURIComponent(params.get('ticker') || '').toUpperCase();
-    const TIPO    = params.get('tipo')  || 'acoes';
-    const PRECO_URL = parseFloat(params.get('preco') || '0');
+  // db inicializado após Firebase carregar
+  let db, meuUID, saldoDisp=0, patrimonioTotal=0;
+  let precoAtual=0, lado='compra', tipoOrdem='mercado';
+  let posicao=null, mercadoStatus=null;
 
-    // ── ESTADO ──
-    let meuUID        = null;
-    let saldoDisp     = 0;
-    let patrimonioTotal = 0;
-    let precoAtual    = PRECO_URL;
-    let ladoAtual     = 'compra'; // 'compra' | 'venda'
-    let tipoOrdem     = 'mercado';
-    let posicaoAtual  = null;
-    let mercado       = null;
-    let dadosAtivo    = null;
+  const params  = new URLSearchParams(location.search);
+  const TICKER  = decodeURIComponent(params.get('ticker')||'').toUpperCase();
+  const TIPO    = params.get('tipo')||'acoes';
+  const PRECO_P = parseFloat(params.get('preco')||'0');
+  precoAtual    = PRECO_P;
 
-    // ── TOAST ──
-    let toastTimer;
-    function mostrarToast(msg, dur = 3000) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), dur);
-    }
+  let toastT;
+  function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),d)}
 
-    // ── INIT ──
-    firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = 'invite.html'; return; }
-      meuUID = user.uid;
+  const R$ = v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct = v=>(v>=0?'+':'')+v.toFixed(2)+'%';
+  const unit = ()=>TIPO==='tesouro'?'títulos':TIPO==='cripto'?'unidades':'cotas';
 
-      // Carrega dados do usuário
-      const [userSnap, carteiraSnap] = await Promise.all([
+  // Mercado status
+  function getMercado(){
+    const br=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
+    const h=br.getHours(),m=br.getMinutes(),d=br.getDay(),t=h*60+m;
+    const ab=d>0&&d<6&&t>=9*60+45&&t<17*60+30;
+    return ab?'aberto':'fechado';
+  }
+
+  firebase.auth().onAuthStateChanged(async user=>{
+    if(!user){location.href='invite.html';return}
+    meuUID=user.uid;
+    db=firebase.firestore();
+
+    try{
+      const[uS,cS]=await Promise.all([
         db.collection('usuarios').doc(meuUID).get(),
-        db.collection('carteiras').doc(meuUID).get(),
+        db.collection('carteiras').doc(meuUID).get()
       ]);
 
-      const userData    = userSnap.data() || {};
-      const carteiraData = carteiraSnap.data() || {};
+      const u=uS.data()||{};
+      const c=cS.exists?cS.data():{};
 
-      saldoDisp      = carteiraData.saldo_disponivel ?? userData.saldo_disponivel ?? 500000;
-      patrimonioTotal = carteiraData.patrimonio_total ?? saldoDisp;
+      saldoDisp      = c.saldo_disponivel ?? u.saldo_disponivel ?? 500000;
+      patrimonioTotal= c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
 
-      // Mostra saldo
-      document.getElementById('saldo-display').textContent = MercadoAPI.R$(saldoDisp);
-      document.getElementById('capital-display').textContent = MercadoAPI.R$(patrimonioTotal);
+      document.getElementById('saldo-val').textContent  = R$(saldoDisp);
+      document.getElementById('capital-val').textContent= R$(patrimonioTotal);
 
-      // Verifica se já tem posição neste ativo
-      const posicoes = carteiraData.posicoes || [];
-      posicaoAtual = posicoes.find(p => p.ticker === TICKER) || null;
-      if (posicaoAtual) mostrarPosicaoAtual();
+      // Posição atual
+      const posicoes=c.posicoes||[];
+      posicao=posicoes.find(p=>p.ticker===TICKER)||null;
+      if(posicao) mostrarPosicao();
 
-      // Status do mercado
-      mercado = MercadoAPI.verificarHorarioMercado();
-      atualizarStatusMercado();
+      // Mercado
+      mercadoStatus=getMercado();
+      const badge=document.getElementById('mkt-badge');
+      if(mercadoStatus==='aberto'){badge.textContent='● Aberto';badge.className='mkt-badge open'}
+      else{badge.textContent='○ Fechado';badge.className='mkt-badge closed';document.getElementById('aviso-fechado').classList.add('show')}
 
-      // Carrega cotação atualizada
-      await carregarCotacao();
+      // Cotação atualizada
+      document.getElementById('hdr-title').textContent='ORDEM — '+TICKER;
+      document.getElementById('a-ticker').textContent=TICKER;
 
-      // Inicializa UI
-      document.getElementById('header-titulo').textContent = `ORDEM — ${TICKER}`;
-      document.getElementById('ativo-ticker').textContent = TICKER;
-      atualizarResumo();
-    });
-
-    // ── COTAÇÃO ATUALIZADA ──
-    async function carregarCotacao() {
-      try {
-        dadosAtivo = await MercadoAPI.buscarAtivo(TICKER);
-        if (dadosAtivo) {
-          precoAtual = dadosAtivo.preco;
-          const pos  = (dadosAtivo.variacao_pct || 0) >= 0;
-
-          document.getElementById('ativo-nome').textContent  = dadosAtivo.nome || TICKER;
-          document.getElementById('ativo-preco').textContent = MercadoAPI.R$(precoAtual);
-          document.getElementById('ativo-var').className     = `ativo-var ${pos ? 'pos' : 'neg'}`;
-          document.getElementById('ativo-var').textContent   = MercadoAPI.pct(dadosAtivo.variacao_pct || 0);
-
-          // Preenche preço limite com o preço atual
-          document.getElementById('preco-limite-input').value = precoAtual.toFixed(2);
-          document.getElementById('preco-limite-input').placeholder = MercadoAPI.R$(precoAtual);
-
-          atualizarResumo();
+      try{
+        const d=await MercadoAPI.buscarAtivo(TICKER);
+        if(d){
+          precoAtual=d.preco||PRECO_P||1;
+          document.getElementById('a-nome').textContent=d.nome||TICKER;
+          document.getElementById('a-preco').textContent=R$(precoAtual);
+          const vp=d.variacao_pct||0;
+          const vel=document.getElementById('a-var');
+          vel.textContent=pct(vp);vel.className='ativo-var '+(vp>=0?'pos':'neg');
+          document.getElementById('price-limit').value=precoAtual.toFixed(2);
         }
-      } catch(e) {
-        document.getElementById('ativo-nome').textContent = TICKER;
-        document.getElementById('ativo-preco').textContent = MercadoAPI.R$(precoAtual);
-      }
-    }
-
-    // ── STATUS DO MERCADO ──
-    function atualizarStatusMercado() {
-      const badge = document.getElementById('mercado-badge');
-      const aviso = document.getElementById('aviso-fechado');
-
-      badge.className = 'mercado-badge';
-
-      if (mercado.status === 'aberto') {
-        badge.classList.add('aberto');
-        badge.textContent = '● Aberto';
-        aviso.classList.remove('visivel');
-      } else if (mercado.status === 'pre_abertura') {
-        badge.classList.add('pre');
-        badge.textContent = '◐ Pré-abertura';
-        aviso.classList.add('visivel');
-        document.getElementById('aviso-fechado-texto').textContent =
-          'Mercado em pré-abertura. Ordem será agendada para 09h45.';
-      } else {
-        badge.classList.add('fechado');
-        badge.textContent = '○ Fechado';
-        aviso.classList.add('visivel');
-        const proxima = mercado.proxima;
-        const dataStr = proxima
-          ? `${proxima.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'short'})} às 09h45`
-          : 'próximo dia útil';
-        document.getElementById('aviso-fechado-texto').textContent =
-          `Mercado fechado. Sua ordem será executada em ${dataStr} ao preço de abertura.`;
-      }
-    }
-
-    // ── POSIÇÃO ATUAL ──
-    function mostrarPosicaoAtual() {
-      if (!posicaoAtual) return;
-      const el = document.getElementById('posicao-atual');
-      el.classList.add('visivel');
-
-      const valorAtual  = posicaoAtual.quantidade * precoAtual;
-      const valorPago   = posicaoAtual.quantidade * posicaoAtual.preco_medio;
-      const rentab      = valorPago ? ((valorAtual - valorPago) / valorPago) * 100 : 0;
-
-      document.getElementById('pos-qtd').textContent = `${posicaoAtual.quantidade} cotas`;
-      document.getElementById('pos-preco-medio').textContent = MercadoAPI.R$(posicaoAtual.preco_medio || 0);
-      document.getElementById('pos-total').textContent = MercadoAPI.R$(valorAtual);
-
-      const rentabEl = document.getElementById('pos-rentab');
-      rentabEl.textContent = MercadoAPI.pct(rentab);
-      rentabEl.style.color = rentab >= 0 ? 'var(--green)' : 'var(--red)';
-    }
-
-    // ── LADO: COMPRA / VENDA ──
-    function setLado(lado) {
-      ladoAtual = lado;
-
-      document.getElementById('tab-compra').classList.toggle('ativo', lado === 'compra');
-      document.getElementById('tab-venda').classList.toggle('ativo', lado === 'venda');
-
-      const btn = document.getElementById('btn-confirmar');
-      btn.className = `btn-confirmar ${lado}`;
-      btn.textContent = lado === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
-
-      // Se venda e não tem posição, avisa
-      if (lado === 'venda' && !posicaoAtual) {
-        mostrarToast('Você não possui este ativo na carteira.');
+      }catch(e){
+        precoAtual=PRECO_P||1;
+        document.getElementById('a-nome').textContent=TICKER;
+        document.getElementById('a-preco').textContent=R$(precoAtual);
       }
 
-      // Qtd máxima na venda = quantidade que tem
-      if (lado === 'venda' && posicaoAtual) {
-        document.getElementById('qtd-input').max = posicaoAtual.quantidade;
-      }
-
-      atualizarResumo();
+      updateResumo();
+    }catch(e){
+      console.error('Init ordem:',e);
+      toast('Erro ao carregar: '+e.message);
     }
+  });
 
-    // ── TIPO DE ORDEM ──
-    function setTipoOrdem(tipo, el) {
-      tipoOrdem = tipo;
-      document.querySelectorAll('.ordem-tipo-card').forEach(c => c.classList.remove('selecionado'));
-      el.classList.add('selecionado');
+  function mostrarPosicao(){
+    const el=document.getElementById('posicao-box');
+    el.classList.add('show');
+    const va=posicao.quantidade*(precoAtual||posicao.preco_medio);
+    const vp=posicao.quantidade*posicao.preco_medio;
+    const r=vp?((va-vp)/vp)*100:0;
+    document.getElementById('pos-qtd').textContent=posicao.quantidade+' '+unit();
+    document.getElementById('pos-pm').textContent=R$(posicao.preco_medio||0);
+    document.getElementById('pos-total').textContent=R$(va);
+    const rel=document.getElementById('pos-rentab');
+    rel.textContent=pct(r);rel.style.color=r>=0?'var(--green)':'var(--red)';
+  }
 
-      const limitWrap = document.getElementById('preco-limite-wrap');
-      const limitLabel = document.getElementById('preco-limite-label');
+  function setLado(l){
+    lado=l;
+    document.getElementById('tab-buy').classList.toggle('on',l==='compra');
+    document.getElementById('tab-sell').classList.toggle('on',l==='venda');
+    const btn=document.getElementById('btn-confirm');
+    btn.className='btn-confirm '+(l==='compra'?'buy':'sell');
+    btn.textContent=l==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
+    if(l==='venda'&&!posicao)toast('Você não possui este ativo na carteira.');
+    updateResumo();
+  }
 
-      if (tipo === 'limitada') {
-        limitWrap.classList.add('visivel');
-        limitLabel.textContent = 'PREÇO LIMITE (ordem executa ≤ este valor)';
-      } else if (tipo === 'stop') {
-        limitWrap.classList.add('visivel');
-        limitLabel.textContent = 'PREÇO STOP (vende se cair abaixo deste valor)';
-      } else {
-        limitWrap.classList.remove('visivel');
-      }
+  function setTipo(tipo,el){
+    tipoOrdem=tipo;
+    document.querySelectorAll('.tipo-opt').forEach(o=>o.classList.remove('on'));
+    el.classList.add('on');
+    const w=document.getElementById('price-limit-wrap');
+    const l=document.getElementById('price-limit-label');
+    if(tipo==='limitada'){w.classList.add('show');l.textContent='PREÇO LIMITE (executa ≤ este valor)'}
+    else if(tipo==='stop'){w.classList.add('show');l.textContent='PREÇO STOP (vende abaixo deste valor)'}
+    else w.classList.remove('show');
+    updateResumo();
+  }
 
-      atualizarResumo();
+  function ajustarQtd(d){
+    const i=document.getElementById('qtd');
+    i.value=Math.max(1,(parseInt(i.value)||1)+d);
+    updateResumo();
+  }
+
+  function updateResumo(){
+    const qtd=parseInt(document.getElementById('qtd').value)||1;
+    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
+    const total=qtd*preco;
+    const u=unit();
+
+    document.getElementById('qtd-unit').textContent=u;
+    document.getElementById('r-ticker').textContent=TICKER;
+    document.getElementById('r-lado').textContent=lado==='compra'?'Compra':'Venda';
+    document.getElementById('r-qtd').textContent=qtd+' '+u;
+    document.getElementById('r-preco').textContent=R$(preco);
+    document.getElementById('r-tipo').textContent=tipoOrdem==='mercado'?'A Mercado':tipoOrdem==='limitada'?'Limitada':'Stop';
+    document.getElementById('r-total').textContent=R$(total);
+
+    const exec=mercadoStatus==='aberto'&&tipoOrdem==='mercado'?'Imediata ao preço atual':'Próxima abertura — dia útil';
+    document.getElementById('r-exec').textContent=exec;
+
+    if(lado==='compra'){
+      const apos=saldoDisp-total;
+      const el=document.getElementById('r-apos');
+      el.textContent=R$(apos);el.className='resumo-val '+(apos<0?'neg':'');
+      document.getElementById('saldo-insuf').classList.toggle('show',total>saldoDisp);
+      document.getElementById('btn-confirm').disabled=total>saldoDisp;
+    }else{
+      document.getElementById('r-apos').textContent='+'+R$(total);
+      document.getElementById('r-apos').className='resumo-val pos';
+      document.getElementById('btn-confirm').disabled=false;
     }
+  }
 
-    // ── AJUSTAR QUANTIDADE ──
-    function ajustarQtd(delta) {
-      const input = document.getElementById('qtd-input');
-      const atual = parseInt(input.value) || 1;
-      const novo  = Math.max(1, atual + delta);
-      input.value = novo;
-      atualizarResumo();
-    }
+  function abrirModal(){
+    const qtd=parseInt(document.getElementById('qtd').value)||1;
+    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
+    const total=qtd*preco;
+    const u=unit();
 
-    // ── ATUALIZAR RESUMO ──
-    function atualizarResumo() {
-      const qtd   = parseInt(document.getElementById('qtd-input').value) || 1;
-      const preco = tipoOrdem === 'mercado' ? precoAtual
-                  : parseFloat(document.getElementById('preco-limite-input').value) || precoAtual;
-      const total = qtd * preco;
+    if(lado==='compra'&&total>saldoDisp){toast('Saldo insuficiente.');return}
+    if(lado==='venda'&&!posicao){toast('Você não possui este ativo.');return}
+    if(lado==='venda'&&qtd>(posicao?.quantidade||0)){toast('Quantidade maior que sua posição.');return}
 
-      const unidade = TIPO === 'tesouro' ? 'títulos' : TIPO === 'cripto' ? 'unidades' : 'cotas';
-      document.getElementById('qtd-unidade').textContent = unidade;
+    document.getElementById('mod-title').textContent=lado==='compra'?'CONFIRMAR COMPRA':'CONFIRMAR VENDA';
+    document.getElementById('mod-title').className='modal-title '+(lado==='compra'?'buy':'sell');
+    document.getElementById('mod-ticker').textContent=TICKER;
+    document.getElementById('mod-lado').textContent=lado==='compra'?'COMPRA':'VENDA';
+    document.getElementById('mod-qtd').textContent=qtd+' '+u;
+    document.getElementById('mod-preco').textContent=R$(preco);
+    document.getElementById('mod-exec').textContent=mercadoStatus==='aberto'?'Imediata':'Próximo dia útil';
+    document.getElementById('mod-total').textContent=R$(total);
+    document.getElementById('mod-total').className='modal-row-val big '+(lado==='compra'?'buy':'sell');
+    const ok=document.getElementById('btn-modal-ok');
+    ok.className='btn-modal-ok '+(lado==='compra'?'buy':'sell');
+    ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
+    document.getElementById('modal').classList.add('open');
+  }
 
-      // Atualiza resumo
-      document.getElementById('res-ticker').textContent    = TICKER;
-      document.getElementById('res-lado').textContent      = ladoAtual === 'compra' ? 'Compra' : 'Venda';
-      document.getElementById('res-qtd').textContent       = `${qtd} ${unidade}`;
-      document.getElementById('res-preco-unit').textContent = MercadoAPI.R$(preco);
-      document.getElementById('res-tipo').textContent      = nomeTipo(tipoOrdem);
-      document.getElementById('res-total').textContent     = MercadoAPI.R$(total);
+  function fecharModal(){document.getElementById('modal').classList.remove('open')}
 
-      // Execução
-      const execucao = mercado?.status === 'aberto' && tipoOrdem === 'mercado'
-        ? 'Imediata ao preço atual'
-        : tipoOrdem === 'limitada' ? `Quando ≤ ${MercadoAPI.R$(preco)}`
-        : tipoOrdem === 'stop'     ? `Quando ≤ ${MercadoAPI.R$(preco)}`
-        : `Próxima abertura — ${mercado?.proxima?.toLocaleDateString('pt-BR') || 'dia útil'}`;
-      document.getElementById('res-execucao').textContent = execucao;
+  async function executar(){
+    const ok=document.getElementById('btn-modal-ok');
+    ok.disabled=true;ok.textContent='PROCESSANDO...';
+    const qtd=parseInt(document.getElementById('qtd').value)||1;
+    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
+    const total=qtd*preco;
 
-      // Saldo após
-      if (ladoAtual === 'compra') {
-        const apos = saldoDisp - total;
-        document.getElementById('res-saldo-apos').textContent = MercadoAPI.R$(apos);
-        document.getElementById('res-saldo-apos').className   = `resumo-valor ${apos < 0 ? 'neg' : ''}`;
+    try{
+      await db.runTransaction(async t=>{
+        const cRef=db.collection('carteiras').doc(meuUID);
+        const cSnap=await t.get(cRef);
+        const c=cSnap.exists?cSnap.data():{};
+        let saldo=c.saldo_disponivel??500000;
+        let posicoes=[...(c.posicoes||[])];
 
-        // Alerta de saldo insuficiente
-        const insufEl = document.getElementById('saldo-insuf');
-        insufEl.classList.toggle('visivel', total > saldoDisp);
-        document.getElementById('btn-confirmar').disabled = total > saldoDisp;
-      } else {
-        const recebe = total;
-        document.getElementById('res-saldo-apos').textContent = `+${MercadoAPI.R$(recebe)}`;
-        document.getElementById('res-saldo-apos').className   = 'resumo-valor pos';
-        document.getElementById('btn-confirmar').disabled     = false;
-      }
-    }
-
-    // ── MODAL CONFIRMAÇÃO ──
-    function abrirModalConfirmacao() {
-      const qtd   = parseInt(document.getElementById('qtd-input').value) || 1;
-      const preco = tipoOrdem === 'mercado' ? precoAtual
-                  : parseFloat(document.getElementById('preco-limite-input').value) || precoAtual;
-      const total = qtd * preco;
-
-      // Validações
-      if (ladoAtual === 'compra' && total > saldoDisp) {
-        mostrarToast('Saldo insuficiente para esta operação.');
-        return;
-      }
-      if (ladoAtual === 'venda' && !posicaoAtual) {
-        mostrarToast('Você não possui este ativo para vender.');
-        return;
-      }
-      if (ladoAtual === 'venda' && qtd > (posicaoAtual?.quantidade || 0)) {
-        mostrarToast(`Você tem apenas ${posicaoAtual.quantidade} cotas para vender.`);
-        return;
-      }
-
-      // Preenche modal
-      const unidade = TIPO === 'tesouro' ? 'títulos' : TIPO === 'cripto' ? 'unidades' : 'cotas';
-      document.getElementById('modal-titulo').textContent   = ladoAtual === 'compra' ? 'CONFIRMAR COMPRA' : 'CONFIRMAR VENDA';
-      document.getElementById('modal-titulo').className     = `modal-titulo ${ladoAtual}`;
-      document.getElementById('mod-ticker').textContent     = TICKER;
-      document.getElementById('mod-lado').textContent       = ladoAtual === 'compra' ? 'COMPRA' : 'VENDA';
-      document.getElementById('mod-qtd').textContent        = `${qtd} ${unidade}`;
-      document.getElementById('mod-preco').textContent      = MercadoAPI.R$(preco);
-      document.getElementById('mod-total').textContent      = MercadoAPI.R$(total);
-      document.getElementById('mod-total').className        = `modal-item-valor destaque ${ladoAtual}`;
-      document.getElementById('mod-execucao').textContent   = mercado?.status === 'aberto' ? 'Imediata' : 'Próximo dia útil';
-
-      const btnConf = document.getElementById('btn-modal-confirmar');
-      btnConf.className = `btn-modal-confirmar ${ladoAtual}`;
-      btnConf.textContent = ladoAtual === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
-
-      document.getElementById('modal-confirmacao').classList.add('aberto');
-    }
-
-    function fecharModal() {
-      document.getElementById('modal-confirmacao').classList.remove('aberto');
-    }
-
-    // ── EXECUTAR ORDEM ──
-    async function executarOrdem() {
-      const btn = document.getElementById('btn-modal-confirmar');
-      btn.disabled = true;
-      btn.textContent = 'PROCESSANDO...';
-
-      const qtd   = parseInt(document.getElementById('qtd-input').value) || 1;
-      const preco = tipoOrdem === 'mercado' ? precoAtual
-                  : parseFloat(document.getElementById('preco-limite-input').value) || precoAtual;
-      const total = qtd * preco;
-
-      try {
-        await db.runTransaction(async (t) => {
-          const carteiraRef  = db.collection('carteiras').doc(meuUID);
-          const carteiraSnap = await t.get(carteiraRef);
-          const carteira     = carteiraSnap.data() || {};
-
-          let saldo   = carteira.saldo_disponivel ?? 500000;
-          let posicoes = [...(carteira.posicoes || [])];
-
-          if (ladoAtual === 'compra') {
-            if (total > saldo) throw new Error('Saldo insuficiente.');
-
-            // Debita saldo
-            saldo -= total;
-
-            // Atualiza posição
-            const idx = posicoes.findIndex(p => p.ticker === TICKER);
-            if (idx >= 0) {
-              // Posição existente — calcula preço médio
-              const qtdAnterior    = posicoes[idx].quantidade;
-              const totalAnterior  = qtdAnterior * posicoes[idx].preco_medio;
-              const novoTotal      = totalAnterior + total;
-              posicoes[idx].quantidade  += qtd;
-              posicoes[idx].preco_medio  = novoTotal / posicoes[idx].quantidade;
-              posicoes[idx].ultima_atualizacao = new Date().toISOString();
-            } else {
-              posicoes.push({
-                ticker:      TICKER,
-                tipo:        TIPO,
-                quantidade:  qtd,
-                preco_medio: preco,
-                data_compra: new Date().toISOString(),
-                ultima_atualizacao: new Date().toISOString(),
-              });
-            }
-          } else {
-            // VENDA
-            const idx = posicoes.findIndex(p => p.ticker === TICKER);
-            if (idx < 0) throw new Error('Ativo não encontrado na carteira.');
-            if (posicoes[idx].quantidade < qtd) throw new Error('Quantidade insuficiente.');
-
-            // Credita saldo
-            saldo += total;
-
-            // Atualiza ou remove posição
-            posicoes[idx].quantidade -= qtd;
-            if (posicoes[idx].quantidade === 0) {
-              posicoes.splice(idx, 1);
-            }
+        if(lado==='compra'){
+          if(total>saldo)throw new Error('Saldo insuficiente.');
+          saldo-=total;
+          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
+          if(idx>=0){
+            const qtdAnt=posicoes[idx].quantidade;
+            const totAnt=qtdAnt*posicoes[idx].preco_medio;
+            posicoes[idx].quantidade+=qtd;
+            posicoes[idx].preco_medio=(totAnt+total)/posicoes[idx].quantidade;
+            posicoes[idx].ultima_atualizacao=new Date().toISOString();
+          }else{
+            posicoes.push({ticker:TICKER,tipo:TIPO,quantidade:qtd,preco_medio:preco,data_compra:new Date().toISOString(),ultima_atualizacao:new Date().toISOString()});
           }
+        }else{
+          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
+          if(idx<0)throw new Error('Ativo não encontrado na carteira.');
+          if(posicoes[idx].quantidade<qtd)throw new Error('Quantidade insuficiente.');
+          saldo+=total;
+          posicoes[idx].quantidade-=qtd;
+          if(posicoes[idx].quantidade===0)posicoes.splice(idx,1);
+        }
 
-          // Recalcula patrimônio total
-          const patrimonioInvestido = posicoes.reduce((acc, p) => acc + p.quantidade * p.preco_medio, 0);
-          const novoPatrimonio      = saldo + patrimonioInvestido;
+        const investido=posicoes.reduce((a,p)=>a+p.quantidade*p.preco_medio,0);
+        const patrimonio=saldo+investido;
 
-          // Salva carteira
-          t.set(carteiraRef, {
-            uid:              meuUID,
-            saldo_disponivel: saldo,
-            patrimonio_total: novoPatrimonio,
-            posicoes,
-            ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
-          }, { merge: true });
+        // Salva ou cria carteira
+        t.set(cRef,{uid:meuUID,saldo_disponivel:saldo,saldo_investido:investido,patrimonio_total:patrimonio,posicoes,ultima_atualizacao:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
 
-          // Registra a ordem no histórico
-          const ordemRef = db.collection('ordens').doc();
-          t.set(ordemRef, {
-            uid:         meuUID,
-            ticker:      TICKER,
-            tipo:        TIPO,
-            lado:        ladoAtual,
-            quantidade:  qtd,
-            preco:       preco,
-            total,
-            tipo_ordem:  tipoOrdem,
-            status:      mercado?.status === 'aberto' ? 'executada' : 'agendada',
-            mercado_status: mercado?.status,
-            data:        firebase.firestore.FieldValue.serverTimestamp(),
-          });
+        // Histórico da ordem
+        t.set(db.collection('ordens').doc(),{uid:meuUID,ticker:TICKER,tipo:TIPO,lado,quantidade:qtd,preco,total,tipo_ordem:tipoOrdem,status:mercadoStatus==='aberto'?'executada':'agendada',data:firebase.firestore.FieldValue.serverTimestamp()});
 
-          // Registra no feed (post automático)
-          const feedRef = db.collection('posts').doc();
-          t.set(feedRef, {
-            uid:         meuUID,
-            tipo:        'trade',
-            ticker:      TICKER,
-            lado:        ladoAtual,
-            quantidade:  qtd,
-            preco,
-            total,
-            auto:        true,
-            data_post:   firebase.firestore.FieldValue.serverTimestamp(),
-          });
+        // Post automático no feed
+        t.set(db.collection('posts').doc(),{uid:meuUID,tipo:'trade',tipo_ativo:TIPO,ticker:TICKER,lado,quantidade:qtd,preco,total,auto:true,data_post:firebase.firestore.FieldValue.serverTimestamp()});
 
-          // Atualiza saldo no documento do usuário também
-          t.update(db.collection('usuarios').doc(meuUID), {
-            saldo_disponivel: saldo,
-            patrimonio_total: novoPatrimonio,
-          });
-        });
+        // Atualiza usuário também
+        const uRef=db.collection('usuarios').doc(meuUID);
+        t.update(uRef,{saldo_disponivel:saldo,patrimonio_total:patrimonio});
+      });
 
-        // Sucesso!
-        fecharModal();
-        mostrarSucesso(qtd, preco, total);
+      fecharModal();
+      // Mostra sucesso
+      document.getElementById('form-wrap').style.display='none';
+      document.getElementById('btn-wrap').style.display='none';
+      const s=document.getElementById('sucesso');s.classList.add('show');
+      document.getElementById('s-icon').textContent=lado==='compra'?'✅':'💰';
+      document.getElementById('s-title').textContent=mercadoStatus==='aberto'?'ORDEM EXECUTADA':'ORDEM AGENDADA';
+      document.getElementById('s-desc').textContent=`${lado==='compra'?'Compra':'Venda'} de ${qtd} ${unit()} de ${TICKER}\na ${R$(preco)} por unidade\nTotal: ${R$(total)}\n${mercadoStatus==='aberto'?'Executada imediatamente ✅':'Agendada para o próximo dia útil ⏰'}`;
 
-      } catch(e) {
-        console.error('[Ordem]', e);
-        mostrarToast(e.message || 'Erro ao executar ordem. Tente novamente.');
-        btn.disabled = false;
-        btn.textContent = ladoAtual === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
-      }
+    }catch(e){
+      console.error(e);toast(e.message||'Erro ao executar ordem.');
+      ok.disabled=false;ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
     }
-
-    // ── MOSTRAR SUCESSO ──
-    function mostrarSucesso(qtd, preco, total) {
-      document.getElementById('estado-form').style.display = 'none';
-      document.getElementById('btn-confirmar-wrap').style.display = 'none';
-
-      const unidade = TIPO === 'tesouro' ? 'títulos' : TIPO === 'cripto' ? 'unidades' : 'cotas';
-      const isCompra = ladoAtual === 'compra';
-      const executado = mercado?.status === 'aberto';
-
-      document.getElementById('sucesso-icone').textContent = isCompra ? '✅' : '💰';
-      document.getElementById('sucesso-titulo').textContent = executado ? 'ORDEM EXECUTADA' : 'ORDEM AGENDADA';
-      document.getElementById('sucesso-desc').textContent =
-        `${isCompra ? 'Compra' : 'Venda'} de ${qtd} ${unidade} de ${TICKER}\n` +
-        `a ${MercadoAPI.R$(preco)} por unidade\n` +
-        `Total: ${MercadoAPI.R$(total)}\n` +
-        (executado ? 'Executada imediatamente ✅' : 'Agendada para o próximo dia útil ⏰');
-
-      document.getElementById('estado-sucesso').classList.add('visivel');
-    }
-
-    // ── HELPERS ──
-    function nomeTipo(tipo) {
-      return { mercado:'A Mercado', limitada:'Limitada', stop:'Stop' }[tipo] || tipo;
-    }
-
-    // Fecha modal ao clicar fora
-    document.getElementById('modal-confirmacao').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) fecharModal();
-    });
+  }
   </script>
 </body>
 </html>
-
