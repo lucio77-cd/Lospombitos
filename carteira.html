@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Carteira | Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--coral:#ff5533;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
+    .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
+    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
+    .container{padding:20px 16px;max-width:640px;margin:0 auto}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* PATRIMÔNIO CARD */
+    .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);padding:22px;border-radius:20px;color:white;margin-bottom:16px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
+    .pat-card::before{content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:72px;color:rgba(255,255,255,.05);pointer-events:none;letter-spacing:-2px}
+    .pat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;opacity:.7;margin-bottom:4px}
+    .pat-valor{font-family:var(--display);font-size:40px;letter-spacing:2px;line-height:1;margin-bottom:4px}
+    .pat-rentab{font-family:var(--mono);font-size:11px;opacity:.8;margin-bottom:14px}
+    .pat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
+    .pat-item .pat-label{margin-bottom:2px}
+    .pat-item-val{font-family:var(--mono);font-size:12px;font-weight:500}
+
+    /* SEÇÃO */
+    .sec-title{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--ink);margin-bottom:12px;margin-top:4px}
+
+    /* POSIÇÃO CARD */
+    .pos-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,transform .2s;animation:fadeUp .3s ease}
+    .pos-card:hover{border-color:var(--wave);transform:translateY(-1px)}
+    .pos-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+    .pos-ticker{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
+    .pos-nome{font-size:11px;color:var(--muted);margin-top:2px}
+    .pos-tipo-badge{font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:2px 8px;margin-top:4px;display:inline-block}
+    .pos-valor-atual{font-family:var(--display);font-size:20px;letter-spacing:1px;color:var(--ink);text-align:right}
+    .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;text-align:right;margin-top:2px}
+    .pos-rentab.pos{color:var(--green)}.pos-rentab.neg{color:var(--red)}
+    .pos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:12px;border-top:1px solid var(--shore)}
+    .pos-stat{display:flex;flex-direction:column;gap:2px}
+    .pos-stat-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
+    .pos-stat-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
+    .pos-actions{display:flex;gap:8px;margin-top:12px}
+    .btn-comprar-mais{flex:1;height:36px;background:var(--wave);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-comprar-mais:hover{background:#0033cc}
+    .btn-vender{flex:1;height:36px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-vender:hover{background:var(--red);color:white}
+
+    /* HISTÓRICO */
+    .hist-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;animation:fadeUp .3s ease}
+    .hist-row{display:flex;justify-content:space-between;align-items:center}
+    .hist-left{display:flex;align-items:center;gap:10px}
+    .hist-pill{font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;padding:3px 9px}
+    .hist-pill.c{background:#d4f5e2;color:var(--green)}
+    .hist-pill.v{background:#ffd5ce;color:var(--red)}
+    .hist-ticker{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--wave)}
+    .hist-info{font-size:11px;color:var(--muted);margin-top:2px}
+    .hist-total{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);text-align:right}
+    .hist-data{font-size:10px;color:var(--muted);text-align:right;margin-top:2px}
+
+    /* SKELETON */
+    .skel{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+    .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--mono);font-size:11px}
+    .empty-ico{font-size:40px;margin-bottom:12px;display:block}
+
+    /* TABS */
+    .tabs{display:flex;gap:8px;margin-bottom:16px}
+    .tab-btn{flex:1;height:36px;font-family:var(--mono);font-size:10px;letter-spacing:1px;border-radius:20px;border:1.5px solid var(--shore);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s}
+    .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
+
+    /* NAV */
+    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
+    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+    .ni:hover{background:var(--shore)}
+    .ni-ico{font-size:20px;line-height:1}
+    .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+    .ni.on .ni-lbl{color:var(--wave);font-weight:500}
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <button class="btn-back" onclick="history.back()">←</button>
+    <div class="hdr-title">CARTEIRA</div>
+  </header>
+
+  <div class="container">
+    <!-- Patrimônio -->
+    <div class="pat-card">
+      <p class="pat-label">PATRIMÔNIO TOTAL</p>
+      <p class="pat-valor" id="pat-total">R$ ···</p>
+      <p class="pat-rentab" id="pat-rentab">+0,00% desde o início</p>
+      <div class="pat-grid">
+        <div class="pat-item"><p class="pat-label">DISPONÍVEL</p><p class="pat-item-val" id="pat-disp">R$ ···</p></div>
+        <div class="pat-item"><p class="pat-label">INVESTIDO</p><p class="pat-item-val" id="pat-inv">R$ ···</p></div>
+        <div class="pat-item"><p class="pat-label">POSIÇÕES</p><p class="pat-item-val" id="pat-pos">···</p></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn on" id="tab-pos" onclick="showTab('posicoes')">POSIÇÕES</button>
+      <button class="tab-btn" id="tab-hist" onclick="showTab('historico')">HISTÓRICO</button>
+    </div>
+
+    <!-- Posições -->
+    <div id="sec-posicoes">
+      <div id="pos-loading">
+        <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
+        <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
+      </div>
+      <div id="pos-list"></div>
+    </div>
+
+    <!-- Histórico -->
+    <div id="sec-historico" style="display:none">
+      <div id="hist-loading">
+        <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
+        <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
+      </div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
+    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
+    <a class="ni on" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
+    <a class="ni" href="feed.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+  </nav>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="mercado-api.js"></script>
+  <script>
+  let db, meuUID;
+  const CAPITAL=500000;
+  const R$=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct=v=>(v>=0?'+':'')+v.toFixed(2)+'%';
+
+  function showTab(t){
+    document.getElementById('sec-posicoes').style.display=t==='posicoes'?'block':'none';
+    document.getElementById('sec-historico').style.display=t==='historico'?'block':'none';
+    document.getElementById('tab-pos').classList.toggle('on',t==='posicoes');
+    document.getElementById('tab-hist').classList.toggle('on',t==='historico');
+  }
+
+  firebase.auth().onAuthStateChanged(async user=>{
+    if(!user){location.href='invite.html';return}
+    meuUID=user.uid;
+    db=firebase.firestore();
+    await carregar();
+  });
+
+  async function carregar(){
+    try{
+      const[uS,cS]=await Promise.all([
+        db.collection('usuarios').doc(meuUID).get(),
+        db.collection('carteiras').doc(meuUID).get()
+      ]);
+
+      const u=uS.data()||{};
+      const c=cS.exists?cS.data():{};
+
+      const saldo   =c.saldo_disponivel??u.saldo_disponivel??CAPITAL;
+      const investido=c.saldo_investido??u.saldo_investido??0;
+      const patrimonio=c.patrimonio_total??u.patrimonio_total??(saldo+investido);
+      const posicoes=c.posicoes||[];
+      const rentab=((patrimonio-CAPITAL)/CAPITAL)*100;
+
+      document.getElementById('pat-total').textContent=R$(patrimonio);
+      document.getElementById('pat-disp').textContent=R$(saldo);
+      document.getElementById('pat-inv').textContent=R$(investido);
+      document.getElementById('pat-pos').textContent=posicoes.length+(posicoes.length===1?' ativo':' ativos');
+      const rel=document.getElementById('pat-rentab');
+      rel.textContent=(rentab>=0?'+':'')+rentab.toFixed(2)+'% desde o início';
+      rel.style.color=rentab>=0?'rgba(255,255,255,.9)':'#ffaaaa';
+
+      renderPosicoes(posicoes);
+      carregarHistorico();
+
+    }catch(e){
+      console.error('Carteira:',e);
+      document.getElementById('pos-loading').innerHTML='<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar carteira.</div>';
+    }
+  }
+
+  async function renderPosicoes(posicoes){
+    document.getElementById('pos-loading').style.display='none';
+    const list=document.getElementById('pos-list');
+
+    if(!posicoes.length){
+      list.innerHTML='<div class="empty"><span class="empty-ico">📭</span>Nenhuma posição ainda.<br><span style="opacity:.6;display:block;margin-top:4px">Comece investindo!</span></div>';
+      return;
+    }
+
+    // Busca cotações atuais em lote
+    const tickers=posicoes.filter(p=>p.tipo==='acoes'||p.tipo==='fiis').map(p=>p.ticker);
+    let cotacoes={};
+    if(tickers.length){
+      try{
+        const dados=await MercadoAPI.buscarMultiplos(tickers);
+        dados.forEach(d=>cotacoes[d.ticker]=d.preco||0);
+      }catch(e){}
+    }
+
+    list.innerHTML='';
+    posicoes.forEach(pos=>{
+      const precoAtual=cotacoes[pos.ticker]||pos.preco_medio||0;
+      const valorAtual=pos.quantidade*precoAtual;
+      const valorPago=pos.quantidade*pos.preco_medio;
+      const rentab=valorPago?((valorAtual-valorPago)/valorPago)*100:0;
+      const unit=pos.tipo==='tesouro'?'títulos':pos.tipo==='cripto'?'unidades':'cotas';
+
+      const card=document.createElement('div');
+      card.className='pos-card';
+      card.innerHTML=`
+        <div class="pos-top">
+          <div>
+            <p class="pos-ticker">${pos.ticker}</p>
+            <p class="pos-nome">${pos.tipo?.toUpperCase()||'AÇÃO'}</p>
+            <span class="pos-tipo-badge">${pos.tipo?.toUpperCase()||'AÇÕES'}</span>
+          </div>
+          <div>
+            <p class="pos-valor-atual">${R$(valorAtual)}</p>
+            <p class="pos-rentab ${rentab>=0?'pos':'neg'}">${pct(rentab)}</p>
+          </div>
+        </div>
+        <div class="pos-grid">
+          <div class="pos-stat"><span class="pos-stat-label">QUANTIDADE</span><span class="pos-stat-val">${pos.quantidade} ${unit}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">PREÇO MÉDIO</span><span class="pos-stat-val">${R$(pos.preco_medio||0)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">PREÇO ATUAL</span><span class="pos-stat-val">${R$(precoAtual)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">RESULTADO</span><span class="pos-stat-val" style="color:${rentab>=0?'var(--green)':'var(--red)'}">${R$(valorAtual-valorPago)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-label">DESDE</span><span class="pos-stat-val">${pos.data_compra?new Date(pos.data_compra).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—'}</span></div>
+        </div>
+        <div class="pos-actions">
+          <button class="btn-comprar-mais" onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}'">📊 VER RELATÓRIO</button>
+          <button class="btn-comprar-mais" style="background:var(--green)" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}'">+ COMPRAR</button>
+          <button class="btn-vender" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}&lado=venda'">VENDER</button>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  async function carregarHistorico(){
+    const loading=document.getElementById('hist-loading');
+    const list=document.getElementById('hist-list');
+    try{
+      const snap=await db.collection('ordens').where('uid','==',meuUID).orderBy('data','desc').limit(30).get();
+      loading.style.display='none';
+      if(snap.empty){list.innerHTML='<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';return}
+      list.innerHTML='';
+      snap.forEach(doc=>{
+        const o=doc.data();
+        const isC=o.lado==='compra';
+        const data=o.data?.toDate?o.data.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+        const unit=o.tipo==='tesouro'?'títulos':o.tipo==='cripto'?'und':'cotas';
+        const card=document.createElement('div');
+        card.className='hist-card';
+        card.innerHTML=`
+          <div class="hist-row">
+            <div class="hist-left">
+              <span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span>
+              <div>
+                <p class="hist-ticker">${o.ticker}</p>
+                <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
+              </div>
+            </div>
+            <div>
+              <p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p>
+              <p class="hist-data">${data}</p>
+            </div>
+          </div>`;
+        list.appendChild(card);
+      });
+    }catch(e){
+      loading.style.display='none';
+      // Tenta sem orderBy se não tiver índice
+      try{
+        const snap=await db.collection('ordens').where('uid','==',meuUID).limit(30).get();
+        if(snap.empty){list.innerHTML='<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';return}
+        const ordens=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.data?.seconds||0)-(a.data?.seconds||0));
+        list.innerHTML='';
+        ordens.forEach(o=>{
+          const isC=o.lado==='compra';
+          const data=o.data?.toDate?o.data.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
+          const unit=o.tipo==='tesouro'?'títulos':o.tipo==='cripto'?'und':'cotas';
+          const card=document.createElement('div');
+          card.className='hist-card';
+          card.innerHTML=`<div class="hist-row"><div class="hist-left"><span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span><div><p class="hist-ticker">${o.ticker}</p><p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p></div></div><div><p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p><p class="hist-data">${data}</p></div></div>`;
+          list.appendChild(card);
+        });
+      }catch(e2){list.innerHTML='<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar histórico.</div>'}
+    }
+  }
+  </script>
+</body>
+</html>
+
