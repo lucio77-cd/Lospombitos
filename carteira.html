@@ -7,72 +7,132 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
+    :root{
+      --ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;
+      --sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;
+      --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif
+    }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+
+    /* HEADER */
     .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
     .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
     .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
     .hdr-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
     .container{padding:16px 14px;max-width:640px;margin:0 auto}
+
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 
     /* PATRIMÔNIO */
-    .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);padding:22px;border-radius:20px;color:white;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
-    .pat-card::before{content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:70px;color:rgba(255,255,255,.05);pointer-events:none;letter-spacing:-2px}
+    .pat-card{
+      background:var(--wave);
+      background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);
+      padding:22px;border-radius:20px;color:white;margin-bottom:14px;
+      position:relative;overflow:hidden;animation:fadeUp .3s ease
+    }
+    .pat-card::before{
+      content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);
+      font-family:var(--display);font-size:70px;color:rgba(255,255,255,.05);
+      pointer-events:none;letter-spacing:-2px
+    }
     .pat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;opacity:.7;margin-bottom:4px}
     .pat-valor{font-family:var(--display);font-size:38px;letter-spacing:2px;line-height:1;margin-bottom:2px}
     .pat-rentab{font-family:var(--mono);font-size:11px;margin-bottom:14px}
-    .pat-rentab.pos{color:#88ffbb} .pat-rentab.neg{color:#ffaaaa}
+    .pat-rentab.pos{color:#88ffbb}.pat-rentab.neg{color:#ffaaaa}
     .pat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
     .pat-item .pat-label{margin-bottom:2px}
     .pat-item-val{font-family:var(--mono);font-size:11px;font-weight:500}
 
+    /* RESULTADO TOTAL DESTAQUE */
+    .resultado-banner{
+      border-radius:16px;padding:16px 18px;margin-bottom:14px;
+      display:flex;align-items:center;justify-content:space-between;
+      animation:fadeUp .35s ease;
+    }
+    .resultado-banner.pos{background:linear-gradient(135deg,#d4f5e2,#b8f0d0);border:1.5px solid #1a8a4a30}
+    .resultado-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc2b8);border:1.5px solid #cc220030}
+    .rb-left .rb-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;margin-bottom:4px}
+    .rb-left .rb-label.pos{color:var(--green)}.rb-left .rb-label.neg{color:var(--red)}
+    .rb-valor{font-family:var(--display);font-size:30px;letter-spacing:1px}
+    .rb-valor.pos{color:var(--green)}.rb-valor.neg{color:var(--red)}
+    .rb-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+    .rb-pct{font-family:var(--display);font-size:26px;letter-spacing:1px}
+    .rb-pct.pos{color:var(--green)}.rb-pct.neg{color:var(--red)}
+
     /* GRÁFICO */
-    .chart-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:14px;animation:fadeUp .35s ease}
+    .chart-card{
+      background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);
+      padding:18px;margin-bottom:14px;animation:fadeUp .35s ease
+    }
     .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
     .chart-title{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--ink)}
+    .chart-ticker-tag{font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:2px 8px}
     .chart-periods{display:flex;gap:4px}
-    .period-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--shore);background:none;color:var(--muted);cursor:pointer;transition:all .2s}
+    .period-btn{
+      font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;
+      border-radius:20px;border:1.5px solid var(--shore);background:none;
+      color:var(--muted);cursor:pointer;transition:all .2s
+    }
     .period-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
+    .chart-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
     .chart-wrap{position:relative;height:140px;margin-bottom:12px}
     canvas#perf-chart{width:100%;height:140px}
     .chart-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
     .cs-item{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
     .cs-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px}
     .cs-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
-    .cs-val.pos{color:var(--green)} .cs-val.neg{color:var(--red)}
+    .cs-val.pos{color:var(--green)}.cs-val.neg{color:var(--red)}
 
     /* TABS */
     .tabs{display:flex;gap:8px;margin-bottom:14px}
-    .tab-btn{flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;border:1.5px solid var(--shore);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s}
+    .tab-btn{
+      flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;
+      border-radius:20px;border:1.5px solid var(--shore);background:var(--card);
+      color:var(--muted);cursor:pointer;transition:all .2s
+    }
     .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
 
     /* POSIÇÃO */
-    .pos-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;animation:fadeUp .3s ease;transition:border-color .2s}
+    .pos-card{
+      background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);
+      padding:16px;margin-bottom:10px;animation:fadeUp .3s ease;transition:border-color .2s
+    }
     .pos-card:hover{border-color:var(--foam)}
     .pos-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
     .pos-left .pos-ticker{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
-    .pos-left .pos-tipo{font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:2px 8px;display:inline-block;margin-top:3px}
+    .pos-left .pos-tipo{
+      font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);
+      color:var(--wave);border-radius:20px;padding:2px 8px;display:inline-block;margin-top:3px
+    }
     .pos-right{text-align:right}
     .pos-valor{font-family:var(--display);font-size:20px;letter-spacing:1px;color:var(--ink)}
     .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:2px}
-    .pos-rentab.pos{color:var(--green)} .pos-rentab.neg{color:var(--red)}
+    .pos-rentab.pos{color:var(--green)}.pos-rentab.neg{color:var(--red)}
 
-    /* Resultado destaque */
-    .pos-resultado{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:10px}
-    .pos-resultado.pos{background:#d4f5e2}
-    .pos-resultado.neg{background:#ffd5ce}
-    .pr-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px}
-    .pr-label.pos{color:var(--green)} .pr-label.neg{color:var(--red)}
-    .pr-valor{font-family:var(--display);font-size:18px;letter-spacing:1px}
-    .pr-valor.pos{color:var(--green)} .pr-valor.neg{color:var(--red)}
-    .pr-pct{font-family:var(--mono);font-size:11px;font-weight:500}
-    .pr-pct.pos{color:var(--green)} .pr-pct.neg{color:var(--red)}
+    /* Resultado desde a compra */
+    .pos-resultado{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 14px;border-radius:12px;margin-bottom:10px
+    }
+    .pos-resultado.pos{background:linear-gradient(135deg,#d4f5e2,#c8f0da);border:1px solid #1a8a4a20}
+    .pos-resultado.neg{background:linear-gradient(135deg,#ffd5ce,#ffc8bf);border:1px solid #cc220020}
+    .pr-left .pr-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;margin-bottom:4px}
+    .pr-label.pos{color:var(--green)}.pr-label.neg{color:var(--red)}
+    .pr-valor{font-family:var(--display);font-size:22px;letter-spacing:1px}
+    .pr-valor.pos{color:var(--green)}.pr-valor.neg{color:var(--red)}
+    .pr-right{text-align:right}
+    .pr-pct{font-family:var(--display);font-size:20px;letter-spacing:1px}
+    .pr-pct.pos{color:var(--green)}.pr-pct.neg{color:var(--red)}
+    .pr-desde{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px}
 
-    .pos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--shore);margin-bottom:10px}
+    .pos-grid{
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+      padding-top:10px;border-top:1px solid var(--shore);margin-bottom:10px
+    }
     .pos-stat{display:flex;flex-direction:column;gap:2px}
     .pos-stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
     .pos-stat-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
@@ -103,8 +163,16 @@
     .empty-ico{font-size:38px;margin-bottom:12px;display:block}
 
     /* NAV */
-    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
-    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+    .nav{
+      position:fixed;bottom:0;left:0;right:0;height:64px;
+      background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100
+    }
+    .ni{
+      display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;
+      padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;
+      color:inherit;-webkit-tap-highlight-color:transparent
+    }
     .ni:hover{background:var(--shore)}
     .ni-ico{font-size:20px;line-height:1}
     .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
@@ -119,6 +187,7 @@
   </header>
 
   <div class="container">
+
     <!-- Patrimônio -->
     <div class="pat-card">
       <p class="pat-label">PATRIMÔNIO TOTAL</p>
@@ -127,20 +196,35 @@
       <div class="pat-grid">
         <div class="pat-item"><p class="pat-label">DISPONÍVEL</p><p class="pat-item-val" id="pat-disp">···</p></div>
         <div class="pat-item"><p class="pat-label">INVESTIDO</p><p class="pat-item-val" id="pat-inv">···</p></div>
-        <div class="pat-item"><p class="pat-label">RESULTADO</p><p class="pat-item-val" id="pat-result">···</p></div>
+        <div class="pat-item"><p class="pat-label">CAPITAL</p><p class="pat-item-val">R$ 500K</p></div>
       </div>
+    </div>
+
+    <!-- Resultado total desde o início (banner destacado) -->
+    <div class="resultado-banner pos" id="resultado-banner" style="display:none">
+      <div class="rb-left">
+        <p class="rb-label pos" id="rb-label">📈 RESULTADO TOTAL</p>
+        <p class="rb-valor pos" id="rb-valor">···</p>
+        <p class="rb-sub">vs capital inicial de R$ 500.000</p>
+      </div>
+      <p class="rb-pct pos" id="rb-pct">···</p>
     </div>
 
     <!-- Gráfico de desempenho -->
     <div class="chart-card" id="chart-card" style="display:none">
       <div class="chart-header">
-        <p class="chart-title">📈 DESEMPENHO</p>
+        <div>
+          <p class="chart-title">📈 DESEMPENHO</p>
+        </div>
         <div class="chart-periods">
           <button class="period-btn on" onclick="mudarPeriodo('1mo',this)">1M</button>
           <button class="period-btn" onclick="mudarPeriodo('3mo',this)">3M</button>
           <button class="period-btn" onclick="mudarPeriodo('6mo',this)">6M</button>
           <button class="period-btn" onclick="mudarPeriodo('1y',this)">1A</button>
         </div>
+      </div>
+      <div class="chart-top-row">
+        <span class="chart-ticker-tag" id="chart-ticker-tag">···</span>
       </div>
       <div class="chart-wrap">
         <canvas id="perf-chart"></canvas>
@@ -175,6 +259,7 @@
       </div>
       <div id="hist-list"></div>
     </div>
+
   </div>
 
   <nav class="nav">
@@ -191,10 +276,8 @@
   <script src="mercado-api.js"></script>
   <script>
   let db, meuUID;
-  const CAPITAL = 500000;
-  let posicoes = [], cotacoes = {}, historicos = {};
-  let periodoAtual = '1mo';
-  let chartInstance = null;
+  const CAPITAL = 500000; // Capital fixo: R$ 500.000
+  let posicoes = [], cotacoes = {}, periodoAtual = '1mo';
 
   const R$ = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
   const pct = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
@@ -223,12 +306,14 @@
       const u = uS.data() || {};
       const c = cS.exists ? cS.data() : {};
 
-      const saldo    = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
-      const investido = c.saldo_investido ?? u.saldo_investido ?? 0;
-      posicoes       = c.posicoes || [];
+      const saldo = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
+      posicoes    = c.posicoes || [];
 
       // Busca cotações atuais
-      const tickers = posicoes.filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo).map(p => p.ticker);
+      const tickers = posicoes
+        .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
+        .map(p => p.ticker);
+
       if (tickers.length) {
         try {
           const dados = await MercadoAPI.buscarMultiplos(tickers);
@@ -236,14 +321,16 @@
         } catch(e) {}
       }
 
-      // Recalcula valores reais com cotações atuais
+      // Calcula valores reais com cotações atuais
       const investidoReal = posicoes.reduce((acc, p) => {
         const precoAtual = cotacoes[p.ticker] || p.preco_medio || 0;
         return acc + (p.quantidade || 0) * precoAtual;
       }, 0);
+
       const patrimonio = saldo + investidoReal;
-      const resultado  = patrimonio - CAPITAL;
+      const resultado  = patrimonio - CAPITAL;   // vs R$ 500k fixo
       const rentab     = (resultado / CAPITAL) * 100;
+      const isPos      = resultado >= 0;
 
       // Header patrimônio
       document.getElementById('pat-total').textContent = R$(patrimonio);
@@ -252,16 +339,29 @@
 
       const rentEl = document.getElementById('pat-rentab');
       rentEl.textContent = pct(rentab) + ' desde o início';
-      rentEl.className = 'pat-rentab ' + (rentab >= 0 ? 'pos' : 'neg');
+      rentEl.className   = 'pat-rentab ' + (isPos ? 'pos' : 'neg');
 
-      const resEl = document.getElementById('pat-result');
-      resEl.textContent = (resultado >= 0 ? '+' : '') + R$(resultado);
-      resEl.style.color = resultado >= 0 ? '#88ffbb' : '#ffaaaa';
+      // Banner resultado total
+      const banner = document.getElementById('resultado-banner');
+      banner.className = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
+      banner.style.display = 'flex';
+
+      const rbLabel = document.getElementById('rb-label');
+      rbLabel.textContent = isPos ? '📈 GANHO TOTAL' : '📉 PERDA TOTAL';
+      rbLabel.className   = 'rb-label ' + (isPos ? 'pos' : 'neg');
+
+      const rbValor = document.getElementById('rb-valor');
+      rbValor.textContent = (isPos ? '+' : '') + R$(resultado);
+      rbValor.className   = 'rb-valor ' + (isPos ? 'pos' : 'neg');
+
+      const rbPct = document.getElementById('rb-pct');
+      rbPct.textContent = pct(rentab);
+      rbPct.className   = 'rb-pct ' + (isPos ? 'pos' : 'neg');
 
       // Renderiza posições
       renderPosicoes(saldo);
 
-      // Carrega histórico e gráfico para o principal ativo
+      // Gráfico para o principal ativo
       if (posicoes.length > 0) {
         await carregarGrafico(posicoes[0].ticker, periodoAtual);
       }
@@ -270,7 +370,8 @@
 
     } catch(e) {
       console.error('Carteira:', e);
-      document.getElementById('pos-loading').innerHTML = '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">'+e.message+'</span></div>';
+      document.getElementById('pos-loading').innerHTML =
+        '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">' + e.message + '</span></div>';
     }
   }
 
@@ -285,15 +386,19 @@
 
     list.innerHTML = '';
     posicoes.forEach(pos => {
-      const precoAtual  = cotacoes[pos.ticker] || pos.preco_medio || 0;
-      const pm          = pos.preco_medio || 0;
-      const qtd         = pos.quantidade || 0;
-      const valorAtual  = qtd * precoAtual;
-      const valorPago   = qtd * pm;
-      const resultado   = valorAtual - valorPago;
-      const rentab      = valorPago > 0 ? (resultado / valorPago) * 100 : 0;
-      const isPos       = resultado >= 0;
-      const unit        = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
+      const precoAtual = cotacoes[pos.ticker] || pos.preco_medio || 0;
+      const pm         = pos.preco_medio || 0;
+      const qtd        = pos.quantidade  || 0;
+      const valorAtual = qtd * precoAtual;
+      const valorPago  = qtd * pm;              // quanto pagou na compra
+      const resultado  = valorAtual - valorPago; // ganho/perda desde a compra
+      const rentab     = valorPago > 0 ? (resultado / valorPago) * 100 : 0;
+      const isPos      = resultado >= 0;
+      const unit       = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
+
+      const dataCompraFmt = pos.data_compra
+        ? new Date(pos.data_compra).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'2-digit'})
+        : '—';
 
       const card = document.createElement('div');
       card.className = 'pos-card';
@@ -305,17 +410,20 @@
           </div>
           <div class="pos-right">
             <p class="pos-valor">${R$(valorAtual)}</p>
-            <p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
+            <p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)} no período</p>
           </div>
         </div>
 
-        <!-- Resultado desde a compra -->
+        <!-- Ganho/Perda desde a compra (destaque) -->
         <div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
-          <div>
+          <div class="pr-left">
             <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
             <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${R$(resultado)}</p>
           </div>
-          <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
+          <div class="pr-right">
+            <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
+            <p class="pr-desde">desde ${dataCompraFmt}</p>
+          </div>
         </div>
 
         <div class="pos-grid">
@@ -324,7 +432,7 @@
           <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span><span class="pos-stat-val">${R$(precoAtual)}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span><span class="pos-stat-val">${R$(valorAtual)}</span></div>
-          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${pos.data_compra ? new Date(pos.data_compra).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}) : '—'}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${dataCompraFmt}</span></div>
         </div>
 
         <div class="pos-actions">
@@ -342,7 +450,7 @@
       const hist = await MercadoAPI.buscarHistorico(ticker, periodo);
       if (!hist?.historico?.length) return;
 
-      const dados = hist.historico;
+      const dados  = hist.historico;
       const precos = dados.map(h => h.preco);
       const labels = dados.map(h => h.data);
       const min    = Math.min(...precos);
@@ -352,11 +460,14 @@
 
       document.getElementById('cs-min').textContent = R$(min);
       document.getElementById('cs-max').textContent = R$(max);
+
       const csVar = document.getElementById('cs-var');
       csVar.textContent = pct(varPct);
-      csVar.className = 'cs-val ' + (isPos ? 'pos' : 'neg');
+      csVar.className   = 'cs-val ' + (isPos ? 'pos' : 'neg');
 
+      document.getElementById('chart-ticker-tag').textContent = ticker;
       document.getElementById('chart-card').style.display = 'block';
+
       desenharGrafico(labels, precos, isPos);
 
     } catch(e) { console.warn('Gráfico:', e); }
@@ -367,21 +478,21 @@
     const ctx    = canvas.getContext('2d');
 
     // DPI fix
-    const dpr = window.devicePixelRatio || 1;
+    const dpr  = window.devicePixelRatio || 1;
     const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width  = rect.width * dpr;
-    canvas.height = 140 * dpr;
+    canvas.width        = rect.width * dpr;
+    canvas.height       = 140 * dpr;
     canvas.style.width  = rect.width + 'px';
     canvas.style.height = '140px';
     ctx.scale(dpr, dpr);
 
-    const W = rect.width, H = 140;
+    const W  = rect.width, H = 140;
     const pad = {t:10, r:8, b:28, l:52};
-    const cw = W - pad.l - pad.r;
-    const ch = H - pad.t - pad.b;
+    const cw  = W - pad.l - pad.r;
+    const ch  = H - pad.t - pad.b;
 
-    const minP = Math.min(...precos) * 0.998;
-    const maxP = Math.max(...precos) * 1.002;
+    const minP  = Math.min(...precos) * 0.998;
+    const maxP  = Math.max(...precos) * 1.002;
     const range = maxP - minP || 1;
 
     const xOf = i => pad.l + (i / (precos.length - 1)) * cw;
@@ -389,7 +500,7 @@
 
     ctx.clearRect(0, 0, W, H);
 
-    // Grid lines
+    // Grid horizontal
     ctx.strokeStyle = '#e2d9cd';
     ctx.lineWidth = 1;
     [0, 0.25, 0.5, 0.75, 1].forEach(f => {
@@ -401,6 +512,24 @@
       ctx.textAlign = 'right';
       ctx.fillText('R$' + val.toFixed(0), pad.l - 4, y + 3);
     });
+
+    // Linha de preço médio de compra (se disponível)
+    if (posicoes.length > 0 && posicoes[0].preco_medio) {
+      const pm = posicoes[0].preco_medio;
+      if (pm >= minP && pm <= maxP) {
+        const yPM = yOf(pm);
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#8a8278';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
+        ctx.fillStyle = '#8a8278';
+        ctx.font = '8px DM Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('PM', pad.l + 3, yPM - 3);
+        ctx.restore();
+      }
+    }
 
     // Área preenchida
     const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
@@ -425,7 +554,7 @@
     precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
     ctx.stroke();
 
-    // Ponto final
+    // Ponto final destacado
     const lastX = xOf(precos.length - 1);
     const lastY = yOf(precos[precos.length - 1]);
     ctx.beginPath();
@@ -436,12 +565,11 @@
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Labels eixo X (início, meio, fim)
+    // Labels eixo X
     ctx.fillStyle = '#8a8278';
     ctx.font = '8px DM Mono, monospace';
     ctx.textAlign = 'center';
-    const labelIdxs = [0, Math.floor(precos.length / 2), precos.length - 1];
-    labelIdxs.forEach(i => {
+    [0, Math.floor(precos.length / 2), precos.length - 1].forEach(i => {
       if (labels[i]) ctx.fillText(labels[i].slice(0,5), xOf(i), H - 6);
     });
   }
@@ -458,14 +586,26 @@
     const loading = document.getElementById('hist-loading');
     const list    = document.getElementById('hist-list');
     try {
-      const snap = await db.collection('ordens').where('uid', '==', meuUID).orderBy('data', 'desc').limit(30).get();
+      const snap = await db.collection('ordens')
+        .where('uid', '==', meuUID)
+        .orderBy('data', 'desc')
+        .limit(30)
+        .get();
+
       loading.style.display = 'none';
-      if (snap.empty) { list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>'; return; }
+
+      if (snap.empty) {
+        list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
+        return;
+      }
+
       list.innerHTML = '';
       snap.forEach(doc => {
-        const o = doc.data();
+        const o   = doc.data();
         const isC = o.lado === 'compra';
-        const data = o.data?.toDate ? o.data.toDate().toLocaleDateString('pt-BR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+        const data = o.data?.toDate
+          ? o.data.toDate().toLocaleDateString('pt-BR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+          : '—';
         const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
         const card = document.createElement('div');
         card.className = 'hist-card';
@@ -485,23 +625,43 @@
           </div>`;
         list.appendChild(card);
       });
+
     } catch(e) {
       loading.style.display = 'none';
       // fallback sem orderBy
       try {
         const snap = await db.collection('ordens').where('uid', '==', meuUID).limit(30).get();
-        if (snap.empty) { list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>'; return; }
-        const ordens = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (b.data?.seconds||0) - (a.data?.seconds||0));
+        if (snap.empty) {
+          list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
+          return;
+        }
+        const ordens = snap.docs
+          .map(d => ({id:d.id,...d.data()}))
+          .sort((a,b) => (b.data?.seconds||0) - (a.data?.seconds||0));
         list.innerHTML = '';
         ordens.forEach(o => {
           const isC = o.lado === 'compra';
           const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
           const card = document.createElement('div');
           card.className = 'hist-card';
-          card.innerHTML = `<div class="hist-row"><div class="hist-left"><span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span><div><p class="hist-ticker">${o.ticker}</p><p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p></div></div><div><p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p></div></div>`;
+          card.innerHTML = `
+            <div class="hist-row">
+              <div class="hist-left">
+                <span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span>
+                <div>
+                  <p class="hist-ticker">${o.ticker}</p>
+                  <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
+                </div>
+              </div>
+              <div>
+                <p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p>
+              </div>
+            </div>`;
           list.appendChild(card);
         });
-      } catch(e2) { list.innerHTML = '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar histórico.</div>'; }
+      } catch(e2) {
+        list.innerHTML = '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar histórico.</div>';
+      }
     }
   }
   </script>
