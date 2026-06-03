@@ -306,8 +306,7 @@
       const u = uS.data() || {};
       const c = cS.exists ? cS.data() : {};
 
-      const saldo = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
-      posicoes    = c.posicoes || [];
+      posicoes = c.posicoes || [];
 
       // Busca cotações atuais
       const tickers = posicoes
@@ -321,20 +320,28 @@
         } catch(e) {}
       }
 
-      // Calcula valores reais com cotações atuais
+      // Quanto foi pago no total (custo de compra de todas as posições)
+      const totalPago = posicoes.reduce((acc, p) => {
+        return acc + (p.quantidade || 0) * (p.preco_medio || 0);
+      }, 0);
+
+      // Valor atual de mercado de todas as posições
       const investidoReal = posicoes.reduce((acc, p) => {
         const precoAtual = cotacoes[p.ticker] || p.preco_medio || 0;
         return acc + (p.quantidade || 0) * precoAtual;
       }, 0);
 
-      const patrimonio = saldo + investidoReal;
-      const resultado  = patrimonio - CAPITAL;   // vs R$ 500k fixo
+      // Saldo disponível = capital inicial menos o que foi gasto nas compras
+      // Isso garante que não conta o dinheiro investido duas vezes
+      const saldo      = CAPITAL - totalPago;
+      const patrimonio = saldo + investidoReal;        // quanto tenho agora
+      const resultado  = patrimonio - CAPITAL;          // ganho/perda vs R$ 500k
       const rentab     = (resultado / CAPITAL) * 100;
       const isPos      = resultado >= 0;
 
       // Header patrimônio
       document.getElementById('pat-total').textContent = R$(patrimonio);
-      document.getElementById('pat-disp').textContent  = R$(saldo);
+      document.getElementById('pat-disp').textContent  = R$(saldo < 0 ? 0 : saldo);
       document.getElementById('pat-inv').textContent   = R$(investidoReal);
 
       const rentEl = document.getElementById('pat-rentab');
@@ -359,7 +366,7 @@
       rbPct.className   = 'rb-pct ' + (isPos ? 'pos' : 'neg');
 
       // Renderiza posições
-      renderPosicoes(saldo);
+      renderPosicoes();
 
       // Gráfico para o principal ativo
       if (posicoes.length > 0) {
@@ -375,7 +382,7 @@
     }
   }
 
-  function renderPosicoes(saldo) {
+  function renderPosicoes() {
     document.getElementById('pos-loading').style.display = 'none';
     const list = document.getElementById('pos-list');
 
