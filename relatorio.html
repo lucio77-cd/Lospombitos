@@ -17,15 +17,23 @@
     html{scroll-behavior:smooth}
     body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:120px;overscroll-behavior:none}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+
+    /* HEADER */
     .feed-header{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
     .btn-voltar{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px;display:flex;align-items:center}
     .header-titulo{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
     .header-tipo{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted);background:var(--shore);border-radius:20px;padding:4px 10px}
+
     .container{padding:20px 16px;max-width:640px;margin:0 auto}
+
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* SKELETON */
     .sk-bloco{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:12px}
     .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:10px}
+
+    /* SEÇÃO GENÉRICA */
     .relatorio-secao{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:12px;animation:fadeUp .3s ease}
     .relatorio-secao:hover{border-color:var(--foam)}
     .secao-titulo{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -33,22 +41,65 @@
     .relatorio-item:last-child{border-bottom:none}
     .item-label{font-family:var(--mono);font-size:10px;color:var(--muted);flex:1}
     .item-valor{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink);text-align:right}
-    .item-valor.pos{color:var(--green)} .item-valor.neg{color:var(--red)}
-    .ativo-hero{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:20px;margin-bottom:16px;animation:fadeUp .3s ease}
-    .ativo-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-    .ativo-ticker{font-family:var(--display);font-size:32px;letter-spacing:3px;color:var(--wave);line-height:1}
-    .ativo-nome{font-size:12px;color:var(--muted);margin-top:3px;max-width:160px}
-    .ativo-preco{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
-    .ativo-var{font-family:var(--mono);font-size:12px;font-weight:500;margin-top:3px;text-align:right}
-    .ativo-var.pos{color:var(--green)} .ativo-var.neg{color:var(--red)}
-    .ativo-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid var(--shore)}
-    .stat-item{display:flex;flex-direction:column;gap:3px}
-    .stat-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
-    .stat-valor{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
-    .stat-valor.pos{color:var(--green)} .stat-valor.neg{color:var(--red)}
+    .item-valor.pos{color:var(--green)}.item-valor.neg{color:var(--red)}
 
-    /* ── Card de análise IA ── */
-    .ia-card{background:linear-gradient(135deg,#f0f3ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+    /* HERO */
+    .ativo-hero{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:20px;margin-bottom:12px;animation:fadeUp .3s ease}
+    .ativo-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+    .ativo-ticker{font-family:var(--display);font-size:36px;letter-spacing:3px;color:var(--wave);line-height:1}
+    .ativo-nome{font-size:12px;color:var(--muted);margin-top:4px}
+    .ativo-preco{font-family:var(--display);font-size:30px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
+    .ativo-var{font-family:var(--mono);font-size:12px;font-weight:500;margin-top:4px;text-align:right;padding:3px 10px;border-radius:20px;display:inline-block}
+    .ativo-var.pos{color:var(--green);background:#d4f5e2}.ativo-var.neg{color:var(--red);background:#ffd5ce}
+
+    /* FAIXA 52 SEMANAS */
+    .range-wrap{margin:16px 0 4px}
+    .range-label-row{display:flex;justify-content:space-between;margin-bottom:6px}
+    .range-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+    .range-bar{position:relative;height:6px;background:var(--shore);border-radius:3px;margin-bottom:4px}
+    .range-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--sun))}
+    .range-dot{position:absolute;top:50%;width:12px;height:12px;background:var(--wave);border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 4px rgba(0,0,0,.2)}
+    .range-val-row{display:flex;justify-content:space-between}
+    .range-val{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink)}
+
+    /* GRID DE STATS */
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid var(--shore)}
+    .stat-bloco{background:var(--sand);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:3px}
+    .stat-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
+    .stat-valor{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
+    .stat-valor.pos{color:var(--green)}.stat-valor.neg{color:var(--red)}
+
+    /* GRÁFICO MINI */
+    .mini-chart-wrap{margin:14px 0 6px;height:70px;position:relative}
+    canvas.mini-chart{width:100%;height:70px}
+
+    /* FUNDAMENTOS — grade visual */
+    .fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+    .fund-item{background:var(--sand);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px}
+    .fund-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
+    .fund-valor{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink)}
+    .fund-valor.pos{color:var(--green)}.fund-valor.neg{color:var(--red)}
+    .fund-sub{font-family:var(--mono);font-size:8px;color:var(--muted)}
+
+    /* ANALISTAS */
+    .analistas-bar{display:flex;border-radius:6px;overflow:hidden;height:10px;margin:10px 0 6px}
+    .bar-c{background:var(--green)}.bar-n{background:var(--sun)}.bar-v{background:var(--red)}
+    .analistas-leg{display:flex;gap:14px}
+    .leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+    .leg-dot{width:8px;height:8px;border-radius:50%}
+
+    /* CONCORRENTES */
+    .conc-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--shore);cursor:pointer;transition:opacity .2s}
+    .conc-item:last-child{border-bottom:none}
+    .conc-item:hover{opacity:.7}
+    .conc-ticker{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--wave);background:var(--foam);border-radius:6px;padding:2px 8px;flex-shrink:0}
+    .conc-nome{font-size:12px;color:var(--ink);flex:1;margin:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .conc-preco{font-family:var(--mono);font-size:11px;color:var(--ink)}
+    .conc-var{font-family:var(--mono);font-size:10px;font-weight:500;margin-left:6px}
+    .conc-var.pos{color:var(--green)}.conc-var.neg{color:var(--red)}
+
+    /* IA CARD */
+    .ia-card{background:linear-gradient(135deg,#eef2ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:18px;margin-bottom:12px;animation:fadeUp .3s ease}
     .ia-badge{font-family:var(--mono);font-size:8px;letter-spacing:2px;background:var(--wave);color:white;border-radius:20px;padding:3px 10px}
     .ia-titulo{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--wave)}
     .ia-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
@@ -58,23 +109,18 @@
     .ia-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5}
     .ia-aviso{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:12px;line-height:1.6;padding-top:10px;border-top:1px solid var(--foam)}
 
-    .conc-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--shore);cursor:pointer}
-    .conc-item:last-child{border-bottom:none}
-    .conc-ticker{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--wave);background:var(--foam);border-radius:6px;padding:2px 8px;flex-shrink:0}
-    .conc-nome{font-size:12px;color:var(--ink);flex:1;margin:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .conc-preco{font-family:var(--mono);font-size:11px;color:var(--ink)}
-    .conc-var{font-family:var(--mono);font-size:10px;font-weight:500;margin-left:6px}
-    .conc-var.pos{color:var(--green)} .conc-var.neg{color:var(--red)}
-    .analistas-bar{display:flex;border-radius:6px;overflow:hidden;height:10px;margin:10px 0 6px}
-    .bar-c{background:var(--green)} .bar-n{background:var(--sun)} .bar-v{background:var(--red)}
-    .analistas-leg{display:flex;gap:14px}
-    .leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)}
-    .leg-dot{width:8px;height:8px;border-radius:50%}
+    /* RISCOS */
+    .risco-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--shore);font-size:13px;line-height:1.5}
+    .risco-item:last-child{border-bottom:none}
+
+    /* SIMULAÇÃO */
     .sim-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}
     .sim-item{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
     .sim-prazo{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
     .sim-valor{font-family:var(--display);font-size:15px;letter-spacing:1px;color:var(--ink)}
     .sim-rend{font-family:var(--mono);font-size:9px;color:var(--green);margin-top:2px}
+
+    /* LISTA ATIVOS */
     .lista-ativo{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s,transform .2s}
     .lista-ativo:hover{border-color:var(--wave);transform:translateY(-1px)}
     .lista-ticker{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave)}
@@ -82,19 +128,36 @@
     .lista-seg{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;letter-spacing:1px}
     .lista-preco{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink);text-align:right}
     .lista-var{font-family:var(--mono);font-size:11px;font-weight:500;text-align:right;margin-top:2px}
-    .lista-var.pos{color:var(--green)} .lista-var.neg{color:var(--red)}
+    .lista-var.pos{color:var(--green)}.lista-var.neg{color:var(--red)}
+
+    /* BTN INVESTIR */
     .btn-investir-wrap{position:fixed;bottom:68px;left:0;right:0;padding:10px 16px;background:linear-gradient(to top,var(--sand) 60%,transparent);z-index:50}
     .btn-investir{width:100%;max-width:640px;margin:0 auto;height:52px;display:flex;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;align-items:center;justify-content:center;gap:10px}
     .btn-investir:hover{background:#0033cc;transform:translateY(-1px)}
+
+    /* TOAST */
     .toast{position:fixed;bottom:140px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:white;font-family:var(--mono);font-size:12px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* NAV */
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
     .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit}
     .nav-item:hover{background:var(--shore)}
     .nav-icon{font-size:20px;line-height:1}
     .nav-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
     .nav-item.active-link .nav-label{color:var(--wave);font-weight:500}
+
     .info-dica{background:var(--foam);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave)}
+
+    /* TAG DE POSIÇÃO */
+    .minha-pos-banner{background:linear-gradient(135deg,#d4f5e2,#c8f0da);border:1.5px solid #1a8a4a30;border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;animation:fadeUp .3s ease}
+    .minha-pos-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc8bf);border-color:#cc220030}
+    .mpb-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--green);margin-bottom:3px}
+    .minha-pos-banner.neg .mpb-label{color:var(--red)}
+    .mpb-valor{font-family:var(--display);font-size:22px;letter-spacing:1px;color:var(--green)}
+    .minha-pos-banner.neg .mpb-valor{color:var(--red)}
+    .mpb-pct{font-family:var(--display);font-size:18px;color:var(--green)}
+    .minha-pos-banner.neg .mpb-pct{color:var(--red)}
   </style>
 </head>
 <body>
@@ -109,6 +172,7 @@
     <div id="skeleton-wrap">
       <div class="sk-bloco"><div class="sk-line" style="width:40%;height:28px"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:50%"></div></div>
       <div class="sk-bloco"><div class="sk-line" style="width:60%"></div><div class="sk-line"></div><div class="sk-line" style="width:80%"></div></div>
+      <div class="sk-bloco"><div class="sk-line" style="width:50%"></div><div class="sk-line"></div></div>
     </div>
     <div id="conteudo" style="display:none"></div>
   </div>
@@ -133,12 +197,13 @@
   <script src="mercado-api.js"></script>
 
   <script>
-    const params  = new URLSearchParams(window.location.search);
-    const TICKER  = (params.get('ticker') || '').toUpperCase().trim();
-    const TIPO    = params.get('tipo') || 'acoes';
+    const params = new URLSearchParams(window.location.search);
+    const TICKER = (params.get('ticker') || '').toUpperCase().trim();
+    const TIPO   = params.get('tipo') || 'acoes';
 
     let dadosAtivo = null, dadosDetalhe = null, dadosHist1y = null, dadosHist6m = null;
     let perfilUsuario = 'moderado';
+    let minhasPosicoes = [];
 
     // ── TOAST ──
     let toastTimer;
@@ -154,14 +219,53 @@
       document.getElementById('conteudo').style.display = 'block';
     }
 
+    // ── HELPERS ──
+    const R$ = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const pct = v => (v>=0?'+':'') + (v||0).toFixed(2) + '%';
+    function item(label, valor, cls='') {
+      return `<div class="relatorio-item"><span class="item-label">${label}</span><span class="item-valor ${cls}">${valor}</span></div>`;
+    }
+    function nomeTipo(t) {
+      return {acoes:'AÇÕES',fiis:'FIIs',cdb:'CDB',lci:'LCI/LCA',tesouro:'TESOURO DIRETO',cripto:'CRIPTO'}[t] || t.toUpperCase();
+    }
+    function traduzirRec(r) {
+      return {buy:'Compra',strongBuy:'Compra Forte',sell:'Venda',strongSell:'Venda Forte',hold:'Neutro'}[r] || r || '—';
+    }
+    function irParaOrdem() {
+      if (!TICKER) return;
+      window.location.href = `ordem.html?ticker=${TICKER}&tipo=${TIPO}&preco=${dadosAtivo?.preco||0}`;
+    }
+
+    // ── EXTRAI MIN/MAX DO HISTÓRICO (fallback quando API não retorna) ──
+    function extrairMinMax(historico) {
+      if (!historico?.length) return { min: 0, max: 0 };
+      const precos = historico.map(h => h.preco).filter(Boolean);
+      return { min: Math.min(...precos), max: Math.max(...precos) };
+    }
+
+    // ── EXTRAI VARIAÇÃO DO HISTÓRICO ──
+    function extrairVariacao(historico) {
+      if (!historico?.length || historico.length < 2) return 0;
+      const inicio = historico[0].preco;
+      const fim    = historico[historico.length - 1].preco;
+      return inicio > 0 ? ((fim - inicio) / inicio) * 100 : 0;
+    }
+
     // ── INIT ──
     firebase.auth().onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'invite.html'; return; }
 
       try {
-        const snap = await firebase.firestore().collection('usuarios').doc(user.uid).get();
-        perfilUsuario = snap.data()?.perfil_investidor || 'moderado';
-      } catch(e) { perfilUsuario = 'moderado'; }
+        const [snapUser, snapCarteira] = await Promise.all([
+          firebase.firestore().collection('usuarios').doc(user.uid).get(),
+          firebase.firestore().collection('carteiras').doc(user.uid).get()
+        ]);
+        perfilUsuario  = snapUser.data()?.perfil_investidor || 'moderado';
+        minhasPosicoes = snapCarteira.exists ? (snapCarteira.data()?.posicoes || []) : [];
+      } catch(e) {
+        perfilUsuario  = 'moderado';
+        minhasPosicoes = [];
+      }
 
       if (TICKER) {
         await carregarRelatorio();
@@ -176,39 +280,27 @@
     async function carregarListaCategoria() {
       document.getElementById('header-titulo').textContent = nomeTipo(TIPO);
       document.getElementById('header-tipo').textContent = 'CATEGORIA';
-
       const conteudo = document.getElementById('conteudo');
 
       if (TIPO === 'cdb' || TIPO === 'lci') {
-        renderizarRendaFixaInfo(conteudo);
-        esconderSkeleton();
-        return;
+        renderizarRendaFixaInfo(conteudo); esconderSkeleton(); return;
       }
-
       if (TIPO === 'tesouro') {
         esconderSkeleton();
         conteudo.innerHTML = `<p class="info-dica">💡 Buscando títulos do Tesouro Direto...</p>`;
         try {
-          const [titulos, taxas] = await Promise.all([
-            MercadoAPI.buscarTesouroDireto(),
-            MercadoAPI.buscarTaxasBacen(),
-          ]);
+          const [titulos, taxas] = await Promise.all([MercadoAPI.buscarTesouroDireto(), MercadoAPI.buscarTaxasBacen()]);
           renderizarTesouro(conteudo, titulos, taxas);
-        } catch(e) {
-          conteudo.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar Tesouro Direto.</p>`;
-        }
+        } catch(e) { conteudo.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar Tesouro Direto.</p>`; }
         return;
       }
-
       if (TIPO === 'cripto') {
         esconderSkeleton();
         conteudo.innerHTML = `<p class="info-dica">💡 Buscando criptomoedas...</p>`;
         try {
           const criptos = await MercadoAPI.listarCriptos(20);
           renderizarListaCripto(conteudo, criptos);
-        } catch(e) {
-          conteudo.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar criptos.</p>`;
-        }
+        } catch(e) { conteudo.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar criptos.</p>`; }
         return;
       }
 
@@ -245,8 +337,7 @@
       conteudo.innerHTML = `<p class="info-dica">💡 Clique em um ativo para ver o relatório completo com análise por IA</p>`;
       ativos.forEach(a => {
         const div = document.createElement('div');
-        div.className = 'lista-ativo';
-        div.id = `card-${a.ticker}`;
+        div.className = 'lista-ativo'; div.id = `card-${a.ticker}`;
         div.onclick = () => window.location.href = `relatorio.html?ticker=${a.ticker}&tipo=${TIPO}`;
         div.innerHTML = `
           <div>
@@ -260,23 +351,19 @@
           </div>`;
         conteudo.appendChild(div);
       });
-
       esconderSkeleton();
 
-      const tickers = ativos.map(a => a.ticker);
-      for (let i = 0; i < tickers.length; i += 5) {
-        const lote = tickers.slice(i, i+5);
+      for (let i = 0; i < ativos.length; i += 5) {
+        const lote = ativos.slice(i,i+5).map(a=>a.ticker);
         try {
           const dados = await MercadoAPI.buscarMultiplos(lote);
           dados.forEach(d => {
             const el = document.getElementById(`cot-${d.ticker}`);
             if (!el) return;
             const pos = (d.variacao_pct||0) >= 0;
-            el.innerHTML = `
-              <p class="lista-preco">R$ ${(d.preco||0).toFixed(2)}</p>
-              <p class="lista-var ${pos?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</p>`;
+            el.innerHTML = `<p class="lista-preco">R$ ${(d.preco||0).toFixed(2)}</p><p class="lista-var ${pos?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</p>`;
           });
-        } catch(e) { /* silencioso */ }
+        } catch(e) {}
         await new Promise(r => setTimeout(r, 500));
       }
     }
@@ -287,7 +374,6 @@
     async function carregarRelatorio() {
       document.getElementById('header-titulo').textContent = TICKER;
       document.getElementById('header-tipo').textContent = nomeTipo(TIPO);
-
       const conteudo = document.getElementById('conteudo');
 
       try {
@@ -298,31 +384,83 @@
           MercadoAPI.buscarHistorico(TICKER, '6mo'),
         ]);
 
+        // ── ENRIQUECE COM DADOS DO HISTÓRICO SE API RETORNOU ZEROS ──
+        const hist1y = dadosHist1y?.historico || [];
+        const hist6m = dadosHist6m?.historico || [];
+
+        // Min/Máx 52 semanas — usa detalhes ou extrai do histórico
+        if (!(dadosDetalhe?.min_52s > 0) && hist1y.length) {
+          const mm = extrairMinMax(hist1y);
+          if (!dadosDetalhe) dadosDetalhe = {};
+          dadosDetalhe.min_52s = mm.min;
+          dadosDetalhe.max_52s = mm.max;
+        }
+
+        // Variação períodos — usa histórico se detalhes não tem
+        if (!(dadosHist6m?.variacao_periodo) && hist6m.length) {
+          if (!dadosHist6m) dadosHist6m = {};
+          dadosHist6m.variacao_periodo = extrairVariacao(hist6m);
+          const mm6m = extrairMinMax(hist6m);
+          dadosHist6m.min_periodo = mm6m.min;
+          dadosHist6m.max_periodo = mm6m.max;
+        }
+        if (!(dadosHist1y?.variacao_periodo) && hist1y.length) {
+          if (!dadosHist1y) dadosHist1y = {};
+          dadosHist1y.variacao_periodo = extrairVariacao(hist1y);
+        }
+
+        // Médias móveis — calcula do histórico se API não trouxe
+        if (!(dadosDetalhe?.media_50d > 0) && hist1y.length >= 50) {
+          const ult50 = hist1y.slice(-50).map(h => h.preco);
+          dadosDetalhe.media_50d = ult50.reduce((a,b)=>a+b,0) / ult50.length;
+        }
+        if (!(dadosDetalhe?.media_200d > 0) && hist1y.length >= 30) {
+          // com 1y talvez não tenhamos 200 dias; usa o que tiver
+          const precos = hist1y.map(h => h.preco);
+          dadosDetalhe.media_200d = precos.reduce((a,b)=>a+b,0) / precos.length;
+        }
+
         esconderSkeleton();
         conteudo.innerHTML = '';
 
+        // Banner "minha posição" se tiver o ativo em carteira
+        const posicao = minhasPosicoes.find(p => p.ticker === TICKER);
+        if (posicao) {
+          const precoAtual = dadosAtivo?.preco || posicao.preco_medio || 0;
+          const valorAtual = (posicao.quantidade||0) * precoAtual;
+          const valorPago  = (posicao.quantidade||0) * (posicao.preco_medio||0);
+          const ganho      = valorAtual - valorPago;
+          const ganhoP     = valorPago > 0 ? (ganho/valorPago)*100 : 0;
+          const isPos      = ganho >= 0;
+          const banner = document.createElement('div');
+          banner.className = `minha-pos-banner ${isPos?'':'neg'}`;
+          banner.innerHTML = `
+            <div>
+              <p class="mpb-label">${isPos?'📈 MINHA POSIÇÃO — GANHO':'📉 MINHA POSIÇÃO — PERDA'}</p>
+              <p class="mpb-valor">${isPos?'+':''}${R$(ganho)}</p>
+              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${posicao.quantidade} cotas · PM R$ ${(posicao.preco_medio||0).toFixed(2)}</p>
+            </div>
+            <p class="mpb-pct">${pct(ganhoP)}</p>`;
+          conteudo.appendChild(banner);
+        }
+
         conteudo.appendChild(renderizarHero());
-        conteudo.appendChild(renderizarHistorico());
+        conteudo.appendChild(renderizarHistoricoPrecos());
         conteudo.appendChild(renderizarFundamentos());
 
         if (TIPO === 'acoes' || TIPO === 'fiis') {
           const {setor, concorrentes} = MercadoAPI.obterConcorrentes(TICKER);
-          if (concorrentes.length > 0) {
-            conteudo.appendChild(renderizarConcorrentes(setor, concorrentes));
-          }
+          if (concorrentes.length > 0) conteudo.appendChild(renderizarConcorrentes(setor, concorrentes));
           conteudo.appendChild(renderizarAnalistas());
         }
 
         conteudo.appendChild(renderizarRiscos());
 
-        // ── Análise IA (Claude via Anthropic API) ──
+        // IA
         const iaEl = document.createElement('div');
         iaEl.className = 'ia-card';
         iaEl.innerHTML = `
-          <div class="ia-header">
-            <span class="ia-badge">IA</span>
-            <p class="ia-titulo">ANÁLISE INTELIGENTE</p>
-          </div>
+          <div class="ia-header"><span class="ia-badge">IA</span><p class="ia-titulo">ANÁLISE INTELIGENTE</p></div>
           <div class="ia-sk" style="width:100%"></div>
           <div class="ia-sk" style="width:85%"></div>
           <div class="ia-sk" style="width:90%"></div>
@@ -339,8 +477,7 @@
           <div class="relatorio-secao">
             <p style="font-family:var(--mono);font-size:11px;color:var(--muted)">
               ⚠️ Não foi possível carregar dados de <strong>${TICKER}</strong>.<br><br>
-              Possíveis causas:<br>
-              · Ticker incorreto (ex: use PETR4, não PETR)<br>
+              Possíveis causas:<br>· Ticker incorreto (ex: use PETR4, não PETR)<br>
               · API temporariamente indisponível<br><br>
               <a href="investir.html" style="color:var(--wave)">← Voltar e tentar outro ativo</a>
             </p>
@@ -349,14 +486,24 @@
     }
 
     // ══════════════════════════════════════════
-    //  SEÇÕES DO RELATÓRIO
+    //  SEÇÕES
     // ══════════════════════════════════════════
     function renderizarHero() {
       const preco  = dadosAtivo?.preco || dadosDetalhe?.preco || 0;
       const varpct = dadosAtivo?.variacao_pct || 0;
       const pos    = varpct >= 0;
-      const hist1m = dadosHist1y?.historico?.slice(-22) || [];
-      const var1m  = hist1m.length > 1 ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco)/hist1m[0].preco)*100 : 0;
+
+      const hist1y    = dadosHist1y?.historico || [];
+      const min52     = dadosDetalhe?.min_52s || 0;
+      const max52     = dadosDetalhe?.max_52s || 0;
+      const range52   = max52 - min52 || 1;
+      const posRange  = min52 > 0 ? Math.min(100, Math.max(0, ((preco - min52) / range52) * 100)) : 50;
+
+      // var 1 mês — últimos 22 pregões do histórico anual
+      const hist1m  = hist1y.slice(-22);
+      const var1m   = hist1m.length > 1 ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco) / hist1m[0].preco) * 100 : 0;
+      const var1y   = dadosHist1y?.variacao_periodo || 0;
+      const var6m   = dadosHist6m?.variacao_periodo || 0;
 
       const el = document.createElement('div');
       el.className = 'ativo-hero';
@@ -366,61 +513,182 @@
             <p class="ativo-ticker">${TICKER}</p>
             <p class="ativo-nome">${(dadosAtivo?.nome || dadosDetalhe?.industria || '').substring(0,50)}</p>
           </div>
-          <div>
+          <div style="text-align:right">
             <p class="ativo-preco">R$ ${preco.toFixed(2)}</p>
-            <p class="ativo-var ${pos?'pos':'neg'}">${MercadoAPI.pct(varpct)} hoje</p>
+            <span class="ativo-var ${pos?'pos':'neg'}">${MercadoAPI.pct(varpct)} hoje</span>
           </div>
         </div>
-        <div class="ativo-stats">
-          <div class="stat-item"><span class="stat-label">MÍN 52 SEM</span><span class="stat-valor">R$ ${(dadosDetalhe?.min_52s||0).toFixed(2)}</span></div>
-          <div class="stat-item"><span class="stat-label">MÁX 52 SEM</span><span class="stat-valor">R$ ${(dadosDetalhe?.max_52s||0).toFixed(2)}</span></div>
-          <div class="stat-item"><span class="stat-label">1 MÊS</span><span class="stat-valor ${var1m>=0?'pos':'neg'}">${MercadoAPI.pct(var1m)}</span></div>
-          <div class="stat-item"><span class="stat-label">MÍN 6 MESES</span><span class="stat-valor">R$ ${(dadosHist6m?.min_periodo||0).toFixed(2)}</span></div>
-          <div class="stat-item"><span class="stat-label">MÁX 6 MESES</span><span class="stat-valor">R$ ${(dadosHist6m?.max_periodo||0).toFixed(2)}</span></div>
-          <div class="stat-item"><span class="stat-label">1 ANO</span><span class="stat-valor ${(dadosHist1y?.variacao_periodo||0)>=0?'pos':'neg'}">${MercadoAPI.pct(dadosHist1y?.variacao_periodo||0)}</span></div>
+
+        ${min52 > 0 ? `
+        <div class="range-wrap">
+          <div class="range-label-row">
+            <span class="range-label">MÍN 52 SEM</span>
+            <span class="range-label">POSIÇÃO NO ANO</span>
+            <span class="range-label">MÁX 52 SEM</span>
+          </div>
+          <div class="range-bar">
+            <div class="range-fill" style="width:${posRange}%"></div>
+            <div class="range-dot" style="left:${posRange}%"></div>
+          </div>
+          <div class="range-val-row">
+            <span class="range-val">R$ ${min52.toFixed(2)}</span>
+            <span class="range-val" style="color:var(--wave)">${posRange.toFixed(0)}%</span>
+            <span class="range-val">R$ ${max52.toFixed(2)}</span>
+          </div>
+        </div>` : ''}
+
+        ${hist1y.length > 0 ? `
+        <div class="mini-chart-wrap">
+          <canvas class="mini-chart" id="mini-canvas"></canvas>
+        </div>` : ''}
+
+        <div class="stats-grid">
+          <div class="stat-bloco">
+            <span class="stat-label">1 MÊS</span>
+            <span class="stat-valor ${var1m>=0?'pos':'neg'}">${pct(var1m)}</span>
+          </div>
+          <div class="stat-bloco">
+            <span class="stat-label">6 MESES</span>
+            <span class="stat-valor ${var6m>=0?'pos':'neg'}">${pct(var6m)}</span>
+          </div>
+          <div class="stat-bloco">
+            <span class="stat-label">1 ANO</span>
+            <span class="stat-valor ${var1y>=0?'pos':'neg'}">${pct(var1y)}</span>
+          </div>
         </div>`;
+
+      // Desenha mini chart depois de inserir no DOM
+      if (hist1y.length > 0) {
+        requestAnimationFrame(() => {
+          const canvas = el.querySelector('#mini-canvas');
+          if (canvas) desenharMiniChart(canvas, hist1y.map(h=>h.preco), var1y >= 0);
+        });
+      }
+
       return el;
     }
 
-    function renderizarHistorico() {
-      const p    = dadosAtivo?.preco || 0;
-      const m50  = dadosDetalhe?.media_50d  || 0;
-      const m200 = dadosDetalhe?.media_200d || 0;
-      // "acima" só é válido se temos a média 200d
-      const temMedia200 = m200 > 0;
-      const acima = p > m200;
+    function desenharMiniChart(canvas, precos, isPos) {
+      const dpr  = window.devicePixelRatio || 1;
+      const W    = canvas.parentElement.offsetWidth;
+      const H    = 70;
+      canvas.width        = W * dpr;
+      canvas.height       = H * dpr;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const pad = {t:4, r:4, b:4, l:4};
+      const cw  = W - pad.l - pad.r;
+      const ch  = H - pad.t - pad.b;
+      const min = Math.min(...precos) * 0.998;
+      const max = Math.max(...precos) * 1.002;
+      const rng = max - min || 1;
+
+      const xOf = i => pad.l + (i / (precos.length-1)) * cw;
+      const yOf = v => pad.t + ch - ((v-min)/rng)*ch;
+
+      const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t+ch);
+      grad.addColorStop(0, isPos ? 'rgba(26,138,74,.3)' : 'rgba(204,34,0,.3)');
+      grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
+
+      ctx.beginPath();
+      ctx.moveTo(xOf(0), yOf(precos[0]));
+      precos.forEach((p,i) => { if(i>0) ctx.lineTo(xOf(i), yOf(p)); });
+      ctx.lineTo(xOf(precos.length-1), pad.t+ch);
+      ctx.lineTo(xOf(0), pad.t+ch);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.strokeStyle = isPos ? '#1a8a4a' : '#cc2200';
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.moveTo(xOf(0), yOf(precos[0]));
+      precos.forEach((p,i) => { if(i>0) ctx.lineTo(xOf(i), yOf(p)); });
+      ctx.stroke();
+
+      // ponto final
+      const lx = xOf(precos.length-1);
+      const ly = yOf(precos[precos.length-1]);
+      ctx.beginPath();
+      ctx.arc(lx, ly, 3.5, 0, Math.PI*2);
+      ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200';
+      ctx.fill();
+      ctx.strokeStyle = '#faf8f5';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    function renderizarHistoricoPrecos() {
+      const d     = dadosDetalhe || {};
+      const preco = dadosAtivo?.preco || 0;
+      const m50   = d.media_50d  || 0;
+      const m200  = d.media_200d || 0;
+
+      // vs média 200d
+      let vsMedia = '';
+      if (m200 > 0) {
+        const acima = preco > m200;
+        const diffPct = ((preco - m200) / m200) * 100;
+        vsMedia = item('Vs. média 200d', `${acima ? 'Acima' : 'Abaixo'} ${pct(diffPct)}`, acima ? 'pos' : 'neg');
+      }
+
+      const var6m = dadosHist6m?.variacao_periodo || 0;
+      const var1y = dadosHist1y?.variacao_periodo || 0;
 
       const el = document.createElement('div');
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">📊 HISTÓRICO DE PREÇOS</p>
-        ${item('Preço atual', MercadoAPI.R$(p))}
-        ${m50  > 0 ? item('Média 50 dias',  MercadoAPI.R$(m50))  : item('Média 50 dias',  'Calculando...', '')}
-        ${m200 > 0 ? item('Média 200 dias', MercadoAPI.R$(m200)) : item('Média 200 dias', 'Calculando...', '')}
-        ${temMedia200 ? item('Vs. média 200d', acima?'Acima ✅':'Abaixo ⚠️', acima?'pos':'neg') : ''}
-        ${item('Variação 6 meses', MercadoAPI.pct(dadosHist6m?.variacao_periodo||0), (dadosHist6m?.variacao_periodo||0)>=0?'pos':'neg')}
-        ${item('Variação 1 ano',   MercadoAPI.pct(dadosHist1y?.variacao_periodo||0), (dadosHist1y?.variacao_periodo||0)>=0?'pos':'neg')}
-        ${item('Volume médio (3m)', dadosDetalhe?.volume_medio > 0 ? Number(dadosDetalhe.volume_medio).toLocaleString('pt-BR') : 'Indisponível')}`;
+        ${item('Preço atual', R$(preco))}
+        ${m50  > 0 ? item('Média 50 dias',  R$(m50),  preco>m50?'pos':'neg') : item('Média 50 dias', 'Calculando...', '')}
+        ${m200 > 0 ? item('Média 200 dias', R$(m200), preco>m200?'pos':'neg') : item('Média 200 dias', 'Calculando...', '')}
+        ${vsMedia}
+        ${var6m !== 0 ? item('Variação 6 meses', pct(var6m), var6m>=0?'pos':'neg') : item('Variação 6 meses', 'Carregando...', '')}
+        ${var1y !== 0 ? item('Variação 1 ano',   pct(var1y), var1y>=0?'pos':'neg') : item('Variação 1 ano',   'Carregando...', '')}
+        ${d.volume_medio > 0 ? item('Volume médio (3m)', Number(d.volume_medio).toLocaleString('pt-BR')) : item('Volume médio (3m)', 'Indisponível', '')}`;
       return el;
     }
 
     function renderizarFundamentos() {
       const d = dadosDetalhe || {};
+      const temFund = d.market_cap || d.pl || d.dy || d.roe || d.pvp;
+
       const el = document.createElement('div');
       el.className = 'relatorio-secao';
+
+      if (!temFund) {
+        el.innerHTML = `
+          <p class="secao-titulo">🏛️ FUNDAMENTOS</p>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px 0">Dados fundamentalistas indisponíveis para este ativo no momento.</p>`;
+        return el;
+      }
+
+      // Monta grade visual de indicadores
+      const fundItems = [];
+      if (d.market_cap)    fundItems.push({ label:'MARKET CAP', valor: MercadoAPI.bigNum(d.market_cap), sub:'', cls:'' });
+      if (d.pl)            fundItems.push({ label:'P/L',         valor: d.pl.toFixed(2), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
+      if (d.pvp)           fundItems.push({ label:'P/VP',        valor: d.pvp.toFixed(2), sub: d.pvp<1?'Abaixo do patrimônio':'Acima do patrimônio', cls: d.pvp<1?'pos':'' });
+      if (d.dy)            fundItems.push({ label:'DIV. YIELD',  valor: pct(d.dy), sub: d.dy>6?'Yield alto':'', cls: d.dy>6?'pos':'' });
+      if (d.roe)           fundItems.push({ label:'ROE',         valor: pct(d.roe), sub: d.roe>15?'Eficiente':'', cls: d.roe>15?'pos':'' });
+      if (d.margem_lucro)  fundItems.push({ label:'MARGEM LÍQ.', valor: pct(d.margem_lucro), sub:'', cls: d.margem_lucro>0?'pos':'neg' });
+      if (d.ev_ebitda)     fundItems.push({ label:'EV/EBITDA',   valor: d.ev_ebitda.toFixed(2), sub:'', cls:'' });
+      if (d.margem_ebitda) fundItems.push({ label:'MARGEM EBITDA', valor: pct(d.margem_ebitda), sub:'', cls:'' });
+
       el.innerHTML = `
         <p class="secao-titulo">🏛️ FUNDAMENTOS</p>
-        ${d.market_cap    ? item('Market Cap',     MercadoAPI.bigNum(d.market_cap)) : ''}
-        ${d.pl            ? item('P/L',             d.pl.toFixed(2), d.pl<15?'pos':d.pl>30?'neg':'') : ''}
-        ${d.pvp           ? item('P/VP',            d.pvp.toFixed(2), d.pvp<1?'pos':'') : ''}
-        ${d.dy            ? item('Dividend Yield',  MercadoAPI.pct(d.dy), d.dy>6?'pos':'') : ''}
-        ${d.roe           ? item('ROE',             MercadoAPI.pct(d.roe), d.roe>15?'pos':'') : ''}
-        ${d.roa           ? item('ROA',             MercadoAPI.pct(d.roa)) : ''}
-        ${d.margem_lucro  ? item('Margem Líquida',  MercadoAPI.pct(d.margem_lucro), d.margem_lucro>0?'pos':'neg') : ''}
-        ${d.margem_ebitda ? item('Margem EBITDA',   MercadoAPI.pct(d.margem_ebitda)) : ''}
-        ${d.ev_ebitda     ? item('EV/EBITDA',       d.ev_ebitda.toFixed(2)) : ''}
-        ${d.setor         ? item('Setor',           d.setor) : ''}
-        ${d.industria     ? item('Segmento',        d.industria) : ''}`;
+        ${d.setor    ? `<p style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:12px">${d.setor}${d.industria?' · '+d.industria:''}</p>` : ''}
+        <div class="fund-grid">
+          ${fundItems.map(f => `
+            <div class="fund-item">
+              <span class="fund-label">${f.label}</span>
+              <span class="fund-valor ${f.cls}">${f.valor}</span>
+              ${f.sub ? `<span class="fund-sub">${f.sub}</span>` : ''}
+            </div>`).join('')}
+        </div>`;
       return el;
     }
 
@@ -434,10 +702,7 @@
 
       MercadoAPI.buscarMultiplos(tickers.slice(0,5)).then(dados => {
         const lista = el.querySelector('#conc-lista');
-        if (!dados || dados.length === 0) {
-          lista.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Indisponível</p>`;
-          return;
-        }
+        if (!dados?.length) { lista.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Indisponível</p>`; return; }
         lista.innerHTML = dados.map(d => `
           <div class="conc-item" onclick="location.href='relatorio.html?ticker=${d.ticker}&tipo=${TIPO}'">
             <span class="conc-ticker">${d.ticker}</span>
@@ -451,19 +716,19 @@
 
     function renderizarAnalistas() {
       const d = dadosDetalhe || {};
-      const c = d.rec_compra || 0;
-      const n = d.rec_neutro || 0;
-      const v = d.rec_venda  || 0;
+      const c = d.rec_compra || 0, n = d.rec_neutro || 0, v = d.rec_venda || 0;
       const t = c + n + v || 1;
       const temDados = (c + n + v) > 0;
+      const preco = dadosAtivo?.preco || 0;
+      const potencial = d.alvo_analistas && preco ? ((d.alvo_analistas - preco) / preco) * 100 : null;
 
       const el = document.createElement('div');
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">👥 CONSENSO DE ANALISTAS</p>
-        ${item('Total analistas', d.n_analistas > 0 ? d.n_analistas : '—')}
-        ${item('Preço-alvo médio', d.alvo_analistas ? MercadoAPI.R$(d.alvo_analistas) : '—')}
-        ${d.alvo_analistas && dadosAtivo?.preco ? item('Potencial', MercadoAPI.pct(((d.alvo_analistas-dadosAtivo.preco)/dadosAtivo.preco)*100), d.alvo_analistas>dadosAtivo.preco?'pos':'neg') : ''}
+        ${item('Total analistas',    d.n_analistas > 0 ? d.n_analistas : '—')}
+        ${item('Preço-alvo médio',   d.alvo_analistas ? R$(d.alvo_analistas) : '—')}
+        ${potencial !== null ? item('Potencial de alta', pct(potencial), potencial>=0?'pos':'neg') : ''}
         ${item('Recomendação', traduzirRec(d.recomendacao), d.recomendacao==='buy'||d.recomendacao==='strongBuy'?'pos':d.recomendacao==='sell'?'neg':'')}
         ${temDados ? `
         <div class="analistas-bar" style="margin-top:12px">
@@ -477,7 +742,7 @@
           <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Venda ${v}</div>
         </div>
         <p style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">* Distribuição estimada com base na recomendação consolidada</p>
-        ` : `<p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px">Dados de analistas indisponíveis para este ativo.</p>`}`;
+        ` : `<p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px">Dados de analistas indisponíveis para este ativo no momento.</p>`}`;
       return el;
     }
 
@@ -495,32 +760,34 @@
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">⚠️ RISCOS</p>
-        <div class="ia-lista">
-          ${riscos.map(r=>`<div class="ia-item"><span>⚠️</span><span>${r}</span></div>`).join('')}
-        </div>`;
+        ${riscos.map(r=>`<div class="risco-item"><span>⚠️</span><span>${r}</span></div>`).join('')}`;
       return el;
     }
 
     // ══════════════════════════════════════════
-    //  ANÁLISE IA — Claude via Anthropic API
+    //  ANÁLISE IA
     // ══════════════════════════════════════════
     async function gerarAnaliseIA(el) {
-      const d    = dadosDetalhe || {};
+      const d     = dadosDetalhe || {};
       const preco = dadosAtivo?.preco || 0;
       const var1y = dadosHist1y?.variacao_periodo || 0;
+      const var6m = dadosHist6m?.variacao_periodo || 0;
+      const min52 = d.min_52s || 0;
+      const max52 = d.max_52s || 0;
 
       const prompt = `Você é um analista financeiro educacional da plataforma Los Pombitos Investimentos.
 Analise o ativo ${TICKER} e gere um relatório em português brasileiro para um investidor com perfil: ${perfilUsuario}.
 
 DADOS DISPONÍVEIS:
-- Preço atual: R$ ${preco.toFixed(2)} | Variação hoje: ${MercadoAPI.pct(dadosAtivo?.variacao_pct||0)}
-- Variação 1 ano: ${MercadoAPI.pct(var1y)}
-- Variação 6 meses: ${MercadoAPI.pct(dadosHist6m?.variacao_periodo||0)}
+- Preço atual: R$ ${preco.toFixed(2)} | Variação hoje: ${pct(dadosAtivo?.variacao_pct||0)}
+- Variação 6 meses: ${pct(var6m)} | Variação 1 ano: ${pct(var1y)}
+- Mín 52 semanas: R$ ${min52.toFixed(2)} | Máx 52 semanas: R$ ${max52.toFixed(2)}
+- Posição na faixa 52s: ${min52>0?((preco-min52)/(max52-min52||1)*100).toFixed(0)+'%':'N/A'}
+- Média 50 dias: R$ ${(d.media_50d||0).toFixed(2)} | Média 200 dias: R$ ${(d.media_200d||0).toFixed(2)}
 - P/L: ${d.pl?.toFixed(2)||'N/A'} | P/VP: ${d.pvp?.toFixed(2)||'N/A'}
-- Dividend Yield: ${MercadoAPI.pct(d.dy||0)} | ROE: ${MercadoAPI.pct(d.roe||0)}
-- Margem Líquida: ${MercadoAPI.pct(d.margem_lucro||0)} | Setor: ${d.setor||'N/A'}
+- Dividend Yield: ${pct(d.dy||0)} | ROE: ${pct(d.roe||0)}
+- Margem Líquida: ${pct(d.margem_lucro||0)} | Setor: ${d.setor||'N/A'}
 - Recomendação analistas: ${traduzirRec(d.recomendacao)} | Preço-alvo: R$ ${d.alvo_analistas?.toFixed(2)||'N/A'}
-- Mín 52 semanas: R$ ${d.min_52s?.toFixed(2)||'N/A'} | Máx 52 semanas: R$ ${d.max_52s?.toFixed(2)||'N/A'}
 
 Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
 {"resumo":"2-3 frases sobre o ativo e momento atual","positivos":["p1","p2","p3"],"atencao":["a1","a2","a3"],"perfil_ideal":"uma frase","horizonte":"curto/médio/longo prazo","contexto_macro":"uma frase sobre o contexto macroeconômico"}`;
@@ -535,52 +802,48 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
             messages: [{ role: 'user', content: prompt }]
           })
         });
-
         const data = await res.json();
-
-        // Extrai texto da resposta
-        const texto = data.content
-          ?.map(b => b.type === 'text' ? b.text : '')
-          .join('') || '';
-
-        // Remove possíveis blocos markdown
-        const limpo = texto.replace(/```json|```/g, '').trim();
+        const texto = data.content?.map(b=>b.type==='text'?b.text:'').join('') || '';
+        const limpo = texto.replace(/```json|```/g,'').trim();
         const a = JSON.parse(limpo);
 
         el.innerHTML = `
-          <div class="ia-header">
-            <span class="ia-badge">IA</span>
-            <p class="ia-titulo">ANÁLISE INTELIGENTE</p>
-          </div>
+          <div class="ia-header"><span class="ia-badge">IA</span><p class="ia-titulo">ANÁLISE INTELIGENTE</p></div>
           <p class="ia-texto">${a.resumo}</p>
           <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--green);margin-bottom:8px">✅ PONTOS POSITIVOS</p>
           <div class="ia-lista">${a.positivos.map(p=>`<div class="ia-item"><span>✅</span><span>${p}</span></div>`).join('')}</div>
           <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--coral);margin:14px 0 8px">⚠️ PONTOS DE ATENÇÃO</p>
           <div class="ia-lista">${a.atencao.map(x=>`<div class="ia-item"><span>⚠️</span><span>${x}</span></div>`).join('')}</div>
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--foam)">
-            ${item('Perfil ideal',     a.perfil_ideal)}
-            ${item('Horizonte',        a.horizonte)}
-            ${item('Contexto macro',   a.contexto_macro)}
+            ${item('Perfil ideal',   a.perfil_ideal)}
+            ${item('Horizonte',      a.horizonte)}
+            ${item('Contexto macro', a.contexto_macro)}
           </div>
           <p class="ia-aviso">⚠️ Esta análise é educacional e não constitui recomendação de investimento. Consulte um assessor antes de investir.</p>`;
 
       } catch(e) {
         console.error('[IA]', e);
-        // Fallback elegante com os dados disponíveis
+        // Fallback com dados reais disponíveis
         const var1yVal = dadosHist1y?.variacao_periodo || 0;
         const pl = dadosDetalhe?.pl || 0;
         const dy = dadosDetalhe?.dy || 0;
+        const var6mVal = dadosHist6m?.variacao_periodo || 0;
+        const min52 = dadosDetalhe?.min_52s || 0;
+        const max52 = dadosDetalhe?.max_52s || 0;
+        const posRange = min52 > 0 ? ((preco-min52)/(max52-min52||1)*100).toFixed(0) : null;
+
         el.innerHTML = `
-          <div class="ia-header">
-            <span class="ia-badge">ANÁLISE</span>
-            <p class="ia-titulo">DADOS DO ATIVO</p>
-          </div>
+          <div class="ia-header"><span class="ia-badge">ANÁLISE</span><p class="ia-titulo">DADOS DO ATIVO</p></div>
           <p class="ia-texto">
-            ${TICKER} negocia a R$ ${preco.toFixed(2)}${var1yVal !== 0 ? `, com ${var1yVal > 0 ? 'valorização' : 'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses` : ''}.
-            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl < 15 ? ' indica valuation atrativo' : pl > 30 ? ' está elevado em relação ao setor' : ' está em linha com o setor'}.` : ''}
+            ${TICKER} negocia a R$ ${preco.toFixed(2)}${var1yVal !== 0 ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses` : ''}.
+            ${posRange !== null ? `Está a ${posRange}% da sua faixa de 52 semanas (mín R$ ${min52.toFixed(2)}, máx R$ ${max52.toFixed(2)}).` : ''}
+            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl<15?' indica valuation atrativo':pl>30?' está elevado em relação ao setor':' está em linha com o setor'}.` : ''}
             ${dy > 4 ? `Dividend Yield de ${dy.toFixed(1)}% é um ponto positivo para renda passiva.` : ''}
           </p>
-          <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Consulte os dados acima para sua decisão de investimento.</p>`;
+          ${item('Variação 6 meses', pct(var6mVal), var6mVal>=0?'pos':'neg')}
+          ${item('Variação 1 ano', pct(var1yVal), var1yVal>=0?'pos':'neg')}
+          ${min52 > 0 ? item('Posição na faixa 52s', posRange + '%') : ''}
+          <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Os dados acima foram calculados diretamente do histórico de preços.</p>`;
       }
     }
 
@@ -660,26 +923,6 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
           <div class="sim-grid">${sim}</div>
           <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px">Simulação a ${isCDB?'110%':'90%'} do CDI · CDI aprox. 13,65% a.a.</p>
         </div>`;
-    }
-
-    // ══════════════════════════════════════════
-    //  HELPERS
-    // ══════════════════════════════════════════
-    function item(label, valor, cls='') {
-      return `<div class="relatorio-item"><span class="item-label">${label}</span><span class="item-valor ${cls}">${valor}</span></div>`;
-    }
-
-    function nomeTipo(t) {
-      return {acoes:'AÇÕES',fiis:'FIIs',cdb:'CDB',lci:'LCI/LCA',tesouro:'TESOURO DIRETO',cripto:'CRIPTO'}[t] || t.toUpperCase();
-    }
-
-    function traduzirRec(r) {
-      return {buy:'Compra',strongBuy:'Compra Forte',sell:'Venda',strongSell:'Venda Forte',hold:'Neutro'}[r] || r || '—';
-    }
-
-    function irParaOrdem() {
-      if (!TICKER) return;
-      window.location.href = `ordem.html?ticker=${TICKER}&tipo=${TIPO}&preco=${dadosAtivo?.preco||0}`;
     }
   </script>
 </body>
