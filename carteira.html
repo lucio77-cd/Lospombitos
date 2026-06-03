@@ -3,302 +3,507 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Corrigir Carteira | Los Pombitos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>Carteira | Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--muted:#8a8278;--radius:14px;--mono:'DM Mono',monospace;--display:'Bebas Neue',sans-serif}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--mono);background:var(--sand);color:var(--ink);min-height:100dvh;padding:20px 16px 40px}
-    .title{font-family:var(--display);font-size:28px;letter-spacing:3px;margin-bottom:6px}
-    .sub{font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:24px;line-height:1.6}
-    .card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:14px}
-    .card-title{font-family:var(--display);font-size:16px;letter-spacing:2px;margin-bottom:14px;color:var(--ink)}
-    .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--shore)}
-    .row:last-child{border-bottom:none}
-    .lbl{font-size:9px;letter-spacing:1.5px;color:var(--muted)}
-    .val{font-size:12px;font-weight:500;color:var(--ink)}
-    .val.pos{color:var(--green)}.val.neg{color:var(--red)}.val.blue{color:var(--wave)}
+    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
+    .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
+    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
+    .hdr-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
+    .container{padding:16px 14px;max-width:640px;margin:0 auto}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
-    /* Posição editável */
-    .pos-item{background:var(--sand);border:1.5px solid var(--shore);border-radius:10px;padding:14px;margin-bottom:10px}
-    .pos-ticker{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-    .pos-preco-atual{font-size:11px;color:var(--green)}
-    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
-    .field{display:flex;flex-direction:column;gap:4px}
-    .field label{font-size:8px;letter-spacing:1.5px;color:var(--muted)}
-    .field input{height:40px;background:var(--card);border:1.5px solid var(--shore);border-radius:8px;font-family:var(--mono);font-size:13px;color:var(--ink);padding:0 10px;outline:none;transition:border-color .2s;width:100%}
-    .field input:focus{border-color:var(--wave)}
-    .btn-remove{font-size:9px;letter-spacing:1px;color:var(--red);background:none;border:1px solid var(--red);border-radius:20px;padding:4px 10px;cursor:pointer}
-    .btn-add{width:100%;height:40px;background:none;border:1.5px dashed var(--shore);border-radius:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);cursor:pointer;margin-bottom:14px;transition:all .2s}
-    .btn-add:hover{border-color:var(--wave);color:var(--wave)}
+    /* PATRIMÔNIO */
+    .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);padding:22px;border-radius:20px;color:white;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
+    .pat-card::before{content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:70px;color:rgba(255,255,255,.05);pointer-events:none;letter-spacing:-2px}
+    .pat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;opacity:.7;margin-bottom:4px}
+    .pat-valor{font-family:var(--display);font-size:38px;letter-spacing:2px;line-height:1;margin-bottom:2px}
+    .pat-rentab{font-family:var(--mono);font-size:11px;margin-bottom:14px}
+    .pat-rentab.pos{color:#88ffbb} .pat-rentab.neg{color:#ffaaaa}
+    .pat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
+    .pat-item .pat-label{margin-bottom:2px}
+    .pat-item-val{font-family:var(--mono);font-size:11px;font-weight:500}
 
-    .saldo-input{width:100%;height:48px;background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);padding:0 16px;outline:none;transition:border-color .2s;margin-top:6px}
-    .saldo-input:focus{border-color:var(--wave)}
+    /* GRÁFICO */
+    .chart-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:14px;animation:fadeUp .35s ease}
+    .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .chart-title{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--ink)}
+    .chart-periods{display:flex;gap:4px}
+    .period-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--shore);background:none;color:var(--muted);cursor:pointer;transition:all .2s}
+    .period-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
+    .chart-wrap{position:relative;height:140px;margin-bottom:12px}
+    canvas#perf-chart{width:100%;height:140px}
+    .chart-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .cs-item{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
+    .cs-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px}
+    .cs-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
+    .cs-val.pos{color:var(--green)} .cs-val.neg{color:var(--red)}
 
-    .preview{background:linear-gradient(135deg,#1a4fff,#001a80);border-radius:16px;padding:18px;color:white;margin-bottom:14px}
-    .preview-lbl{font-size:8px;letter-spacing:2px;opacity:.7;margin-bottom:3px}
-    .preview-val{font-family:var(--display);font-size:32px;letter-spacing:2px;margin-bottom:10px}
-    .preview-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}
-    .preview-item-lbl{font-size:7px;letter-spacing:1.5px;opacity:.7;margin-bottom:2px}
-    .preview-item-val{font-size:11px;font-weight:500}
+    /* TABS */
+    .tabs{display:flex;gap:8px;margin-bottom:14px}
+    .tab-btn{flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;border:1.5px solid var(--shore);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s}
+    .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
 
-    .btn-salvar{width:100%;height:54px;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;margin-bottom:10px}
-    .btn-salvar:hover{background:#0033cc;transform:translateY(-1px)}
-    .btn-salvar:disabled{opacity:.5;cursor:not-allowed;transform:none}
-    .btn-voltar{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;cursor:pointer}
+    /* POSIÇÃO */
+    .pos-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;animation:fadeUp .3s ease;transition:border-color .2s}
+    .pos-card:hover{border-color:var(--foam)}
+    .pos-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .pos-left .pos-ticker{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
+    .pos-left .pos-tipo{font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:2px 8px;display:inline-block;margin-top:3px}
+    .pos-right{text-align:right}
+    .pos-valor{font-family:var(--display);font-size:20px;letter-spacing:1px;color:var(--ink)}
+    .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:2px}
+    .pos-rentab.pos{color:var(--green)} .pos-rentab.neg{color:var(--red)}
 
-    .sucesso{display:none;text-align:center;padding:40px 20px}
-    .sucesso.show{display:block}
-    .sucesso-ico{font-size:56px;margin-bottom:16px}
-    .sucesso-title{font-family:var(--display);font-size:26px;letter-spacing:3px;margin-bottom:8px}
-    .sucesso-desc{font-size:10px;letter-spacing:1px;color:var(--muted);line-height:1.8;margin-bottom:24px}
+    /* Resultado destaque */
+    .pos-resultado{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:10px}
+    .pos-resultado.pos{background:#d4f5e2}
+    .pos-resultado.neg{background:#ffd5ce}
+    .pr-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px}
+    .pr-label.pos{color:var(--green)} .pr-label.neg{color:var(--red)}
+    .pr-valor{font-family:var(--display);font-size:18px;letter-spacing:1px}
+    .pr-valor.pos{color:var(--green)} .pr-valor.neg{color:var(--red)}
+    .pr-pct{font-family:var(--mono);font-size:11px;font-weight:500}
+    .pr-pct.pos{color:var(--green)} .pr-pct.neg{color:var(--red)}
 
-    .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:white;font-size:11px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .pos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--shore);margin-bottom:10px}
+    .pos-stat{display:flex;flex-direction:column;gap:2px}
+    .pos-stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
+    .pos-stat-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
 
-    .loading{text-align:center;padding:40px;font-size:10px;letter-spacing:2px;color:var(--muted)}
+    .pos-actions{display:flex;gap:6px}
+    .btn-rel{flex:1;height:34px;background:var(--wave);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-rel:hover{background:#0033cc}
+    .btn-buy{flex:1;height:34px;background:var(--green);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer}
+    .btn-sell{flex:1;height:34px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-sell:hover{background:var(--red);color:white}
+
+    /* HISTÓRICO */
+    .hist-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;animation:fadeUp .3s ease}
+    .hist-row{display:flex;justify-content:space-between;align-items:center}
+    .hist-left{display:flex;align-items:center;gap:10px}
+    .hist-pill{font-family:var(--mono);font-size:8px;letter-spacing:1px;border-radius:20px;padding:3px 9px}
+    .hist-pill.c{background:#d4f5e2;color:var(--green)}
+    .hist-pill.v{background:#ffd5ce;color:var(--red)}
+    .hist-ticker{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--wave)}
+    .hist-info{font-size:10px;color:var(--muted);margin-top:2px}
+    .hist-total{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right}
+    .hist-data{font-size:9px;color:var(--muted);text-align:right;margin-top:2px}
+
+    /* SKELETON */
+    .skel{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+    .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
+    .empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1px}
+    .empty-ico{font-size:38px;margin-bottom:12px;display:block}
+
+    /* NAV */
+    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
+    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+    .ni:hover{background:var(--shore)}
+    .ni-ico{font-size:20px;line-height:1}
+    .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+    .ni.on .ni-lbl{color:var(--wave);font-weight:500}
   </style>
 </head>
 <body>
+  <header class="hdr">
+    <button class="btn-back" onclick="history.back()">←</button>
+    <div class="hdr-title">CARTEIRA</div>
+    <button class="hdr-edit" onclick="location.href='corrigir-carteira.html'">✏️ EDITAR</button>
+  </header>
 
-<div id="main">
-  <p class="title">CORRIGIR CARTEIRA</p>
-  <p class="sub">Esta página recalcula sua carteira com os preços atuais da brapi.<br>Edite as posições, ajuste quantidades e preços médios, depois salve.</p>
-
-  <div id="loading" class="loading">⏳ Carregando dados...</div>
-  <div id="editor" style="display:none">
-
-    <!-- Preview patrimônio -->
-    <div class="preview" id="preview">
-      <p class="preview-lbl">PATRIMÔNIO ESTIMADO</p>
-      <p class="preview-val" id="prev-total">R$ ···</p>
-      <div class="preview-grid">
-        <div><p class="preview-item-lbl">DISPONÍVEL</p><p class="preview-item-val" id="prev-disp">···</p></div>
-        <div><p class="preview-item-lbl">INVESTIDO</p><p class="preview-item-val" id="prev-inv">···</p></div>
-        <div><p class="preview-item-lbl">POSIÇÕES</p><p class="preview-item-val" id="prev-pos">···</p></div>
+  <div class="container">
+    <!-- Patrimônio -->
+    <div class="pat-card">
+      <p class="pat-label">PATRIMÔNIO TOTAL</p>
+      <p class="pat-valor" id="pat-total">R$ ···</p>
+      <p class="pat-rentab" id="pat-rentab">+0,00% desde o início</p>
+      <div class="pat-grid">
+        <div class="pat-item"><p class="pat-label">DISPONÍVEL</p><p class="pat-item-val" id="pat-disp">···</p></div>
+        <div class="pat-item"><p class="pat-label">INVESTIDO</p><p class="pat-item-val" id="pat-inv">···</p></div>
+        <div class="pat-item"><p class="pat-label">RESULTADO</p><p class="pat-item-val" id="pat-result">···</p></div>
       </div>
     </div>
 
-    <!-- Saldo disponível -->
-    <div class="card">
-      <p class="card-title">💰 SALDO DISPONÍVEL</p>
-      <p style="font-size:9px;color:var(--muted);margin-bottom:4px">VALOR EM CAIXA (R$)</p>
-      <input type="number" class="saldo-input" id="saldo-input" step="0.01" oninput="recalcular()">
+    <!-- Gráfico de desempenho -->
+    <div class="chart-card" id="chart-card" style="display:none">
+      <div class="chart-header">
+        <p class="chart-title">📈 DESEMPENHO</p>
+        <div class="chart-periods">
+          <button class="period-btn on" onclick="mudarPeriodo('1mo',this)">1M</button>
+          <button class="period-btn" onclick="mudarPeriodo('3mo',this)">3M</button>
+          <button class="period-btn" onclick="mudarPeriodo('6mo',this)">6M</button>
+          <button class="period-btn" onclick="mudarPeriodo('1y',this)">1A</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="perf-chart"></canvas>
+      </div>
+      <div class="chart-stats">
+        <div class="cs-item"><p class="cs-label">MÍNIMO</p><p class="cs-val" id="cs-min">···</p></div>
+        <div class="cs-item"><p class="cs-label">MÁXIMO</p><p class="cs-val" id="cs-max">···</p></div>
+        <div class="cs-item"><p class="cs-label">VARIAÇÃO</p><p class="cs-val" id="cs-var">···</p></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn on" id="tab-pos" onclick="showTab('posicoes')">POSIÇÕES</button>
+      <button class="tab-btn" id="tab-hist" onclick="showTab('historico')">HISTÓRICO</button>
     </div>
 
     <!-- Posições -->
-    <div class="card">
-      <p class="card-title">📊 POSIÇÕES</p>
-      <div id="posicoes-list"></div>
-      <button class="btn-add" onclick="adicionarPosicao()">+ ADICIONAR ATIVO</button>
+    <div id="sec-posicoes">
+      <div id="pos-loading">
+        <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
+        <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
+      </div>
+      <div id="pos-list"></div>
     </div>
 
-    <!-- Ações -->
-    <button class="btn-salvar" id="btn-salvar" onclick="salvar()">✅ SALVAR CARTEIRA CORRIGIDA</button>
-    <button class="btn-voltar" onclick="location.href='carteira.html'">← VOLTAR SEM SALVAR</button>
+    <!-- Histórico -->
+    <div id="sec-historico" style="display:none">
+      <div id="hist-loading">
+        <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
+        <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
+      </div>
+      <div id="hist-list"></div>
+    </div>
   </div>
-</div>
 
-<div class="sucesso" id="sucesso">
-  <div class="sucesso-ico">✅</div>
-  <p class="sucesso-title">CARTEIRA CORRIGIDA</p>
-  <p class="sucesso-desc">Todos os dados foram atualizados<br>com sucesso no Firestore.</p>
-  <button class="btn-salvar" onclick="location.href='carteira.html'">💼 VER MINHA CARTEIRA</button>
-  <button class="btn-voltar" style="margin-top:8px" onclick="location.href='feed.html'">🏠 IR PARA O FEED</button>
-</div>
+  <nav class="nav">
+    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
+    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
+    <a class="ni on" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
+    <a class="ni" href="feed.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+  </nav>
 
-<div id="toast" class="toast"></div>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="mercado-api.js"></script>
+  <script>
+  let db, meuUID;
+  const CAPITAL = 500000;
+  let posicoes = [], cotacoes = {}, historicos = {};
+  let periodoAtual = '1mo';
+  let chartInstance = null;
 
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<script src="firebase.js"></script>
-<script src="mercado-api.js"></script>
-<script>
-let db, meuUID;
-let posicoes = [];
-let cotacoes = {};
-const CAPITAL = 500000;
+  const R$ = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const pct = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
 
-const R$ = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-let toastT;
-function toast(m, d=3000){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),d); }
+  function showTab(t) {
+    document.getElementById('sec-posicoes').style.display = t === 'posicoes' ? 'block' : 'none';
+    document.getElementById('sec-historico').style.display = t === 'historico' ? 'block' : 'none';
+    document.getElementById('tab-pos').classList.toggle('on', t === 'posicoes');
+    document.getElementById('tab-hist').classList.toggle('on', t === 'historico');
+  }
 
-firebase.auth().onAuthStateChanged(async user => {
-  if (!user) { location.href = 'invite.html'; return; }
-  meuUID = user.uid;
-  db = window.db || firebase.firestore();
-  await carregar();
-});
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) { location.href = 'invite.html'; return; }
+    meuUID = user.uid;
+    db = window.db || firebase.firestore();
+    await carregar();
+  });
 
-async function carregar() {
-  try {
-    const [uS, cS] = await Promise.all([
-      db.collection('usuarios').doc(meuUID).get(),
-      db.collection('carteiras').doc(meuUID).get()
-    ]);
+  async function carregar() {
+    try {
+      const [uS, cS] = await Promise.all([
+        db.collection('usuarios').doc(meuUID).get(),
+        db.collection('carteiras').doc(meuUID).get()
+      ]);
 
-    const u = uS.data() || {};
-    const c = cS.exists ? cS.data() : {};
+      const u = uS.data() || {};
+      const c = cS.exists ? cS.data() : {};
 
-    const saldo = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
-    posicoes = (c.posicoes || []).map(p => ({...p}));
+      const saldo    = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
+      const investido = c.saldo_investido ?? u.saldo_investido ?? 0;
+      posicoes       = c.posicoes || [];
 
-    document.getElementById('saldo-input').value = saldo.toFixed(2);
+      // Busca cotações atuais
+      const tickers = posicoes.filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo).map(p => p.ticker);
+      if (tickers.length) {
+        try {
+          const dados = await MercadoAPI.buscarMultiplos(tickers);
+          dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
+        } catch(e) {}
+      }
 
-    // Busca cotações atuais para todas as posições
-    const tickers = posicoes.filter(p => p.tipo === 'acoes' || p.tipo === 'fiis').map(p => p.ticker);
-    if (tickers.length) {
-      try {
-        const dados = await MercadoAPI.buscarMultiplos(tickers);
-        dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
-      } catch(e) {}
+      // Recalcula valores reais com cotações atuais
+      const investidoReal = posicoes.reduce((acc, p) => {
+        const precoAtual = cotacoes[p.ticker] || p.preco_medio || 0;
+        return acc + (p.quantidade || 0) * precoAtual;
+      }, 0);
+      const patrimonio = saldo + investidoReal;
+      const resultado  = patrimonio - CAPITAL;
+      const rentab     = (resultado / CAPITAL) * 100;
+
+      // Header patrimônio
+      document.getElementById('pat-total').textContent = R$(patrimonio);
+      document.getElementById('pat-disp').textContent  = R$(saldo);
+      document.getElementById('pat-inv').textContent   = R$(investidoReal);
+
+      const rentEl = document.getElementById('pat-rentab');
+      rentEl.textContent = pct(rentab) + ' desde o início';
+      rentEl.className = 'pat-rentab ' + (rentab >= 0 ? 'pos' : 'neg');
+
+      const resEl = document.getElementById('pat-result');
+      resEl.textContent = (resultado >= 0 ? '+' : '') + R$(resultado);
+      resEl.style.color = resultado >= 0 ? '#88ffbb' : '#ffaaaa';
+
+      // Renderiza posições
+      renderPosicoes(saldo);
+
+      // Carrega histórico e gráfico para o principal ativo
+      if (posicoes.length > 0) {
+        await carregarGrafico(posicoes[0].ticker, periodoAtual);
+      }
+
+      carregarHistorico();
+
+    } catch(e) {
+      console.error('Carteira:', e);
+      document.getElementById('pos-loading').innerHTML = '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">'+e.message+'</span></div>';
+    }
+  }
+
+  function renderPosicoes(saldo) {
+    document.getElementById('pos-loading').style.display = 'none';
+    const list = document.getElementById('pos-list');
+
+    if (!posicoes.length) {
+      list.innerHTML = '<div class="empty"><span class="empty-ico">📭</span>Nenhuma posição ainda.<br><span style="opacity:.6;display:block;margin-top:4px">Comece investindo!</span></div>';
+      return;
     }
 
-    // Preenche preço médio com preço atual se estava zerado
-    posicoes.forEach(p => {
-      if (!p.preco_medio && cotacoes[p.ticker]) {
-        p.preco_medio = cotacoes[p.ticker];
-      }
+    list.innerHTML = '';
+    posicoes.forEach(pos => {
+      const precoAtual  = cotacoes[pos.ticker] || pos.preco_medio || 0;
+      const pm          = pos.preco_medio || 0;
+      const qtd         = pos.quantidade || 0;
+      const valorAtual  = qtd * precoAtual;
+      const valorPago   = qtd * pm;
+      const resultado   = valorAtual - valorPago;
+      const rentab      = valorPago > 0 ? (resultado / valorPago) * 100 : 0;
+      const isPos       = resultado >= 0;
+      const unit        = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
+
+      const card = document.createElement('div');
+      card.className = 'pos-card';
+      card.innerHTML = `
+        <div class="pos-top">
+          <div class="pos-left">
+            <p class="pos-ticker">${pos.ticker}</p>
+            <span class="pos-tipo">${(pos.tipo || 'acoes').toUpperCase()}</span>
+          </div>
+          <div class="pos-right">
+            <p class="pos-valor">${R$(valorAtual)}</p>
+            <p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
+          </div>
+        </div>
+
+        <!-- Resultado desde a compra -->
+        <div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
+          <div>
+            <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
+            <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${R$(resultado)}</p>
+          </div>
+          <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
+        </div>
+
+        <div class="pos-grid">
+          <div class="pos-stat"><span class="pos-stat-lbl">QUANTIDADE</span><span class="pos-stat-val">${qtd} ${unit}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">PREÇO MÉDIO</span><span class="pos-stat-val">${R$(pm)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span><span class="pos-stat-val">${R$(precoAtual)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span><span class="pos-stat-val">${R$(valorAtual)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${pos.data_compra ? new Date(pos.data_compra).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}) : '—'}</span></div>
+        </div>
+
+        <div class="pos-actions">
+          <button class="btn-rel" onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}'">📊 RELATÓRIO</button>
+          <button class="btn-buy" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}'">+ COMPRAR</button>
+          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}'">VENDER</button>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  // ── GRÁFICO ──
+  async function carregarGrafico(ticker, periodo) {
+    try {
+      const hist = await MercadoAPI.buscarHistorico(ticker, periodo);
+      if (!hist?.historico?.length) return;
+
+      const dados = hist.historico;
+      const precos = dados.map(h => h.preco);
+      const labels = dados.map(h => h.data);
+      const min    = Math.min(...precos);
+      const max    = Math.max(...precos);
+      const varPct = hist.variacao_periodo || 0;
+      const isPos  = varPct >= 0;
+
+      document.getElementById('cs-min').textContent = R$(min);
+      document.getElementById('cs-max').textContent = R$(max);
+      const csVar = document.getElementById('cs-var');
+      csVar.textContent = pct(varPct);
+      csVar.className = 'cs-val ' + (isPos ? 'pos' : 'neg');
+
+      document.getElementById('chart-card').style.display = 'block';
+      desenharGrafico(labels, precos, isPos);
+
+    } catch(e) { console.warn('Gráfico:', e); }
+  }
+
+  function desenharGrafico(labels, precos, isPos) {
+    const canvas = document.getElementById('perf-chart');
+    const ctx    = canvas.getContext('2d');
+
+    // DPI fix
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width  = rect.width * dpr;
+    canvas.height = 140 * dpr;
+    canvas.style.width  = rect.width + 'px';
+    canvas.style.height = '140px';
+    ctx.scale(dpr, dpr);
+
+    const W = rect.width, H = 140;
+    const pad = {t:10, r:8, b:28, l:52};
+    const cw = W - pad.l - pad.r;
+    const ch = H - pad.t - pad.b;
+
+    const minP = Math.min(...precos) * 0.998;
+    const maxP = Math.max(...precos) * 1.002;
+    const range = maxP - minP || 1;
+
+    const xOf = i => pad.l + (i / (precos.length - 1)) * cw;
+    const yOf = v => pad.t + ch - ((v - minP) / range) * ch;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = '#e2d9cd';
+    ctx.lineWidth = 1;
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const y = pad.t + f * ch;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+      const val = maxP - f * range;
+      ctx.fillStyle = '#8a8278';
+      ctx.font = '9px DM Mono, monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('R$' + val.toFixed(0), pad.l - 4, y + 3);
     });
 
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('editor').style.display = 'block';
-    renderPosicoes();
-    recalcular();
+    // Área preenchida
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+    grad.addColorStop(0, isPos ? 'rgba(26,138,74,.25)' : 'rgba(204,34,0,.25)');
+    grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
 
-  } catch(e) {
-    console.error(e);
-    document.getElementById('loading').textContent = '⚠️ Erro ao carregar: ' + e.message;
-  }
-}
+    ctx.beginPath();
+    ctx.moveTo(xOf(0), yOf(precos[0]));
+    precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
+    ctx.lineTo(xOf(precos.length - 1), pad.t + ch);
+    ctx.lineTo(xOf(0), pad.t + ch);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
 
-function renderPosicoes() {
-  const list = document.getElementById('posicoes-list');
-  list.innerHTML = '';
+    // Linha principal
+    ctx.beginPath();
+    ctx.strokeStyle = isPos ? '#1a8a4a' : '#cc2200';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.moveTo(xOf(0), yOf(precos[0]));
+    precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
+    ctx.stroke();
 
-  posicoes.forEach((pos, i) => {
-    const precoAtual = cotacoes[pos.ticker] || pos.preco_medio || 0;
-    const div = document.createElement('div');
-    div.className = 'pos-item';
-    div.id = `pos-${i}`;
-    div.innerHTML = `
-      <div class="pos-ticker">
-        <span>${pos.ticker}</span>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${precoAtual > 0 ? `<span class="pos-preco-atual">Atual: ${R$(precoAtual)}</span>` : ''}
-          <button class="btn-remove" onclick="removerPosicao(${i})">REMOVER</button>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>TICKER</label>
-          <input type="text" value="${pos.ticker}" oninput="updatePosicao(${i},'ticker',this.value.toUpperCase())" style="text-transform:uppercase">
-        </div>
-        <div class="field">
-          <label>TIPO</label>
-          <input type="text" value="${pos.tipo||'acoes'}" oninput="updatePosicao(${i},'tipo',this.value)">
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>QUANTIDADE</label>
-          <input type="number" value="${pos.quantidade||0}" min="1" oninput="updatePosicao(${i},'quantidade',parseFloat(this.value)||0);recalcular()">
-        </div>
-        <div class="field">
-          <label>PREÇO MÉDIO (R$)</label>
-          <input type="number" value="${(pos.preco_medio||0).toFixed(2)}" step="0.01" oninput="updatePosicao(${i},'preco_medio',parseFloat(this.value)||0);recalcular()">
-        </div>
-      </div>`;
-    list.appendChild(div);
-  });
-}
+    // Ponto final
+    const lastX = xOf(precos.length - 1);
+    const lastY = yOf(precos[precos.length - 1]);
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200';
+    ctx.fill();
+    ctx.strokeStyle = '#faf8f5';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-function updatePosicao(i, campo, valor) {
-  posicoes[i][campo] = valor;
-}
-
-function removerPosicao(i) {
-  posicoes.splice(i, 1);
-  renderPosicoes();
-  recalcular();
-}
-
-function adicionarPosicao() {
-  posicoes.push({ ticker: '', tipo: 'acoes', quantidade: 0, preco_medio: 0, data_compra: new Date().toISOString(), ultima_atualizacao: new Date().toISOString() });
-  renderPosicoes();
-  recalcular();
-}
-
-function recalcular() {
-  const saldo = parseFloat(document.getElementById('saldo-input').value) || 0;
-  const investido = posicoes.reduce((acc, p) => acc + (p.quantidade||0) * (p.preco_medio||0), 0);
-  const patrimonio = saldo + investido;
-  const rentab = ((patrimonio - CAPITAL) / CAPITAL) * 100;
-
-  document.getElementById('prev-total').textContent = R$(patrimonio);
-  document.getElementById('prev-disp').textContent = R$(saldo);
-  document.getElementById('prev-inv').textContent = R$(investido);
-  document.getElementById('prev-pos').textContent = posicoes.length + (posicoes.length === 1 ? ' ativo' : ' ativos');
-}
-
-async function salvar() {
-  const btn = document.getElementById('btn-salvar');
-  btn.disabled = true;
-  btn.textContent = 'SALVANDO...';
-
-  // Validação
-  for (const p of posicoes) {
-    if (!p.ticker || p.ticker.trim() === '') { toast('⚠️ Preencha o ticker de todas as posições.'); btn.disabled=false; btn.textContent='✅ SALVAR CARTEIRA CORRIGIDA'; return; }
-    if (!p.quantidade || p.quantidade <= 0) { toast(`⚠️ Quantidade inválida em ${p.ticker}`); btn.disabled=false; btn.textContent='✅ SALVAR CARTEIRA CORRIGIDA'; return; }
-  }
-
-  const saldo    = parseFloat(document.getElementById('saldo-input').value) || 0;
-  const investido = posicoes.reduce((acc, p) => acc + (p.quantidade||0) * (p.preco_medio||0), 0);
-  const patrimonio = saldo + investido;
-
-  // Limpa e recria posições com timestamps
-  const posicoesLimpas = posicoes.map(p => ({
-    ticker:      p.ticker.toUpperCase().trim(),
-    tipo:        p.tipo || 'acoes',
-    quantidade:  parseFloat(p.quantidade) || 0,
-    preco_medio: parseFloat(p.preco_medio) || 0,
-    data_compra: p.data_compra || new Date().toISOString(),
-    ultima_atualizacao: new Date().toISOString(),
-  }));
-
-  try {
-    const batch = db.batch();
-
-    // Atualiza carteira
-    batch.set(db.collection('carteiras').doc(meuUID), {
-      uid:              meuUID,
-      saldo_disponivel: saldo,
-      saldo_investido:  investido,
-      patrimonio_total: patrimonio,
-      posicoes:         posicoesLimpas,
-      ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
-
-    // Atualiza usuário
-    batch.update(db.collection('usuarios').doc(meuUID), {
-      saldo_disponivel: saldo,
-      saldo_investido:  investido,
-      patrimonio_total: patrimonio,
+    // Labels eixo X (início, meio, fim)
+    ctx.fillStyle = '#8a8278';
+    ctx.font = '8px DM Mono, monospace';
+    ctx.textAlign = 'center';
+    const labelIdxs = [0, Math.floor(precos.length / 2), precos.length - 1];
+    labelIdxs.forEach(i => {
+      if (labels[i]) ctx.fillText(labels[i].slice(0,5), xOf(i), H - 6);
     });
-
-    await batch.commit();
-
-    document.getElementById('main').style.display = 'none';
-    document.getElementById('sucesso').classList.add('show');
-
-  } catch(e) {
-    console.error(e);
-    toast('❌ Erro ao salvar: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = '✅ SALVAR CARTEIRA CORRIGIDA';
   }
-}
-</script>
+
+  async function mudarPeriodo(periodo, btn) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    periodoAtual = periodo;
+    if (posicoes.length) await carregarGrafico(posicoes[0].ticker, periodo);
+  }
+
+  // ── HISTÓRICO ──
+  async function carregarHistorico() {
+    const loading = document.getElementById('hist-loading');
+    const list    = document.getElementById('hist-list');
+    try {
+      const snap = await db.collection('ordens').where('uid', '==', meuUID).orderBy('data', 'desc').limit(30).get();
+      loading.style.display = 'none';
+      if (snap.empty) { list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>'; return; }
+      list.innerHTML = '';
+      snap.forEach(doc => {
+        const o = doc.data();
+        const isC = o.lado === 'compra';
+        const data = o.data?.toDate ? o.data.toDate().toLocaleDateString('pt-BR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+        const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
+        const card = document.createElement('div');
+        card.className = 'hist-card';
+        card.innerHTML = `
+          <div class="hist-row">
+            <div class="hist-left">
+              <span class="hist-pill ${isC ? 'c' : 'v'}">${isC ? 'COMPRA' : 'VENDA'}</span>
+              <div>
+                <p class="hist-ticker">${o.ticker}</p>
+                <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
+              </div>
+            </div>
+            <div>
+              <p class="hist-total" style="color:${isC ? 'var(--red)' : 'var(--green)'}">${isC ? '-' : '+'} ${R$(o.total||0)}</p>
+              <p class="hist-data">${data}</p>
+            </div>
+          </div>`;
+        list.appendChild(card);
+      });
+    } catch(e) {
+      loading.style.display = 'none';
+      // fallback sem orderBy
+      try {
+        const snap = await db.collection('ordens').where('uid', '==', meuUID).limit(30).get();
+        if (snap.empty) { list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>'; return; }
+        const ordens = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (b.data?.seconds||0) - (a.data?.seconds||0));
+        list.innerHTML = '';
+        ordens.forEach(o => {
+          const isC = o.lado === 'compra';
+          const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
+          const card = document.createElement('div');
+          card.className = 'hist-card';
+          card.innerHTML = `<div class="hist-row"><div class="hist-left"><span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span><div><p class="hist-ticker">${o.ticker}</p><p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p></div></div><div><p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p></div></div>`;
+          list.appendChild(card);
+        });
+      } catch(e2) { list.innerHTML = '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar histórico.</div>'; }
+    }
+  }
+  </script>
 </body>
 </html>
