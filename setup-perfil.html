@@ -3,702 +3,592 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Seu Perfil | Los Pombitos Investimentos</title>
+  <title>Perfil | Los Pombitos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --ink:       #0a0a0f;
-      --parchment: #f2ead8;
-      --aged:      #e0d4b8;
-      --gold:      #c9a84c;
-      --gold-light:#f0d080;
-      --gold-dark: #7a5c1e;
-      --muted:     #6b6050;
-      --card:      rgba(255,255,255,.02);
-      --mono:      'DM Mono', monospace;
-      --sans:      'DM Sans', sans-serif;
-      --display:   'Cinzel', serif;
-      --decorative:'Cinzel Decorative', serif;
+    :root{
+      --ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;
+      --sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;
+      --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
-    body {
-      font-family: var(--sans);
-      background: var(--ink);
-      color: var(--parchment);
-      min-height: 100dvh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 32px 20px 60px;
-      overflow-x: hidden;
-      position: relative;
-    }
+    /* HEADER */
+    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
+    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink)}
+    .btn-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
 
-    /* textura + vinheta */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 50% 100%, rgba(139,26,26,.05) 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 0;
-    }
-    body::after {
-      content: ''; position: fixed; inset: 0;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.7) 100%);
-      pointer-events: none; z-index: 0;
-    }
+    .container{padding:0;max-width:640px;margin:0 auto}
 
-    /* ── CONTAINER ── */
-    .container {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 440px;
-      display: flex; flex-direction: column; align-items: center;
-    }
+    /* ── HERO DO PERFIL ── */
+    .perfil-hero{padding:24px 20px 0;animation:fadeUp .3s ease}
+    .perfil-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px}
 
-    /* ── ORNAMENTOS ── */
-    .ornament {
-      width: 100%; display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
-    }
-    .ornament-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
-    .ornament-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+    /* Avatar */
+    .avatar-wrap{position:relative;flex-shrink:0}
+    .avatar{width:72px;height:72px;border-radius:50%;background:var(--wave);display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid var(--sand);box-shadow:0 0 0 2px var(--shore);overflow:hidden}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .avatar-perfil-badge{position:absolute;bottom:-2px;right:-2px;font-family:var(--mono);font-size:7px;letter-spacing:1px;background:var(--wave);color:white;border-radius:20px;padding:2px 6px;white-space:nowrap}
 
-    /* ── POMBO PIXEL (SVG melhorado) ── */
-    .pombo-pixel-wrap {
-      margin-bottom: 20px;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-    }
+    /* Info */
+    .perfil-info{flex:1;min-width:0}
+    .perfil-nome{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--ink);line-height:1;margin-bottom:2px}
+    .perfil-username{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px}
+    .perfil-bio{font-size:13px;color:var(--ink);line-height:1.5;opacity:.8}
 
-    .pombo-pixel {
-      filter: drop-shadow(0 0 10px rgba(201,168,76,.35));
-      animation: flutuar 4s ease-in-out infinite;
-    }
-    @keyframes flutuar {
-      0%,100% { transform: translateY(0) rotate(-1deg); }
-      50%      { transform: translateY(-5px) rotate(1deg); }
-    }
+    /* Stats linha */
+    .perfil-stats{display:flex;gap:20px;padding:14px 0;border-top:1px solid var(--shore);border-bottom:1px solid var(--shore);margin-bottom:20px}
+    .ps-item{display:flex;flex-direction:column;gap:2px}
+    .ps-val{font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--ink)}
+    .ps-val.pos{color:var(--green)}.ps-val.neg{color:var(--red)}
+    .ps-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
 
-    /* ── TÍTULOS ── */
-    .titulo-ordem { font-family: var(--decorative); font-size: 10px; letter-spacing: 5px; color: var(--gold); opacity: .7; text-align: center; margin-bottom: 6px; }
-    .titulo-principal { font-family: var(--decorative); font-size: 24px; font-weight: 700; letter-spacing: 2px; color: var(--parchment); line-height: 1.2; text-align: center; text-shadow: 0 0 30px rgba(201,168,76,.25); }
-    .titulo-principal span { color: var(--gold); }
-    .titulo-sub { font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.6; }
+    /* ── SEÇÃO ── */
+    .secao{padding:0 20px;margin-bottom:20px;animation:fadeUp .3s ease}
+    .secao-titulo{font-family:var(--display);font-size:14px;letter-spacing:2px;color:var(--muted);margin-bottom:12px}
 
-    /* ── DIVIDER ── */
-    .divider { display: flex; align-items: center; gap: 8px; width: 100%; margin: 22px 0; }
-    .divider-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(201,168,76,.3), transparent); }
-    .divider-text { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--gold); opacity: .6; white-space: nowrap; }
+    /* ── TREEMAP ALOCAÇÃO ── */
+    .treemap-wrap{border-radius:var(--radius);overflow:hidden;background:var(--card);border:1.5px solid var(--shore)}
+    .treemap-canvas{width:100%;display:block;border-radius:calc(var(--radius) - 2px)}
+    .treemap-legend{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--shore)}
+    .tl-item{display:flex;align-items:center;gap:5px}
+    .tl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+    .tl-label{font-family:var(--mono);font-size:9px;color:var(--muted)}
+    .tl-pct{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--ink)}
 
-    /* ── PROGRESSO ── */
-    .progress-wrap {
-      width: 100%; margin-bottom: 24px;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-    }
-    .progress-label {
-      font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--muted);
-    }
-    .progress-bar {
-      width: 100%; height: 2px;
-      background: rgba(201,168,76,.1);
-      border-radius: 2px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; width: 0%;
-      background: linear-gradient(to right, var(--gold-dark), var(--gold-light));
-      border-radius: 2px;
-      transition: width .4s ease;
-    }
+    /* ── GRÁFICO GANHO/PERDA ── */
+    .ganho-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px}
+    .ganho-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .ganho-total{font-family:var(--display);font-size:22px;letter-spacing:1px}
+    .ganho-total.pos{color:var(--green)}.ganho-total.neg{color:var(--red)}
+    .ganho-sub{font-family:var(--mono);font-size:8px;color:var(--muted)}
+    .ganho-chart-wrap{height:80px;position:relative;margin-bottom:10px}
+    canvas#ganho-chart{width:100%;height:80px}
 
-    /* ── FORMULÁRIO / CARD ── */
-    .form-card {
-      width: 100%;
-      border: 1px solid rgba(201,168,76,.25);
-      border-radius: 4px;
-      padding: 28px 24px;
-      background: var(--card);
-      position: relative;
-    }
-    .form-card::before, .form-card::after {
-      content: ''; position: absolute;
-      width: 14px; height: 14px;
-      border-color: var(--gold); border-style: solid; opacity: .4;
-    }
-    .form-card::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
-    .form-card::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    .pos-lista{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+    .pos-row{display:flex;align-items:center;gap:8px}
+    .pos-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .pos-ticker-lbl{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--wave);flex:1}
+    .pos-ganho{font-family:var(--mono);font-size:10px;font-weight:500}
+    .pos-ganho.pos{color:var(--green)}.pos-ganho.neg{color:var(--red)}
+    .pos-bar-wrap{flex:2;height:4px;background:var(--shore);border-radius:2px;overflow:hidden}
+    .pos-bar-fill{height:100%;border-radius:2px}
 
-    /* ── GRUPOS DE INPUT ── */
-    .input-group { margin-bottom: 20px; }
-    .input-group:last-of-type { margin-bottom: 0; }
+    /* ── POSTS ── */
+    .post-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;animation:fadeUp .3s ease}
+    .post-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .post-avatar{width:32px;height:32px;border-radius:50%;background:var(--wave);display:flex;align-items:center;justify-content:center;font-size:14px;overflow:hidden;flex-shrink:0}
+    .post-avatar img{width:100%;height:100%;object-fit:cover}
+    .post-meta-nome{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink)}
+    .post-meta-data{font-family:var(--mono);font-size:9px;color:var(--muted)}
+    .post-texto{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px}
+    .post-likes{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer}
 
-    .input-label {
-      font-family: var(--mono); font-size: 8px; letter-spacing: 2.5px;
-      color: var(--gold); opacity: .75; display: block; margin-bottom: 8px;
-    }
+    /* Trade post */
+    .trade-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;animation:fadeUp .3s ease}
+    .trade-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .trade-lado{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:3px 10px;border-radius:20px}
+    .trade-lado.c{background:#d4f5e2;color:var(--green)}.trade-lado.v{background:#ffd5ce;color:var(--red)}
+    .trade-ticker{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave)}
+    .trade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+    .tg-item{display:flex;flex-direction:column;gap:2px}
+    .tg-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
+    .tg-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
+    .trade-likes{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer;margin-top:4px}
 
-    .input-field, .select-field {
-      width: 100%; height: 48px;
-      background: rgba(0,0,0,.3);
-      border: 1px solid rgba(201,168,76,.25);
-      border-radius: 3px;
-      font-family: var(--sans); font-size: 14px;
-      color: var(--parchment);
-      padding: 0 14px;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      appearance: none; -webkit-appearance: none;
-    }
+    /* EMPTY */
+    .empty{text-align:center;padding:30px 20px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1px}
 
-    .input-field::placeholder { color: rgba(201,168,76,.2); font-size: 13px; }
+    /* SKELETON */
+    .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
 
-    .input-field:focus, .select-field:focus {
-      border-color: rgba(201,168,76,.6);
-      box-shadow: 0 0 16px rgba(201,168,76,.08);
-    }
-
-    /* username com @ */
-    .input-username-wrap { position: relative; }
-    .input-username-wrap .arroba {
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      font-family: var(--mono); font-size: 14px; color: var(--gold); opacity: .6;
-      pointer-events: none;
-    }
-    .input-username-wrap .input-field { padding-left: 28px; }
-
-    /* select */
-    .select-field {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 36px;
-      cursor: pointer;
-    }
-    .select-field option { background: #1a1a2e; color: var(--parchment); }
-
-    /* duas colunas */
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-    /* cor do pombito — preview visual */
-    .cor-wrap { position: relative; }
-    .cor-preview {
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-      width: 20px; height: 20px; border-radius: 50%;
-      border: 1px solid rgba(201,168,76,.3);
-      background: transparent;
-      transition: background .3s;
-      pointer-events: none;
-    }
-
-    /* ── DIVIDERS INTERNOS ── */
-    .sep {
-      display: flex; align-items: center; gap: 8px; margin: 22px 0;
-    }
-    .sep-line { flex: 1; height: 1px; background: rgba(201,168,76,.1); }
-    .sep-label { font-family: var(--mono); font-size: 8px; letter-spacing: 2.5px; color: var(--muted); }
-
-    /* ── BOTÃO ── */
-    .btn-germinar {
-      width: 100%; height: 52px; margin-top: 28px;
-      background: linear-gradient(135deg, rgba(201,168,76,.15), rgba(201,168,76,.08));
-      border: 1px solid rgba(201,168,76,.5);
-      border-radius: 3px;
-      color: var(--gold-light);
-      font-family: var(--display); font-size: 13px; letter-spacing: 3px;
-      cursor: pointer; transition: all .25s;
-      position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
-    .btn-germinar::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(201,168,76,.25), transparent);
-      opacity: 0; transition: opacity .25s;
-    }
-    .btn-germinar:hover:not(:disabled)::before { opacity: 1; }
-    .btn-germinar:hover:not(:disabled) {
-      border-color: var(--gold);
-      box-shadow: 0 0 24px rgba(201,168,76,.2);
-      transform: translateY(-1px);
-    }
-    .btn-germinar:disabled { opacity: .4; cursor: not-allowed; }
-
-    /* ── FEEDBACK ── */
-    .msg-feedback {
-      display: none; margin-top: 14px; padding: 10px 16px; border-radius: 3px;
-      font-family: var(--mono); font-size: 10px; letter-spacing: .5px;
-      line-height: 1.6; text-align: center; width: 100%;
-    }
-    .msg-erro  { background: rgba(139,26,26,.2); color: #e88; border: 1px solid rgba(139,26,26,.4); display: block; }
-    .msg-ok    { background: rgba(26,100,26,.2); color: #8e8; border: 1px solid rgba(26,100,26,.4); display: block; }
-    .msg-info  { background: rgba(201,168,76,.1); color: var(--gold-light); border: 1px solid rgba(201,168,76,.3); display: block; }
-
-    /* ── FOOTER ── */
-    .footer-ordem { margin-top: 28px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .footer-lema  { font-family: var(--display); font-size: 9px; letter-spacing: 3px; color: var(--gold); opacity: .5; font-style: italic; }
-    .footer-proto { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); opacity: .4; }
-
-    /* penas caindo */
-    .pena { position: fixed; font-size: 12px; opacity: 0; animation: cair linear infinite; pointer-events: none; z-index: 0; }
-    @keyframes cair {
-      0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
-      10%  { opacity: .25; }
-      90%  { opacity: .1; }
-      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-    }
-
-    /* validação inline */
-    .input-field.invalido { border-color: rgba(200,80,80,.5); }
-    .input-field.valido   { border-color: rgba(80,180,80,.3); }
-    .erro-campo {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-      color: #e88; margin-top: 5px; display: none;
-    }
-    .erro-campo.visivel { display: block; }
-
-    /* ── PERFIL DE INVESTIDOR ── */
-    .perfil-cards {
-      display: flex; flex-direction: column; gap: 10px; margin-top: 4px;
-    }
-    .perfil-card {
-      border: 1px solid rgba(201,168,76,.2); border-radius: 3px;
-      padding: 14px 16px; cursor: pointer;
-      background: rgba(0,0,0,.2); transition: all .2s;
-      display: flex; align-items: flex-start; gap: 12px;
-    }
-    .perfil-card:hover { border-color: rgba(201,168,76,.5); background: rgba(201,168,76,.05); }
-    .perfil-card.selecionado { border-color: var(--gold); background: rgba(201,168,76,.1); }
-    .perfil-card input[type="radio"] { display: none; }
-    .perfil-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
-    .perfil-titulo {
-      font-family: var(--display); font-size: 13px; letter-spacing: 1.5px;
-      color: var(--gold-light); margin-bottom: 3px;
-    }
-    .perfil-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
-    .perfil-detalhe {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-      color: var(--gold); opacity: .6; margin-top: 4px;
-    }
-    .erro-perfil {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-      color: #e88; margin-top: 6px; display: none;
-    }
-    .erro-perfil.visivel { display: block; }
+    /* NAV */
+    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
+    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+    .ni:hover{background:var(--shore)}
+    .ni-ico{font-size:20px;line-height:1}
+    .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+    .ni.on .ni-lbl{color:var(--wave);font-weight:500}
   </style>
 </head>
 <body>
-
-  <div class="pena" style="left:8%;  animation-duration:12s; animation-delay:0s;">🪶</div>
-  <div class="pena" style="left:25%; animation-duration:18s; animation-delay:5s;">🪶</div>
-  <div class="pena" style="left:60%; animation-duration:15s; animation-delay:9s;">🪶</div>
-  <div class="pena" style="left:82%; animation-duration:20s; animation-delay:3s;">🪶</div>
+  <header class="hdr">
+    <div class="hdr-title">PERFIL</div>
+    <button class="btn-edit" onclick="location.href='editar-perfil.html'">✏️ EDITAR</button>
+  </header>
 
   <div class="container">
 
-    <!-- ORNAMENTO TOPO -->
-    <div class="ornament">
-      <div class="ornament-line"></div>
-      <div class="ornament-diamond"></div>
-      <div class="ornament-diamond" style="width:4px;height:4px;margin:0 2px;opacity:.5"></div>
-      <div class="ornament-diamond"></div>
-      <div class="ornament-line"></div>
-    </div>
+    <!-- HERO -->
+    <div class="perfil-hero" id="perfil-hero">
+      <div class="perfil-top">
+        <div class="avatar-wrap">
+          <div class="avatar" id="avatar-el">🐦</div>
+          <span class="avatar-perfil-badge" id="badge-perfil">···</span>
+        </div>
+        <div class="perfil-info">
+          <p class="perfil-nome" id="p-nome">···</p>
+          <p class="perfil-username" id="p-username">@···</p>
+          <p class="perfil-bio" id="p-bio">···</p>
+        </div>
+      </div>
 
-    <!-- POMBO PIXEL MELHORADO -->
-    <div class="pombo-pixel-wrap">
-      <svg class="pombo-pixel" width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- pixel art pombo: grade de 4x4px -->
-        <!-- cabeça -->
-        <rect x="28" y="8"  width="16" height="4"  fill="#e8d4a0"/>
-        <rect x="24" y="12" width="24" height="4"  fill="#e8d4a0"/>
-        <!-- olho -->
-        <rect x="40" y="12" width="4"  height="4"  fill="#0a0a0f"/>
-        <rect x="42" y="12" width="2"  height="2"  fill="white" opacity=".9"/>
-        <!-- bico -->
-        <rect x="44" y="16" width="8"  height="4"  fill="#c9a84c"/>
-        <rect x="48" y="14" width="4"  height="2"  fill="#f0d080"/>
-        <!-- pescoço / corpo -->
-        <rect x="20" y="16" width="28" height="4"  fill="#d4bc84"/>
-        <rect x="16" y="20" width="36" height="4"  fill="#c9a84c"/>
-        <!-- asa esquerda - várias camadas -->
-        <rect x="4"  y="20" width="16" height="4"  fill="#b08a30"/>
-        <rect x="4"  y="24" width="12" height="4"  fill="#9a7428"/>
-        <rect x="8"  y="28" width="8"  height="4"  fill="#7a5c1e"/>
-        <!-- asa direita -->
-        <rect x="52" y="20" width="16" height="4"  fill="#b08a30"/>
-        <rect x="56" y="24" width="12" height="4"  fill="#9a7428"/>
-        <rect x="56" y="28" width="8"  height="4"  fill="#7a5c1e"/>
-        <!-- corpo central -->
-        <rect x="16" y="24" width="40" height="4"  fill="#e8d4a0"/>
-        <rect x="20" y="28" width="32" height="4"  fill="#dcc890"/>
-        <rect x="20" y="32" width="32" height="4"  fill="#d4bc84"/>
-        <!-- barriga achatada (lenda vive) -->
-        <rect x="24" y="36" width="24" height="4"  fill="#c9a84c" opacity=".8"/>
-        <rect x="28" y="40" width="16" height="4"  fill="#b08a30" opacity=".7"/>
-        <!-- cauda -->
-        <rect x="24" y="44" width="4"  height="4"  fill="#9a7428"/>
-        <rect x="32" y="44" width="8"  height="4"  fill="#9a7428"/>
-        <rect x="44" y="44" width="4"  height="4"  fill="#9a7428"/>
-        <!-- patas -->
-        <rect x="28" y="48" width="4"  height="8"  fill="#c9a84c"/>
-        <rect x="24" y="56" width="8"  height="4"  fill="#c9a84c"/>
-        <rect x="40" y="48" width="4"  height="8"  fill="#c9a84c"/>
-        <rect x="36" y="56" width="8"  height="4"  fill="#c9a84c"/>
-        <!-- auréola dourada pixel -->
-        <rect x="28" y="4"  width="4"  height="4"  fill="#f0d080" opacity=".6"/>
-        <rect x="36" y="4"  width="4"  height="4"  fill="#f0d080" opacity=".6"/>
-        <rect x="24" y="8"  width="4"  height="4"  fill="#f0d080" opacity=".3"/>
-        <rect x="44" y="8"  width="4"  height="4"  fill="#f0d080" opacity=".3"/>
-      </svg>
-
-      <div>
-        <p class="titulo-ordem">CRIE SEU PERFIL</p>
-        <p class="titulo-principal">CONFIGURE SUA <span>CONTA</span></p>
-        <p class="titulo-sub">REDE SOCIAL · SIMULADORA DE CORRETORA<br>CAPITAL INICIAL: R$ 500.000,00</p>
+      <div class="perfil-stats" id="perfil-stats">
+        <div class="ps-item"><span class="ps-val" id="st-patrimonio">···</span><span class="ps-label">PATRIMÔNIO</span></div>
+        <div class="ps-item"><span class="ps-val" id="st-resultado" >···</span><span class="ps-label">RESULTADO</span></div>
+        <div class="ps-item"><span class="ps-val" id="st-posts"    >···</span><span class="ps-label">POSTS</span></div>
+        <div class="ps-item"><span class="ps-val" id="st-ativos"   >···</span><span class="ps-label">ATIVOS</span></div>
       </div>
     </div>
 
-    <div class="divider">
-      <div class="divider-line"></div>
-      <span class="divider-text">✦ O LIVRO DOS POMBITOS ✦</span>
-      <div class="divider-line"></div>
-    </div>
-
-    <!-- PROGRESSO -->
-    <div class="progress-wrap">
-      <span class="progress-label">RITUAL INCOMPLETO — PREENCHA TODOS OS CAMPOS</span>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progress-fill"></div>
+    <!-- ALOCAÇÃO TREEMAP -->
+    <div class="secao" id="sec-alocacao" style="display:none">
+      <p class="secao-titulo">ALOCAÇÃO</p>
+      <div class="treemap-wrap">
+        <canvas id="treemap-canvas" class="treemap-canvas"></canvas>
+        <div class="treemap-legend" id="treemap-legend"></div>
       </div>
     </div>
 
-    <!-- FORMULÁRIO -->
-    <div class="form-card">
-
-      <!-- Identidade -->
-      <div class="input-group">
-        <label class="input-label">SEU NOME NA IRMANDADE</label>
-        <input type="text" id="nome" class="input-field" placeholder="Como te chamam" maxlength="40" autocomplete="off">
-        <span class="erro-campo" id="erro-nome">O Ninho precisa saber seu nome.</span>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label">SEU @USERNAME ÚNICO</label>
-        <div class="input-username-wrap">
-          <span class="arroba">@</span>
-          <input type="text" id="username" class="input-field" placeholder="seuapelido" maxlength="30" autocomplete="off" oninput="sanitizarUsername(this)">
+    <!-- GANHO / PERDA -->
+    <div class="secao" id="sec-ganho" style="display:none">
+      <p class="secao-titulo">DESEMPENHO POR ATIVO</p>
+      <div class="ganho-card">
+        <div class="ganho-header">
+          <div>
+            <p class="ganho-total" id="ganho-total">···</p>
+            <p class="ganho-sub">resultado total desde o início</p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-family:var(--mono);font-size:11px;font-weight:500" id="ganho-pct">···</p>
+            <p class="ganho-sub">vs R$ 500k capital</p>
+          </div>
         </div>
-        <span class="erro-campo" id="erro-username">Apenas letras, números e _ (sem espaços).</span>
+        <div class="pos-lista" id="pos-lista"></div>
       </div>
+    </div>
 
-      <div class="row">
-        <div class="input-group">
-          <label class="input-label">INVERNOS (IDADE)</label>
-          <input type="number" id="idade" class="input-field" placeholder="00" min="1" max="120">
-          <span class="erro-campo" id="erro-idade">Informe sua idade.</span>
-        </div>
-        <div class="input-group">
-          <label class="input-label">SER</label>
-          <select id="sexo" class="select-field">
-            <option value="">Escolha</option>
-            <option value="F">Feminino</option>
-            <option value="M">Masculino</option>
-            <option value="O">Outro</option>
-          </select>
-        </div>
+    <!-- POSTS -->
+    <div class="secao">
+      <p class="secao-titulo">COMPARTILHADO</p>
+      <div id="posts-list">
+        <div style="padding:8px 0"><div class="sk-line" style="width:60%"></div><div class="sk-line"></div><div class="sk-line" style="width:40%"></div></div>
       </div>
-
-      <div class="sep">
-        <div class="sep-line"></div>
-        <span class="sep-label">ALMA & GOSTO</span>
-        <div class="sep-line"></div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label">A MÚSICA DA SUA ALMA</label>
-        <input type="text" id="musica" class="input-field" placeholder="Artista — Música" maxlength="80" autocomplete="off">
-        <span class="erro-campo" id="erro-musica">Toda alma tem uma música.</span>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label">UM FILME INESQUECÍVEL</label>
-        <input type="text" id="filme" class="input-field" placeholder="Nome do filme" maxlength="80" autocomplete="off">
-        <span class="erro-campo" id="erro-filme">Todo Pombito tem um filme.</span>
-      </div>
-
-      <div class="sep">
-        <div class="sep-line"></div>
-        <span class="sep-label">SEU POMBITO</span>
-        <div class="sep-line"></div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label">COR DO SEU POMBITO (FUNDO)</label>
-        <div class="cor-wrap">
-          <input type="text" id="cor" class="input-field" placeholder="Ex: Azul Celeste, Verde Mar..." maxlength="40" autocomplete="off" oninput="atualizarCorPreview(this)">
-          <div class="cor-preview" id="cor-preview"></div>
-        </div>
-      </div>
-
-      <div class="sep">
-        <div class="sep-line"></div>
-        <span class="sep-label">SEU PERFIL DE INVESTIDOR</span>
-        <div class="sep-line"></div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label">COMO VOCÊ LIDA COM RISCO?</label>
-        <div class="perfil-cards">
-
-          <label class="perfil-card" onclick="selecionarPerfil(this, 'conservador')">
-            <input type="radio" name="perfil_investidor" value="conservador">
-            <span class="perfil-icon">🛡️</span>
-            <div>
-              <p class="perfil-titulo">CONSERVADOR</p>
-              <p class="perfil-desc">Prefere segurança e previsibilidade. Prioriza renda fixa e evita grandes oscilações.</p>
-              <p class="perfil-detalhe">Tesouro Direto · CDB · LCI/LCA · Renda fixa</p>
-            </div>
-          </label>
-
-          <label class="perfil-card" onclick="selecionarPerfil(this, 'moderado')">
-            <input type="radio" name="perfil_investidor" value="moderado">
-            <span class="perfil-icon">⚖️</span>
-            <div>
-              <p class="perfil-titulo">MODERADO</p>
-              <p class="perfil-desc">Busca equilíbrio entre segurança e rentabilidade. Aceita alguma variação para ganhar mais.</p>
-              <p class="perfil-detalhe">Mix de renda fixa + FIIs + ações blue chips</p>
-            </div>
-          </label>
-
-          <label class="perfil-card" onclick="selecionarPerfil(this, 'arrojado')">
-            <input type="radio" name="perfil_investidor" value="arrojado">
-            <span class="perfil-icon">🚀</span>
-            <div>
-              <p class="perfil-titulo">ARROJADO</p>
-              <p class="perfil-desc">Aceita alta volatilidade em busca de grandes retornos. Confortável com ações e cripto.</p>
-              <p class="perfil-detalhe">Ações · FIIs · Cripto · Small caps</p>
-            </div>
-          </label>
-
-        </div>
-        <span class="erro-perfil" id="erro-perfil">Escolha seu perfil de investidor.</span>
-      </div>
-
-    </div><!-- /form-card -->
-
-    <!-- FEEDBACK -->
-    <div class="msg-feedback" id="msg-feedback"></div>
-    <p id="status" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px;"></p>
-
-    <!-- BOTÃO -->
-    <button class="btn-germinar" id="btn-germinar" onclick="submeterPerfil()">
-      📈 CRIAR MINHA CONTA
-    </button>
-
-    <!-- FOOTER -->
-    <div class="footer-ordem">
-      <p class="footer-lema">"Aprenda investindo. Invista aprendendo."</p>
-      <p class="footer-proto">LOS POMBITOS INVESTIMENTOS · SIMULADOR EDUCACIONAL</p>
     </div>
 
   </div><!-- /container -->
 
+  <nav class="nav">
+    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
+    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
+    <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
+    <a class="ni on" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+  </nav>
+
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="auth.js"></script>
+  <script src="firebase.js"></script>
+  <script src="mercado-api.js"></script>
   <script>
-    // ── MAPA DE CORES (texto → hex) ──
-    const coresMapa = {
-      'azul':    '#1a4fff', 'azul celeste': '#87ceeb', 'azul mar': '#006994',
-      'verde':   '#2d8a4e', 'verde mar':    '#2e8b57', 'verde limão': '#9acd32',
-      'vermelho':'#cc2200', 'rosa':         '#e75480', 'roxo': '#6a0dad',
-      'laranja': '#e86a1a', 'amarelo':      '#f5b800', 'preto': '#1a1a2e',
-      'branco':  '#f2ead8', 'dourado':      '#c9a84c', 'cinza': '#6b6b6b',
-      'marrom':  '#7a4e2d', 'bege':         '#d4b896', 'ciano': '#00b4d8',
-      'violeta': '#7c3aed', 'turquesa':     '#40e0d0', 'coral': '#ff6b6b',
-    };
+  const CAPITAL = 500000;
+  const CORES_ATIVOS = [
+    '#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed',
+    '#0891b2','#ea580c','#db2777','#65a30d','#c2410c'
+  ];
 
-    function atualizarCorPreview(input) {
-      const val = input.value.toLowerCase().trim();
-      const preview = document.getElementById('cor-preview');
-      const cor = coresMapa[val] || null;
-      preview.style.background = cor || 'transparent';
-      preview.style.borderColor = cor ? cor : 'rgba(201,168,76,.3)';
-      atualizarProgresso();
-    }
+  const R$ = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const Rk = v => {
+    const a = Math.abs(v);
+    if (a >= 1000) return (v<0?'-':'') + 'R$ ' + (a/1000).toFixed(0) + 'k';
+    return R$(v);
+  };
+  const pct = v => (v>=0?'+':'')+v.toFixed(2)+'%';
 
-    // ── USERNAME: só letras, números e _ ──
-    function sanitizarUsername(input) {
-      input.value = input.value.replace(/[^a-z0-9_]/gi, '').toLowerCase();
-      atualizarProgresso();
-    }
+  let db, meuUID, cotacoes = {}, posicoes = [], userData = {};
 
-    // ── PROGRESSO ──
-    const campos = ['nome','username','idade','musica','filme','cor'];
-    let perfilSelecionado = null;
-    function atualizarProgresso() {
-      const preenchidos = campos.filter(id => {
-        const el = document.getElementById(id);
-        return el && el.value.trim() !== '';
-      }).length;
-      const totalCampos = campos.length + 1; // +1 para perfil de investidor
-      const comPerfil   = preenchidos + (perfilSelecionado ? 1 : 0);
-      const pct = Math.round((comPerfil / totalCampos) * 100);
-      document.getElementById('progress-fill').style.width = pct + '%';
-      const label = document.querySelector('.progress-label');
-      if (pct === 100) {
-        label.textContent = 'RITUAL COMPLETO — PRONTO PARA GERMINAR';
-        label.style.color = 'var(--gold)';
-      } else {
-        label.textContent = `RITUAL ${pct}% COMPLETO`;
-        label.style.color = '';
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) { location.href = 'invite.html'; return; }
+    meuUID = user.uid;
+    db = window.db || firebase.firestore();
+    await carregar();
+  });
+
+  async function carregar() {
+    try {
+      const [uSnap, cSnap] = await Promise.all([
+        db.collection('usuarios').doc(meuUID).get(),
+        db.collection('carteiras').doc(meuUID).get()
+      ]);
+
+      userData  = uSnap.data() || {};
+      const c   = cSnap.exists ? cSnap.data() : {};
+      posicoes  = c.posicoes || [];
+
+      // Busca cotações
+      const tickers = posicoes.filter(p=>p.tipo==='acoes'||p.tipo==='fiis'||!p.tipo).map(p=>p.ticker);
+      if (tickers.length) {
+        try {
+          const dados = await MercadoAPI.buscarMultiplos(tickers);
+          dados.forEach(d => { if(d.preco>0) cotacoes[d.ticker]=d.preco; });
+        } catch(e){}
       }
-    }
 
-    // ── SELECIONAR PERFIL DE INVESTIDOR ──
-    function selecionarPerfil(card, valor) {
-      document.querySelectorAll('.perfil-card').forEach(c => c.classList.remove('selecionado'));
-      card.classList.add('selecionado');
-      perfilSelecionado = valor;
-      document.getElementById('erro-perfil').classList.remove('visivel');
-      atualizarProgresso();
-    }
+      renderHero();
+      renderAlocacao();
+      renderGanho();
+      renderPosts();
 
-    // Ouve todos os campos para atualizar progresso
-    campos.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('input', atualizarProgresso);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  // ── HERO ──
+  function renderHero() {
+    const nome   = userData.nome     || 'Pombito';
+    const user   = userData.username || '···';
+    const musica = userData.musica   || '';
+    const filme  = userData.filme    || '';
+    const perfil = userData.perfil_investidor || 'moderado';
+    const cor    = resolverCor(userData.cor || '');
+
+    document.getElementById('p-nome').textContent     = nome;
+    document.getElementById('p-username').textContent = '@' + user;
+
+    // Bio montada a partir dos campos
+    const bioPartes = [];
+    if (musica) bioPartes.push('🎵 ' + musica);
+    if (filme)  bioPartes.push('🎬 ' + filme);
+    document.getElementById('p-bio').textContent = bioPartes.join('  ·  ') || '—';
+
+    // Avatar com cor do pombito
+    const avatarEl = document.getElementById('avatar-el');
+    avatarEl.style.background = cor || 'var(--wave)';
+    avatarEl.innerHTML = `<span style="font-size:28px">🐦</span>`;
+
+    // Badge perfil
+    const badges = {conservador:'🛡️ CONSERV.', moderado:'⚖️ MODERADO', arrojado:'🚀 ARROJADO'};
+    document.getElementById('badge-perfil').textContent = badges[perfil] || perfil.toUpperCase();
+
+    // Stats
+    const totalPago      = posicoes.reduce((acc,p) => acc+(p.quantidade||0)*(p.preco_medio||0), 0);
+    const investidoReal  = posicoes.reduce((acc,p) => {
+      const pa = cotacoes[p.ticker] || p.preco_medio || 0;
+      return acc + (p.quantidade||0)*pa;
+    }, 0);
+    const saldo      = CAPITAL - totalPago;
+    const patrimonio = saldo + investidoReal;
+    const resultado  = patrimonio - CAPITAL;
+    const rentab     = (resultado/CAPITAL)*100;
+    const isPos      = resultado >= 0;
+
+    document.getElementById('st-patrimonio').textContent = Rk(patrimonio);
+    const resEl = document.getElementById('st-resultado');
+    resEl.textContent  = (isPos?'+':'')+Rk(resultado);
+    resEl.className    = 'ps-val ' + (isPos?'pos':'neg');
+    document.getElementById('st-ativos').textContent = posicoes.length;
+    // posts serão preenchidos depois
+  }
+
+  // ── TREEMAP ALOCAÇÃO ──
+  function renderAlocacao() {
+    if (!posicoes.length) return;
+    document.getElementById('sec-alocacao').style.display = 'block';
+
+    const totalPago     = posicoes.reduce((acc,p)=>acc+(p.quantidade||0)*(p.preco_medio||0),0);
+    const investidoReal = posicoes.reduce((acc,p)=>{
+      const pa=cotacoes[p.ticker]||p.preco_medio||0;
+      return acc+(p.quantidade||0)*pa;
+    },0);
+    const saldo = CAPITAL - totalPago;
+    const patrimonio = saldo + investidoReal;
+
+    // Itens para treemap: cada posição + disponível
+    const itens = posicoes.map((p,i) => {
+      const pa  = cotacoes[p.ticker] || p.preco_medio || 0;
+      const val = (p.quantidade||0) * pa;
+      return { label: p.ticker, valor: val, pct: val/patrimonio*100, cor: CORES_ATIVOS[i % CORES_ATIVOS.length] };
     });
+    if (saldo > 0) {
+      itens.push({ label:'DISPONÍVEL', valor: saldo, pct: saldo/patrimonio*100, cor: '#e2d9cd' });
+    }
+    itens.sort((a,b) => b.valor - a.valor);
 
-    // ── FEEDBACK VISUAL ──
-    function exibirMensagem(texto, tipo) {
-      const el = document.getElementById('msg-feedback');
-      el.textContent = texto;
-      el.className = 'msg-feedback msg-' + tipo;
+    const canvas = document.getElementById('treemap-canvas');
+    const dpr    = window.devicePixelRatio || 1;
+    const W      = canvas.parentElement.offsetWidth;
+    const H      = Math.max(140, Math.min(200, W * 0.5));
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    desenharTreemap(ctx, itens, 0, 0, W, H);
+
+    // Legenda
+    const leg = document.getElementById('treemap-legend');
+    leg.innerHTML = '';
+    itens.forEach(it => {
+      const div = document.createElement('div');
+      div.className = 'tl-item';
+      div.innerHTML = `<div class="tl-dot" style="background:${it.cor}"></div><span class="tl-label">${it.label}</span><span class="tl-pct">${it.pct.toFixed(1)}%</span>`;
+      leg.appendChild(div);
+    });
+  }
+
+  // Algoritmo squarified treemap simplificado
+  function desenharTreemap(ctx, itens, x, y, w, h) {
+    if (!itens.length) return;
+    const total = itens.reduce((s,i)=>s+i.pct, 0);
+    let restX = x, restY = y, restW = w, restH = h;
+
+    let fila = [];
+    const itensOrdenados = [...itens];
+
+    function areaItem(it) { return (it.pct / total) * (w * h); }
+    function aspecto(fila, tamanho) {
+      const totalPct = fila.reduce((s,i)=>s+i.pct,0);
+      return fila.map(it => {
+        const area = (it.pct/totalPct)*tamanho;
+        const lado = Math.sqrt(area);
+        return Math.max(tamanho/lado, lado/tamanho);
+      });
     }
 
-    function setBotao(carregando) {
-      const btn = document.getElementById('btn-germinar');
-      btn.disabled = carregando;
-      btn.textContent = carregando ? 'GERMINANDO...' : '📈 CRIAR MINHA CONTA';
-    }
+    let i = 0;
+    while (i < itensOrdenados.length) {
+      const horizontal = restW >= restH;
+      const tamanho    = horizontal ? restW * restH : restH * restW;
+      const novaPct    = itensOrdenados[i].pct;
 
-    // ── VALIDAÇÃO ──
-    function validarCampos() {
-      let ok = true;
+      fila.push(itensOrdenados[i]);
+      i++;
 
-      // Limpa erros anteriores
-      document.querySelectorAll('.erro-campo').forEach(e => e.classList.remove('visivel'));
-      document.querySelectorAll('.input-field').forEach(e => { e.classList.remove('invalido','valido'); });
+      // Verifica se melhor parar
+      const aspAtual  = Math.max(...aspecto(fila, tamanho));
+      const proxFila  = i < itensOrdenados.length ? [...fila, itensOrdenados[i]] : null;
+      const aspProx   = proxFila ? Math.max(...aspecto(proxFila, tamanho)) : Infinity;
 
-      const nome = document.getElementById('nome').value.trim();
-      if (!nome) { mostrarErro('nome', 'erro-nome'); ok = false; }
-      else marcarValido('nome');
+      if (aspProx >= aspAtual || i >= itensOrdenados.length) {
+        // Renderiza fila
+        const filaTotalPct = fila.reduce((s,f)=>s+f.pct,0);
+        let cx = restX, cy = restY;
 
-      const username = document.getElementById('username').value.trim();
-      if (!username || username.length < 3) { mostrarErro('username', 'erro-username'); ok = false; }
-      else marcarValido('username');
-
-      const idade = document.getElementById('idade').value;
-      if (!idade || idade < 1 || idade > 120) { mostrarErro('idade', 'erro-idade'); ok = false; }
-      else marcarValido('idade');
-
-      const musica = document.getElementById('musica').value.trim();
-      if (!musica) { mostrarErro('musica', 'erro-musica'); ok = false; }
-      else marcarValido('musica');
-
-      const filme = document.getElementById('filme').value.trim();
-      if (!filme) { mostrarErro('filme', 'erro-filme'); ok = false; }
-      else marcarValido('filme');
-
-      const cor = document.getElementById('cor').value.trim();
-      if (!cor) {
-        exibirMensagem('Escolha uma cor para o seu Pombito.', 'erro');
-        ok = false;
-      }
-
-      if (!perfilSelecionado) {
-        document.getElementById('erro-perfil').classList.add('visivel');
-        ok = false;
-      }
-
-      return ok;
-    }
-
-    function mostrarErro(inputId, erroId) {
-      document.getElementById(inputId).classList.add('invalido');
-      document.getElementById(erroId).classList.add('visivel');
-    }
-
-    function marcarValido(inputId) {
-      document.getElementById(inputId).classList.add('valido');
-    }
-
-    // ── SUBMETER PERFIL ──
-    async function submeterPerfil() {
-      if (!validarCampos()) return;
-
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        exibirMensagem('A Ordem não te reconhece. Faça login novamente.', 'erro');
-        setTimeout(() => window.location.href = 'invite.html', 2000);
-        return;
-      }
-
-      setBotao(true);
-      exibirMensagem('Gravando sua identidade nos archivos da Ordem...', 'info');
-
-      // Verifica unicidade do username antes de salvar
-      try {
-        const usernameVal = document.getElementById('username').value.trim().toLowerCase();
-        const usernameSnap = await db.collection('usuarios')
-          .where('username', '==', usernameVal)
-          .limit(1)
-          .get();
-
-        // Permite se o único resultado for o próprio usuário
-        const jaExiste = usernameSnap.docs.some(d => d.id !== user.uid);
-        if (jaExiste) {
-          mostrarErro('username', 'erro-username');
-          document.getElementById('erro-username').textContent = 'Este @username já pertence a outro Pombito.';
-          exibirMensagem('Este @username já está na Ordem. Escolha outro.', 'erro');
-          setBotao(false);
-          return;
+        if (horizontal) {
+          const colW = (filaTotalPct / total) * restW;
+          fila.forEach(it => {
+            const ih = (it.pct / filaTotalPct) * restH;
+            desenharCelula(ctx, cx, cy, colW, ih, it);
+            cy += ih;
+          });
+          restX += colW; restW -= colW;
+        } else {
+          const rowH = (filaTotalPct / total) * restH;
+          fila.forEach(it => {
+            const iw = (it.pct / filaTotalPct) * restW;
+            desenharCelula(ctx, cx, cy, iw, rowH, it);
+            cx += iw;
+          });
+          restY += rowH; restH -= rowH;
         }
-      } catch(e) {
-        console.error('Erro ao verificar username:', e);
+        fila = [];
       }
+    }
+  }
 
-      const dadosFicha = {
-        nome:               document.getElementById('nome').value.trim(),
-        username:           document.getElementById('username').value.trim().toLowerCase(),
-        idade:              Number(document.getElementById('idade').value),
-        sexo:               document.getElementById('sexo').value || 'O',
-        musica:             document.getElementById('musica').value.trim(),
-        filme:              document.getElementById('filme').value.trim(),
-        cor:                document.getElementById('cor').value.trim(),
-        perfil_investidor:  perfilSelecionado,
-      };
+  function desenharCelula(ctx, x, y, w, h, it) {
+    const gap = 2;
+    ctx.fillStyle = it.cor;
+    ctx.fillRect(x+gap, y+gap, w-gap*2, h-gap*2);
 
-      // Salva perfil e cria carteira (auth.js)
-      const sucesso = await germinarEsalvarPombito(dadosFicha);
+    // Label se tiver espaço
+    if (w > 40 && h > 22) {
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = `bold ${Math.min(11, w/5)}px DM Mono, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const cx = x + w/2, cy = y + h/2;
+      ctx.fillText(it.label, cx, h > 36 ? cy - 6 : cy);
+      if (h > 36) {
+        ctx.font = `${Math.min(9, w/6)}px DM Mono, monospace`;
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(it.pct.toFixed(1)+'%', cx, cy + 9);
+      }
+    }
+  }
 
-      if (!sucesso) {
-        setBotao(false);
+  // ── GANHO / PERDA POR ATIVO ──
+  function renderGanho() {
+    if (!posicoes.length) return;
+    document.getElementById('sec-ganho').style.display = 'block';
+
+    const totalPago     = posicoes.reduce((acc,p)=>acc+(p.quantidade||0)*(p.preco_medio||0),0);
+    const investidoReal = posicoes.reduce((acc,p)=>{
+      const pa=cotacoes[p.ticker]||p.preco_medio||0;
+      return acc+(p.quantidade||0)*pa;
+    },0);
+    const saldo     = CAPITAL - totalPago;
+    const patrimonio = saldo + investidoReal;
+    const resultado  = patrimonio - CAPITAL;
+    const rentab     = (resultado/CAPITAL)*100;
+    const isPos      = resultado >= 0;
+
+    const totalEl = document.getElementById('ganho-total');
+    totalEl.textContent = (isPos?'+':'')+R$(resultado);
+    totalEl.className   = 'ganho-total ' + (isPos?'pos':'neg');
+    const pctEl = document.getElementById('ganho-pct');
+    pctEl.textContent = pct(rentab);
+    pctEl.style.color = isPos ? 'var(--green)' : 'var(--red)';
+
+    // Por ativo
+    const lista = document.getElementById('pos-lista');
+    lista.innerHTML = '';
+
+    const porAtivo = posicoes.map((p,i) => {
+      const pa      = cotacoes[p.ticker] || p.preco_medio || 0;
+      const valAtual = (p.quantidade||0)*pa;
+      const valPago  = (p.quantidade||0)*(p.preco_medio||0);
+      const ganho    = valAtual - valPago;
+      const ganhoP   = valPago > 0 ? (ganho/valPago)*100 : 0;
+      return { ticker:p.ticker, ganho, ganhoP, cor: CORES_ATIVOS[i % CORES_ATIVOS.length], valAtual };
+    }).sort((a,b) => b.ganho - a.ganho);
+
+    const maxAbs = Math.max(...porAtivo.map(p=>Math.abs(p.ganho)), 1);
+
+    porAtivo.forEach(p => {
+      const ip  = p.ganho >= 0;
+      const row = document.createElement('div');
+      row.className = 'pos-row';
+      row.style.cursor = 'pointer';
+      row.onclick = () => location.href = `relatorio.html?ticker=${p.ticker}`;
+      const barPct = (Math.abs(p.ganho) / maxAbs * 100).toFixed(1);
+      row.innerHTML = `
+        <div class="pos-dot" style="background:${p.cor}"></div>
+        <span class="pos-ticker-lbl">${p.ticker}</span>
+        <div class="pos-bar-wrap">
+          <div class="pos-bar-fill" style="width:${barPct}%;background:${ip?'var(--green)':'var(--red)'}"></div>
+        </div>
+        <span class="pos-ganho ${ip?'pos':'neg'}">${ip?'+':''}${Rk(p.ganho)}</span>`;
+      lista.appendChild(row);
+    });
+  }
+
+  // ── POSTS DO USUÁRIO ──
+  async function renderPosts() {
+    const listEl = document.getElementById('posts-list');
+    try {
+      const snap = await db.collection('posts')
+        .where('uid','==',meuUID)
+        .orderBy('criadoEm','desc')
+        .limit(20)
+        .get();
+
+      document.getElementById('st-posts').textContent = snap.size;
+
+      if (snap.empty) {
+        listEl.innerHTML = '<div class="empty">📭 Nenhum post ainda.</div>';
         return;
       }
 
-      exibirMensagem('Bem-vindo à Corretora! Seu capital de R$ 500.000 está disponível. 🚀', 'ok');
-      setTimeout(() => { window.location.href = 'feed.html'; }, 2000);
-    }
+      listEl.innerHTML = '';
+      snap.forEach(doc => {
+        const p = doc.data();
+        const data = p.criadoEm?.toDate
+          ? p.criadoEm.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
+          : '—';
 
-    // Protecao: se nao logado, volta ao inicio
-    firebase.auth().onAuthStateChanged((user) => {
-      if (!user) window.location.href = 'invite.html';
-    });
+        if (p.tipo === 'trade' && p.trade) {
+          // Card de trade
+          const isC = p.trade.lado === 'compra';
+          const card = document.createElement('div');
+          card.className = 'trade-card';
+          card.innerHTML = `
+            <div class="trade-header">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="post-avatar" style="background:${resolverCor(userData.cor||'')||'var(--wave)'}">🐦</div>
+                <div>
+                  <p class="post-meta-nome">@${userData.username||'eu'}</p>
+                  <p class="post-meta-data">${data}</p>
+                </div>
+              </div>
+              <span class="trade-lado ${isC?'c':'v'}">${isC?'✅ COMPRA':'🔴 VENDA'}</span>
+            </div>
+            <p class="trade-ticker">${p.trade.ticker}</p>
+            <div class="trade-grid">
+              <div class="tg-item"><span class="tg-label">QUANTIDADE</span><span class="tg-val">${p.trade.quantidade}</span></div>
+              <div class="tg-item"><span class="tg-label">PREÇO</span><span class="tg-val">R$ ${(p.trade.preco||0).toFixed(2)}</span></div>
+              <div class="tg-item"><span class="tg-label">TOTAL</span><span class="tg-val">${R$(p.trade.total||0)}</span></div>
+            </div>
+            ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${p.texto}</p>` : ''}
+            <div class="trade-likes">❤️ ${p.likes||0}</div>`;
+          listEl.appendChild(card);
+        } else {
+          // Post de texto
+          const card = document.createElement('div');
+          card.className = 'post-card';
+          card.innerHTML = `
+            <div class="post-header">
+              <div class="post-avatar" style="background:${resolverCor(userData.cor||'')||'var(--wave)'}">🐦</div>
+              <div>
+                <p class="post-meta-nome">@${userData.username||'eu'}</p>
+                <p class="post-meta-data">${data}</p>
+              </div>
+            </div>
+            <p class="post-texto">${p.texto||''}</p>
+            <div class="post-likes">❤️ ${p.likes||0}</div>`;
+          listEl.appendChild(card);
+        }
+      });
+
+    } catch(e) {
+      // Fallback sem orderBy
+      try {
+        const snap = await db.collection('posts').where('uid','==',meuUID).limit(20).get();
+        document.getElementById('st-posts').textContent = snap.size;
+        if (snap.empty) { listEl.innerHTML = '<div class="empty">📭 Nenhum post ainda.</div>'; return; }
+        listEl.innerHTML = '';
+        const posts = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.criadoEm?.seconds||0)-(a.criadoEm?.seconds||0));
+        posts.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'post-card';
+          card.innerHTML = `
+            <div class="post-header">
+              <div class="post-avatar" style="background:${resolverCor(userData.cor||'')||'var(--wave)'}">🐦</div>
+              <div><p class="post-meta-nome">@${userData.username||'eu'}</p></div>
+            </div>
+            <p class="post-texto">${p.texto||p.trade?.ticker||'—'}</p>
+            <div class="post-likes">❤️ ${p.likes||0}</div>`;
+          listEl.appendChild(card);
+        });
+      } catch(e2) {
+        listEl.innerHTML = '<div class="empty">⚠️ Erro ao carregar posts.</div>';
+        document.getElementById('st-posts').textContent = '—';
+      }
+    }
+  }
+
+  // ── COR TEXT → HEX ──
+  function resolverCor(texto) {
+    const mapa = {
+      'azul':'#1a4fff','azul celeste':'#87ceeb','azul mar':'#006994',
+      'verde':'#2d8a4e','verde mar':'#2e8b57','verde limão':'#9acd32',
+      'vermelho':'#cc2200','rosa':'#e75480','roxo':'#6a0dad',
+      'laranja':'#e86a1a','amarelo':'#f5b800','preto':'#1a1a2e',
+      'branco':'#f2ead8','dourado':'#c9a84c','cinza':'#6b6b6b',
+      'marrom':'#7a4e2d','bege':'#d4b896','ciano':'#00b4d8',
+      'violeta':'#7c3aed','turquesa':'#40e0d0','coral':'#ff6b6b',
+    };
+    return mapa[texto.toLowerCase().trim()] || null;
+  }
   </script>
 </body>
 </html>
