@@ -3,266 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>O Ninho Secreto | Los Pombitos</title>
+  <title>Los Pombitos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --ink:       #0a0a0f;
-      --parchment: #f2ead8;
-      --aged:      #e0d4b8;
-      --gold:      #c9a84c;
-      --gold-light:#f0d080;
-      --gold-dark: #7a5c1e;
-      --blood:     #8b1a1a;
-      --muted:     #6b6050;
-      --card:      #faf6ec;
-      --mono:      'DM Mono', monospace;
-      --sans:      'DM Sans', sans-serif;
-      --display:   'Cinzel', serif;
-      --decorative:'Cinzel Decorative', serif;
+      --ink:#0a0a0f; --parchment:#f2ead8; --gold:#c9a84c; --gold-light:#f0d080;
+      --gold-dark:#7a5c1e; --muted:#6b6050;
+      --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif;
+      --display:'Cinzel',serif; --decorative:'Cinzel Decorative',serif;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--sans);background:var(--ink);color:var(--parchment);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:32px 20px;overflow-x:hidden;position:relative}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,.08) 0%,transparent 60%),radial-gradient(ellipse at 50% 100%,rgba(139,26,26,.06) 0%,transparent 60%),url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+    body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.7) 100%);pointer-events:none;z-index:0}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    .container{position:relative;z-index:1;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center}
 
-    body {
-      font-family: var(--sans);
-      background: var(--ink);
-      color: var(--parchment);
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 20px;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 50% 100%, rgba(139,26,26,.06) 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.7) 100%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* ORNAMENTOS */
-    .ornament {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 28px;
-    }
-    .ornament-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
-    .ornament-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+    .ornament{width:100%;display:flex;align-items:center;gap:10px;margin-bottom:28px}
+    .ornament-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
+    .ornament-diamond{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);flex-shrink:0}
 
     /* BRASÃO */
-    .brasao-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-    .brasao { position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; }
-
-    .brasao-ring {
-      position: absolute; inset: 0; border-radius: 50%;
-      border: 1.5px solid transparent;
-      border-top-color: var(--gold); border-right-color: var(--gold-light); border-bottom-color: var(--gold);
-      animation: girar 12s linear infinite; opacity: .5;
-    }
-    .brasao-ring-2 {
-      position: absolute; inset: 8px; border-radius: 50%;
-      border: 1px solid transparent;
-      border-top-color: var(--gold-dark); border-left-color: var(--gold);
-      animation: girar 20s linear infinite reverse; opacity: .35;
-    }
-    @keyframes girar { to { transform: rotate(360deg); } }
-
-    .brasao-core {
-      width: 108px; height: 108px; border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, #1a1a2e, #0a0a0f);
-      border: 1px solid rgba(201,168,76,.3);
-      display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
-    }
-    .brasao-core::before {
-      content: ''; position: absolute; top: -30%; left: -10%;
-      width: 60%; height: 60%;
-      background: radial-gradient(circle, rgba(201,168,76,.12), transparent 70%);
-      border-radius: 50%;
-    }
-
-    .halo {
-      position: absolute; width: 68px; height: 68px; border-radius: 50%;
-      border: 1px solid rgba(240,208,128,.25);
-      box-shadow: 0 0 12px rgba(201,168,76,.15), inset 0 0 12px rgba(201,168,76,.05);
-      animation: pulsar 3s ease-in-out infinite;
-    }
-    @keyframes pulsar { 0%,100% { opacity:.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.06); } }
-
-    .pombo-svg {
-      position: relative; z-index: 2;
-      filter: drop-shadow(0 0 8px rgba(201,168,76,.4));
-      animation: flutuar 4s ease-in-out infinite;
-    }
-    @keyframes flutuar {
-      0%,100% { transform: translateY(0px) rotate(-2deg); }
-      50%      { transform: translateY(-4px) rotate(2deg); }
-    }
+    .brasao-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:20px}
+    .brasao{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
+    .brasao-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--gold);border-right-color:var(--gold-light);border-bottom-color:var(--gold);animation:girar 12s linear infinite;opacity:.5}
+    .brasao-ring-2{position:absolute;inset:8px;border-radius:50%;border:1px solid transparent;border-top-color:var(--gold-dark);border-left-color:var(--gold);animation:girar 20s linear infinite reverse;opacity:.35}
+    @keyframes girar{to{transform:rotate(360deg)}}
+    .brasao-core{width:108px;height:108px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a1a2e,#0a0a0f);border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .brasao-core::before{content:'';position:absolute;top:-30%;left:-10%;width:60%;height:60%;background:radial-gradient(circle,rgba(201,168,76,.12),transparent 70%);border-radius:50%}
+    .halo{position:absolute;width:68px;height:68px;border-radius:50%;border:1px solid rgba(240,208,128,.25);box-shadow:0 0 12px rgba(201,168,76,.15),inset 0 0 12px rgba(201,168,76,.05);animation:pulsar 3s ease-in-out infinite}
+    @keyframes pulsar{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+    .pombo-svg{position:relative;z-index:2;filter:drop-shadow(0 0 8px rgba(201,168,76,.4));animation:flutuar 4s ease-in-out infinite}
+    @keyframes flutuar{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 
     /* TÍTULOS */
-    .titulo-wrap { text-align: center; margin-bottom: 6px; }
-    .titulo-ordem { font-family: var(--decorative); font-size: 11px; letter-spacing: 5px; color: var(--gold); opacity: .8; margin-bottom: 8px; }
-    .titulo-principal { font-family: var(--decorative); font-size: 30px; font-weight: 700; letter-spacing: 3px; color: var(--parchment); line-height: 1.1; text-shadow: 0 0 30px rgba(201,168,76,.3); }
-    .titulo-principal span { color: var(--gold); }
-    .titulo-sub { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--muted); margin-top: 8px; }
+    .titulo-wrap{text-align:center;margin-bottom:6px}
+    .titulo-ordem{font-family:var(--decorative);font-size:11px;letter-spacing:5px;color:var(--gold);opacity:.8;margin-bottom:8px}
+    .titulo-principal{font-family:var(--decorative);font-size:30px;font-weight:700;letter-spacing:3px;color:var(--parchment);line-height:1.1;text-shadow:0 0 30px rgba(201,168,76,.3)}
+    .titulo-principal span{color:var(--gold)}
+    .titulo-sub{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--muted);margin-top:8px}
 
-    /* DIVIDER */
-    .divider { display: flex; align-items: center; gap: 8px; width: 100%; margin: 22px 0; }
-    .divider-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(201,168,76,.3), transparent); }
-    .divider-text { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--gold); opacity: .6; }
+    .divider{display:flex;align-items:center;gap:8px;width:100%;margin:22px 0}
+    .divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.3),transparent)}
+    .divider-text{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--gold);opacity:.6}
 
-    /* TELAS */
-    .tela { width: 100%; animation: aparecer .4s ease; }
-    .tela.oculta { display: none; }
-    @keyframes aparecer { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    /* CARD ÚNICO */
+    .tela-card{border:1px solid rgba(201,168,76,.25);border-radius:4px;padding:28px 24px;width:100%;background:rgba(255,255,255,.02);position:relative}
+    .tela-card::before,.tela-card::after{content:'';position:absolute;width:14px;height:14px;border-color:var(--gold);border-style:solid;opacity:.4}
+    .tela-card::before{top:8px;left:8px;border-width:1px 0 0 1px}
+    .tela-card::after{bottom:8px;right:8px;border-width:0 1px 1px 0}
 
-    /* CARDS DE ESCOLHA */
-    .escolha-titulo { font-family: var(--display); font-size: 9px; letter-spacing: 4px; color: var(--muted); text-align: center; margin-bottom: 16px; }
-    .opcoes { display: flex; flex-direction: column; gap: 10px; }
+    .tela-titulo{font-family:var(--display);font-size:18px;letter-spacing:3px;color:var(--gold-light);margin-bottom:8px}
+    .tela-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:22px}
 
-    .opcao-card {
-      border: 1px solid rgba(201,168,76,.25); border-radius: 4px; padding: 18px 20px;
-      cursor: pointer; transition: all .25s; display: flex; align-items: center; gap: 16px;
-      background: rgba(255,255,255,.02); position: relative; overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .opcao-card::before, .opcao-card::after {
-      content: ''; position: absolute; width: 10px; height: 10px;
-      border-color: var(--gold); border-style: solid; opacity: .4; transition: opacity .25s;
-    }
-    .opcao-card::before { top:5px; left:5px; border-width:1px 0 0 1px; }
-    .opcao-card::after  { bottom:5px; right:5px; border-width:0 1px 1px 0; }
-    .opcao-card:hover { border-color:rgba(201,168,76,.6); background:rgba(201,168,76,.05); transform:translateY(-2px); }
-    .opcao-card:hover::before, .opcao-card:hover::after { opacity:1; }
-    .opcao-card.destaque { border-color:rgba(201,168,76,.5); background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.03)); }
-    .opcao-card.destaque:hover { background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05)); }
+    /* BOTÕES */
+    .btn-google{width:100%;height:52px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.5);border-radius:3px;color:var(--gold-light);font-family:var(--display);font-size:13px;letter-spacing:3px;display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;margin-bottom:10px}
+    .btn-google::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.2),transparent);opacity:0;transition:opacity .25s}
+    .btn-google:hover:not(:disabled)::before{opacity:1}
+    .btn-google:hover:not(:disabled){border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,.2);transform:translateY(-1px)}
+    .btn-google:disabled{opacity:.4;cursor:not-allowed}
+    .btn-google img{width:18px;height:18px;border-radius:2px}
 
-    .opcao-label { font-family:var(--display); font-size:14px; letter-spacing:2px; color:var(--parchment); line-height:1.2; }
-    .opcao-card.destaque .opcao-label { color:var(--gold-light); }
-    .opcao-desc { font-size:11px; color:var(--muted); margin-top:3px; line-height:1.5; }
+    .sep-interno{display:flex;align-items:center;gap:8px;margin:4px 0 10px}
+    .sep-linha{flex:1;height:1px;background:rgba(201,168,76,.15)}
+    .sep-txt{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted)}
 
-    /* CARD DE TELA */
-    .tela-card {
-      border: 1px solid rgba(201,168,76,.25); border-radius: 4px; padding: 28px 24px;
-      width: 100%; background: rgba(255,255,255,.02); position: relative;
-    }
-    .tela-card::before, .tela-card::after {
-      content: ''; position: absolute; width: 14px; height: 14px;
-      border-color: var(--gold); border-style: solid; opacity: .4;
-    }
-    .tela-card::before { top:8px; left:8px; border-width:1px 0 0 1px; }
-    .tela-card::after  { bottom:8px; right:8px; border-width:0 1px 1px 0; }
+    /* Mensagem de usuário existente */
+    .ja-membro{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:10px 0 0;letter-spacing:1px}
+    .ja-membro span{color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+    .ja-membro span:hover{color:var(--gold-light)}
 
-    .tela-titulo { font-family:var(--display); font-size:18px; letter-spacing:3px; color:var(--gold-light); margin-bottom:8px; }
-    .tela-desc { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:22px; }
+    .msg-feedback{display:none;margin-top:14px;padding:10px 16px;border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;line-height:1.6;text-align:center;width:100%}
+    .msg-erro{background:rgba(139,26,26,.2);color:#e88;border:1px solid rgba(139,26,26,.4);display:block}
+    .msg-ok{background:rgba(26,100,26,.2);color:#8e8;border:1px solid rgba(26,100,26,.4);display:block}
+    .msg-info{background:rgba(201,168,76,.1);color:var(--gold-light);border:1px solid rgba(201,168,76,.3);display:block}
 
-    /* INPUT */
-    .input-label { font-family:var(--mono); font-size:8px; letter-spacing:3px; color:var(--gold); opacity:.7; margin-bottom:8px; display:block; }
-    .input-codigo {
-      width:100%; height:54px; background:rgba(0,0,0,.3);
-      border:1px solid rgba(201,168,76,.3); border-radius:3px;
-      text-align:center; font-family:var(--mono); font-size:22px; font-weight:500;
-      letter-spacing:5px; color:var(--gold-light); text-transform:uppercase;
-      outline:none; transition:border-color .2s, box-shadow .2s; caret-color:var(--gold);
-    }
-    .input-codigo:focus { border-color:rgba(201,168,76,.7); box-shadow:0 0 20px rgba(201,168,76,.1); }
-    .input-codigo::placeholder { color:rgba(201,168,76,.2); font-size:16px; letter-spacing:3px; }
+    .footer-ordem{margin-top:28px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+    .footer-lema{font-family:var(--display);font-size:9px;letter-spacing:3px;color:var(--gold);opacity:.5;font-style:italic}
+    .footer-proto{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted);opacity:.4}
 
-    /* SEPARADOR INTERNO */
-    .sep-interno { display:flex; align-items:center; gap:8px; margin:18px 0 14px; }
-    .sep-linha { flex:1; height:1px; background:rgba(201,168,76,.15); }
-    .sep-txt { font-family:var(--mono); font-size:8px; letter-spacing:3px; color:var(--muted); }
-
-    /* BOTÃO */
-    .btn-principal {
-      width:100%; height:50px;
-      background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));
-      border:1px solid rgba(201,168,76,.5); border-radius:3px;
-      color:var(--gold-light); font-family:var(--display); font-size:12px; letter-spacing:3px;
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      cursor:pointer; transition:all .25s; position:relative; overflow:hidden;
-    }
-    .btn-principal::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(201,168,76,.2),transparent); opacity:0; transition:opacity .25s; }
-    .btn-principal:hover:not(:disabled)::before { opacity:1; }
-    .btn-principal:hover:not(:disabled) { border-color:var(--gold); box-shadow:0 0 20px rgba(201,168,76,.2); transform:translateY(-1px); }
-    .btn-principal:disabled { opacity:.4; cursor:not-allowed; }
-    .btn-principal img { width:16px; height:16px; opacity:.8; border-radius:2px; }
-
-    .btn-voltar {
-      background:none; border:none; font-family:var(--mono); font-size:9px; letter-spacing:2px;
-      color:var(--muted); cursor:pointer; margin-top:16px; display:flex; align-items:center; gap:6px;
-      transition:color .2s; padding:0;
-    }
-    .btn-voltar:hover { color:var(--gold); }
-
-    /* FEEDBACK */
-    .msg-feedback {
-      display:none; margin-top:14px; padding:10px 16px; border-radius:3px;
-      font-family:var(--mono); font-size:10px; letter-spacing:.5px; line-height:1.6;
-      text-align:center; width:100%;
-    }
-    .msg-erro  { background:rgba(139,26,26,.2);  color:#e88; border:1px solid rgba(139,26,26,.4); }
-    .msg-ok    { background:rgba(26,100,26,.2);  color:#8e8; border:1px solid rgba(26,100,26,.4); }
-    .msg-info  { background:rgba(201,168,76,.1); color:var(--gold-light); border:1px solid rgba(201,168,76,.3); }
-
-    /* FOOTER */
-    .footer-ordem { margin-top:28px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; }
-    .footer-lema  { font-family:var(--display); font-size:9px; letter-spacing:3px; color:var(--gold); opacity:.5; font-style:italic; }
-    .footer-proto { font-family:var(--mono); font-size:8px; letter-spacing:2px; color:var(--muted); opacity:.4; }
-
-    /* PENAS CAINDO */
-    .pena { position:fixed; font-size:12px; opacity:0; animation:cair linear infinite; pointer-events:none; z-index:0; user-select:none; }
-    @keyframes cair {
-      0%   { transform:translateY(-20px) rotate(0deg);   opacity:0; }
-      10%  { opacity:.3; }
-      90%  { opacity:.15; }
-      100% { transform:translateY(100vh) rotate(360deg); opacity:0; }
-    }
+    .pena{position:fixed;font-size:12px;opacity:0;animation:cair linear infinite;pointer-events:none;z-index:0;user-select:none}
+    @keyframes cair{0%{transform:translateY(-20px) rotate(0deg);opacity:0}10%{opacity:.3}90%{opacity:.15}100%{transform:translateY(100vh) rotate(360deg);opacity:0}}
   </style>
 </head>
 <body>
 
-  <div class="pena" style="left:8%;  animation-duration:12s; animation-delay:0s;">🪶</div>
-  <div class="pena" style="left:22%; animation-duration:17s; animation-delay:4s;">🪶</div>
-  <div class="pena" style="left:55%; animation-duration:14s; animation-delay:8s;">🪶</div>
-  <div class="pena" style="left:75%; animation-duration:19s; animation-delay:2s;">🪶</div>
-  <div class="pena" style="left:90%; animation-duration:11s; animation-delay:6s;">🪶</div>
+  <div class="pena" style="left:8%;animation-duration:12s;animation-delay:0s">🪶</div>
+  <div class="pena" style="left:22%;animation-duration:17s;animation-delay:4s">🪶</div>
+  <div class="pena" style="left:55%;animation-duration:14s;animation-delay:8s">🪶</div>
+  <div class="pena" style="left:75%;animation-duration:19s;animation-delay:2s">🪶</div>
+  <div class="pena" style="left:90%;animation-duration:11s;animation-delay:6s">🪶</div>
 
   <div class="container">
 
-    <!-- ORNAMENTO TOPO -->
     <div class="ornament">
       <div class="ornament-line"></div>
       <div class="ornament-diamond"></div>
@@ -271,99 +105,46 @@
       <div class="ornament-line"></div>
     </div>
 
-    <!-- BRASÃO: O POMBO IMORTAL -->
+    <!-- BRASÃO -->
     <div class="brasao-wrap">
       <div class="brasao">
         <div class="brasao-ring"></div>
         <div class="brasao-ring-2"></div>
         <div class="brasao-core">
           <div class="halo"></div>
-
-          <!--
-            O POMBO IMORTAL
-            Corpo ligeiramente achatado (referência ao incidente lendário de Lucio, Welber e Josemae)
-            Asas abertas e gloriosas (porque ele levantou e voou)
-            Auréola (porque nenhum carro o deteve)
-          -->
           <svg class="pombo-svg" width="76" height="76" viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-            <!-- auréola sagrada -->
             <ellipse cx="38" cy="15" rx="11" ry="3.5" stroke="#f0d080" stroke-width="1" stroke-dasharray="2.5 2" opacity=".65"/>
-
-            <!-- asa esquerda — gloriosa, aberta, múltiplas penas -->
-            <path d="M37 44 C32 40,20 36,9 29 C7 28,5 25,9 24 C14 23,21 27,27 31 C21 25,13 18,11 13 C10 11,12 9,15 10 C21 13,27 21,31 30 C27 21,23 11,23 7 C23 5,26 4,28 6 C32 13,35 24,36 34 Z"
-              fill="url(#asaGrad)" opacity=".95"/>
-
-            <!-- penas extras asa esquerda -->
-            <path d="M28 30 C22 25,16 19,14 14" stroke="#f0d080" stroke-width=".6" opacity=".3" fill="none"/>
-            <path d="M31 33 C25 28,19 22,17 17" stroke="#f0d080" stroke-width=".5" opacity=".2" fill="none"/>
-
-            <!-- asa direita — espelho -->
-            <path d="M39 44 C44 40,56 36,67 29 C69 28,71 25,67 24 C62 23,55 27,49 31 C55 25,63 18,65 13 C66 11,64 9,61 10 C55 13,49 21,45 30 C49 21,53 11,53 7 C53 5,50 4,48 6 C44 13,41 24,40 34 Z"
-              fill="url(#asaGradR)" opacity=".95"/>
-
-            <!-- penas extras asa direita -->
-            <path d="M48 30 C54 25,60 19,62 14" stroke="#f0d080" stroke-width=".6" opacity=".3" fill="none"/>
-            <path d="M45 33 C51 28,57 22,59 17" stroke="#f0d080" stroke-width=".5" opacity=".2" fill="none"/>
-
-            <!-- corpo (levemente achatado — ele sobreviveu) -->
+            <path d="M37 44 C32 40,20 36,9 29 C7 28,5 25,9 24 C14 23,21 27,27 31 C21 25,13 18,11 13 C10 11,12 9,15 10 C21 13,27 21,31 30 C27 21,23 11,23 7 C23 5,26 4,28 6 C32 13,35 24,36 34 Z" fill="url(#asaGrad)" opacity=".95"/>
+            <path d="M39 44 C44 40,56 36,67 29 C69 28,71 25,67 24 C62 23,55 27,49 31 C55 25,63 18,65 13 C66 11,64 9,61 10 C55 13,49 21,45 30 C49 21,53 11,53 7 C53 5,50 4,48 6 C44 13,41 24,40 34 Z" fill="url(#asaGradR)" opacity=".95"/>
             <ellipse cx="38" cy="50" rx="12" ry="7" fill="url(#corpoGrad)"/>
-
-            <!-- cabeça -->
             <circle cx="38" cy="36" r="9" fill="url(#cabecaGrad)"/>
-
-            <!-- olho — ele ainda te vê -->
             <circle cx="40.5" cy="33.5" r="3" fill="#0a0a0f"/>
             <circle cx="41.5" cy="32.5" r="1.2" fill="white" opacity=".9"/>
-            <circle cx="41" cy="33" r=".4" fill="white" opacity=".5"/>
-
-            <!-- bico determinado -->
             <path d="M47 36 L53 38 L47 39.5 Z" fill="#c9a84c"/>
-            <path d="M47 36 L53 38 L47 37 Z" fill="#f0d080" opacity=".6"/>
-
-            <!-- cauda -->
             <path d="M30 56 L26 63 M38 57 L38 64 M46 56 L50 63" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
-
-            <!-- patas (pousou no asfalto e levantou) -->
             <line x1="33" y1="57" x2="30" y2="63" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
             <line x1="30" y1="63" x2="27" y2="63" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
             <line x1="30" y1="63" x2="30" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
-            <line x1="30" y1="63" x2="33" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
-
             <line x1="43" y1="57" x2="46" y2="63" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
             <line x1="46" y1="63" x2="49" y2="63" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
             <line x1="46" y1="63" x2="46" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
-            <line x1="46" y1="63" x2="43" y2="66" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
-
-            <!-- brilhos nas pontas das asas -->
             <circle cx="9"  cy="27" r="1.8" fill="#f0d080" opacity=".5"/>
             <circle cx="67" cy="27" r="1.8" fill="#f0d080" opacity=".5"/>
-            <circle cx="23" cy="6"  r="1.4" fill="#f0d080" opacity=".4"/>
-            <circle cx="53" cy="6"  r="1.4" fill="#f0d080" opacity=".4"/>
-
-            <!-- GRADIENTES -->
             <defs>
               <linearGradient id="asaGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%"   stop-color="#f0d080"/>
-                <stop offset="50%"  stop-color="#c9a84c"/>
-                <stop offset="100%" stop-color="#7a5c1e"/>
+                <stop offset="0%" stop-color="#f0d080"/><stop offset="50%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#7a5c1e"/>
               </linearGradient>
               <linearGradient id="asaGradR" x1="1" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#f0d080"/>
-                <stop offset="50%"  stop-color="#c9a84c"/>
-                <stop offset="100%" stop-color="#7a5c1e"/>
+                <stop offset="0%" stop-color="#f0d080"/><stop offset="50%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#7a5c1e"/>
               </linearGradient>
               <linearGradient id="corpoGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#e8d4a0"/>
-                <stop offset="100%" stop-color="#c9a84c" stop-opacity=".8"/>
+                <stop offset="0%" stop-color="#e8d4a0"/><stop offset="100%" stop-color="#c9a84c" stop-opacity=".8"/>
               </linearGradient>
               <linearGradient id="cabecaGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%"   stop-color="#f2e8c0"/>
-                <stop offset="100%" stop-color="#d4b86a"/>
+                <stop offset="0%" stop-color="#f2e8c0"/><stop offset="100%" stop-color="#d4b86a"/>
               </linearGradient>
             </defs>
           </svg>
-
         </div>
       </div>
     </div>
@@ -372,107 +153,46 @@
     <div class="titulo-wrap">
       <p class="titulo-ordem">A SAGRADA ORDEM DE</p>
       <p class="titulo-principal">LOS <span>POMBITOS</span></p>
-      <p class="titulo-sub">ELE CAIU · ELE LEVANTOU · ELE VOOU</p>
+      <p class="titulo-sub">SIMULADOR EDUCACIONAL DE INVESTIMENTOS</p>
     </div>
 
     <div class="divider">
       <div class="divider-line"></div>
-      <span class="divider-text">✦ PORTÃO DA IRMANDADE ✦</span>
+      <span class="divider-text">✦ ENTRAR NA IRMANDADE ✦</span>
       <div class="divider-line"></div>
     </div>
 
-    <!-- ══ TELA 1: ESCOLHA ══ -->
-    <div id="tela-escolha" class="tela">
-      <p class="escolha-titulo">DECLARE SUA CONDIÇÃO</p>
-      <div class="opcoes">
+    <!-- CARD ÚNICO: só Google -->
+    <div class="tela-card">
+      <p class="tela-titulo">COMECE A INVESTIR</p>
+      <p class="tela-desc">
+        Crie sua conta grátis e receba <strong style="color:var(--gold-light)">R$ 500.000</strong> virtuais para aprender a investir sem risco.<br><br>
+        Ações · FIIs · Tesouro Direto · Cripto · Renda Fixa
+      </p>
 
-        <div class="opcao-card" onclick="irParaTela('tela-login')">
-          <!-- pombo voando (membro já iniciado) -->
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none" flex-shrink="0">
-            <path d="M19 21 C16 19,10 17,5 14 C4 13,4 12,6 12 C9 12,13 14,16 16 C13 12,9 8,8 5 C8 4,10 3,11 4 C14 8,16 13,17 18 Z" fill="#c9a84c" opacity=".85"/>
-            <path d="M19 21 C22 19,28 17,33 14 C34 13,34 12,32 12 C29 12,25 14,22 16 C25 12,29 8,30 5 C30 4,28 3,27 4 C24 8,22 13,21 18 Z" fill="#c9a84c" opacity=".85"/>
-            <circle cx="19" cy="16" r="5" fill="#e8d4a0"/>
-            <ellipse cx="19" cy="25" rx="7" ry="4" fill="#e8d4a0"/>
-            <circle cx="20.5" cy="14.5" r="1.8" fill="#0a0a0f"/>
-            <circle cx="21" cy="14" r=".7" fill="white"/>
-            <path d="M25 16 L28 17 L25 18 Z" fill="#c9a84c"/>
-            <ellipse cx="19" cy="14" rx="7" ry="2" stroke="#f0d080" stroke-width=".7" stroke-dasharray="2 1.5" opacity=".5"/>
-          </svg>
-          <div>
-            <p class="opcao-label">JÁ SOU DA IRMANDADE</p>
-            <p class="opcao-desc">Sou um Pombito iniciado — quero entrar no Ninho</p>
-          </div>
-        </div>
+      <!-- Criar conta / entrar — mesmo botão, Google decide -->
+      <button class="btn-google" id="btn-google" onclick="entrarOuCriar()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+        ENTRAR COM GOOGLE
+      </button>
 
-        <div class="opcao-card destaque" onclick="irParaTela('tela-convite')">
-          <!-- ovo rachando (novo membro nascendo) -->
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none" flex-shrink="0">
-            <ellipse cx="19" cy="22" rx="10" ry="12" fill="none" stroke="#f0d080" stroke-width="1.2" opacity=".6"/>
-            <path d="M19 20 C17 18,14 16,11 13 C10 12,11 11,12 11 C14 11,16 13,17 15 C16 12,14 9,14 7 C14 6,16 5,17 6 C18 10,19 14,19 19 Z" fill="#f0d080" opacity=".9"/>
-            <path d="M19 20 C21 18,24 16,27 13 C28 12,27 11,26 11 C24 11,22 13,21 15 C22 12,24 9,24 7 C24 6,22 5,21 6 C20 10,19 14,19 19 Z" fill="#f0d080" opacity=".9"/>
-            <circle cx="19" cy="16" r="4" fill="#f0d080"/>
-            <circle cx="20" cy="15" r="1.4" fill="#0a0a0f"/>
-            <circle cx="20.5" cy="14.5" r=".5" fill="white"/>
-            <path d="M12 26 L15 22 L13 20 L16 17" stroke="#f0d080" stroke-width=".8" opacity=".45" fill="none"/>
-            <path d="M24 28 L22 24 L25 21" stroke="#f0d080" stroke-width=".7" opacity=".3" fill="none"/>
-          </svg>
-          <div>
-            <p class="opcao-label">QUERO SER INICIADO</p>
-            <p class="opcao-desc">Recebi uma semente de um irmão — quero germinar</p>
-          </div>
-        </div>
-
+      <div class="sep-interno">
+        <div class="sep-linha"></div>
+        <span class="sep-txt">CONTA NOVA OU EXISTENTE</span>
+        <div class="sep-linha"></div>
       </div>
+
+      <p class="tela-desc" style="font-size:11px;margin-bottom:0;text-align:center">
+        Se for seu primeiro acesso, vamos criar seu perfil em seguida.<br>
+        Se já tem conta, entrará direto no Feed.
+      </p>
     </div>
 
-    <!-- ══ TELA 2: LOGIN ══ -->
-    <div id="tela-login" class="tela oculta">
-      <div class="tela-card">
-        <p class="tela-titulo">O NINHO TE RECONHECE</p>
-        <p class="tela-desc">Entre com a conta Google usada no seu juramento de iniciação.</p>
-        <button class="btn-principal" id="btn-login" onclick="entrarComGoogle()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-          ENTRAR NO NINHO
-        </button>
-      </div>
-      <div class="msg-feedback" id="msg-login"></div>
-      <button class="btn-voltar" onclick="irParaTela('tela-escolha')">← VOLTAR AO PORTÃO</button>
-    </div>
+    <div class="msg-feedback" id="msg-feedback"></div>
 
-    <!-- ══ TELA 3: NOVO MEMBRO ══ -->
-    <div id="tela-convite" class="tela oculta">
-      <div class="tela-card">
-        <p class="tela-titulo">O JURAMENTO DE INICIAÇÃO</p>
-        <p class="tela-desc">Apresente a semente que um irmão confiou a você. Ela é única e intransferível.</p>
-
-        <label class="input-label" for="input-convite">SEMENTE DA LINHAGEM</label>
-        <input
-          type="text" id="input-convite" class="input-codigo"
-          placeholder="POMB-XXXXXX" maxlength="11"
-          autocomplete="off" autocorrect="off" spellcheck="false"
-          oninput="formatarCodigo(this)"
-          onkeypress="if(event.key==='Enter') executarEntrada()"
-        >
-
-        <div class="sep-interno">
-          <div class="sep-linha"></div>
-          <span class="sep-txt">DEPOIS, JURE PELO POMBO</span>
-          <div class="sep-linha"></div>
-        </div>
-
-        <button class="btn-principal" id="btn-entrar" onclick="executarEntrada()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-          GERMINAR COM GOOGLE
-        </button>
-      </div>
-      <div class="msg-feedback" id="msg-convite"></div>
-      <button class="btn-voltar" onclick="irParaTela('tela-escolha')">← VOLTAR AO PORTÃO</button>
-    </div>
-
-    <!-- FOOTER -->
     <div class="footer-ordem">
       <p class="footer-lema">"Ele caiu. Ele levantou. Ele voou."</p>
-      <p class="footer-proto">PRAIA-PROTOCOL · LACRADO PELA ORDEM</p>
+      <p class="footer-proto">LOS POMBITOS · SIMULADOR EDUCACIONAL · GRATUITO</p>
     </div>
 
   </div>
@@ -480,92 +200,69 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="auth.js"></script>
+  <script src="firebase.js"></script>
 
   <script>
-    function irParaTela(id) {
-      document.querySelectorAll('.tela').forEach(t => t.classList.add('oculta'));
-      document.getElementById(id).classList.remove('oculta');
-      ['msg-login','msg-convite'].forEach(m => {
-        const el = document.getElementById(m);
-        if (el) { el.style.display='none'; el.textContent=''; }
-      });
-    }
-
-    function formatarCodigo(input) {
-      let val = input.value.replace(/[^A-Z0-9]/gi,'').toUpperCase();
-      if (val.length > 4) val = val.substring(0,4) + '-' + val.substring(4,10);
-      input.value = val;
-    }
-
-    // Override do exibirMensagem do auth.js
-    function exibirMensagem(texto, tipo = 'info') {
-      const mapa = { 'tela-login':'msg-login', 'tela-convite':'msg-convite' };
-      const telaAtiva = document.querySelector('.tela:not(.oculta)');
-      const elId = telaAtiva ? mapa[telaAtiva.id] : null;
-      const el = elId ? document.getElementById(elId) : null;
-      if (!el) return;
+    function msg(texto, tipo) {
+      const el = document.getElementById('msg-feedback');
       el.textContent = texto;
       el.className = 'msg-feedback msg-' + tipo;
-      el.style.display = 'block';
     }
 
-    async function executarEntrada() {
-      const btn = document.getElementById('btn-entrar');
+    async function entrarOuCriar() {
+      const btn = document.getElementById('btn-google');
       btn.disabled = true;
-      btn.innerHTML = '<span>CONSULTANDO OS ARCHIVOS...</span>';
-      try {
-        await validarEEntrar();
-      } catch(e) {
-        console.error(e);
-        exibirMensagem('Erro inesperado. Tente novamente.', 'erro');
-      } finally {
-        if (document.getElementById('btn-entrar')) {
-          btn.disabled = false;
-          btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16"> GERMINAR COM GOOGLE`;
-        }
-      }
-    }
+      btn.innerHTML = '<span style="letter-spacing:2px">CONECTANDO...</span>';
 
-    async function entrarComGoogle() {
-      const btn = document.getElementById('btn-login');
-      btn.disabled = true;
-      btn.innerHTML = '<span>O POMBO ESTÁ VERIFICANDO...</span>';
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        const resultado = await firebase.auth().signInWithPopup(provider);
-        const user = resultado.user;
+        const result = await firebase.auth().signInWithPopup(provider);
+        const user   = result.user;
+
         const snap = await db.collection('usuarios').doc(user.uid).get();
 
         if (snap.exists && snap.data().perfil_completo === true) {
-          exibirMensagem('A Ordem te reconhece. Entrando no Ninho... 🕊️', 'ok');
-          window.location.href = 'feed.html';
+          // Usuário já tem perfil completo → feed
+          msg('Bem-vindo de volta! Entrando... 🕊️', 'ok');
+          setTimeout(() => window.location.href = 'feed.html', 800);
         } else if (snap.exists && snap.data().perfil_completo === false) {
-          exibirMensagem('Retomando seu juramento...', 'info');
-          window.location.href = 'setup-perfil.html';
+          // Perfil incompleto → continua setup
+          msg('Continuando seu perfil...', 'info');
+          setTimeout(() => window.location.href = 'setup-perfil.html', 800);
         } else {
-          await firebase.auth().signOut();
-          exibirMensagem('Esta alma não pertence à Irmandade. Peça uma semente a um irmão.', 'erro');
-          btn.disabled = false;
-          btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16"> ENTRAR NO NINHO`;
+          // Conta nova → cria doc básico e vai para setup
+          await db.collection('usuarios').doc(user.uid).set({
+            uid:             user.uid,
+            email:           user.email,
+            perfil_completo: false,
+            data_adesao:     firebase.firestore.FieldValue.serverTimestamp(),
+          });
+          msg('Conta criada! Vamos configurar seu perfil... 🐦', 'ok');
+          setTimeout(() => window.location.href = 'setup-perfil.html', 900);
         }
+
       } catch(e) {
-        if (e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request') {
-          exibirMensagem('Ritual cancelado. Tente novamente.', 'info');
+        if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+          msg('Login cancelado. Tente novamente.', 'info');
         } else {
-          exibirMensagem('Erro: ' + e.message, 'erro');
+          msg('Erro: ' + e.message, 'erro');
         }
         btn.disabled = false;
-        btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16"> ENTRAR NO NINHO`;
+        btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="18"> ENTRAR COM GOOGLE';
       }
     }
 
-    firebase.auth().onAuthStateChanged(async (user) => {
+    // Se já logado, redireciona direto
+    firebase.auth().onAuthStateChanged(async user => {
       if (!user) return;
       try {
         const snap = await db.collection('usuarios').doc(user.uid).get();
-        if (snap.exists && snap.data().perfil_completo === true) window.location.href = 'feed.html';
+        if (snap.exists && snap.data().perfil_completo === true) {
+          window.location.href = 'feed.html';
+        } else if (snap.exists) {
+          window.location.href = 'setup-perfil.html';
+        }
       } catch(e) {}
     });
   </script>
