@@ -5,543 +5,1004 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Perfil | Los Pombitos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+
   <style>
-    :root{
-      --ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;
-      --sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;
-      --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
+    /* ══════════════════════════════════════════
+       DESIGN SYSTEM — perfil.html
+       Tema: editorial financeiro claro
+       Herda paleta do feed mas tom creme/claro
+    ══════════════════════════════════════════ */
+    :root {
+      --bg:       #f0ebe3;
+      --bg2:      #faf8f4;
+      --bg3:      #eee8de;
+      --line:     #ddd6ca;
+      --line2:    #cec7bb;
+      --ink:      #0e0e10;
+      --ink2:     #4a4642;
+      --ink3:     #9a948e;
+      --blue:     #2a5fff;
+      --blue-dim: #dce6ff;
+      --gold:     #d4a800;
+      --green:    #1a9c4e;
+      --green-bg: #e8f8ee;
+      --red:      #d93030;
+      --red-bg:   #fdeaea;
+      --radius:   14px;
+      --radius-sm:9px;
+      --mono:     'DM Mono', monospace;
+      --serif:    'Fraunces', serif;
+      --display:  'Bebas Neue', sans-serif;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
-    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
-    /* HEADER */
-    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
-    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink)}
-    .btn-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
-    .container{max-width:640px;margin:0 auto;padding:20px 16px}
+    body {
+      font-family: var(--mono);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      overscroll-behavior: none;
+      padding-bottom: 80px;
+    }
 
-    /* ── HERO ── */
-    .hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;animation:fadeUp .3s ease}
+    /* Grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    }
 
-    /* Avatar */
-    .avatar{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:3px solid white;box-shadow:0 0 0 2px var(--shore);flex-shrink:0;overflow:hidden;background:var(--wave)}
-    .avatar img{width:100%;height:100%;object-fit:cover}
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes fadeIn  { from { opacity:0 } to { opacity:1 } }
+    @keyframes shimmer { 0%,100%{opacity:.7} 50%{opacity:.3} }
+    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* Info direita do avatar */
-    .hero-info{flex:1;min-width:0}
-    .hero-nome{font-family:var(--display);font-size:26px;letter-spacing:2px;line-height:1;margin-bottom:2px}
-    .hero-username{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px}
-    .hero-bio{font-size:13px;line-height:1.5;color:var(--ink);opacity:.75}
+    /* ══ HEADER ══ */
+    .hdr {
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(240,235,227,.92);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+      height: 52px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 16px;
+    }
+    .hdr-title { font-family: var(--display); font-size: 20px; letter-spacing: 3px; color: var(--ink); }
+    .btn-editar {
+      font-size: 8px; letter-spacing: 1.5px;
+      padding: 5px 13px; border-radius: 20px;
+      border: 1px solid var(--blue); background: var(--blue-dim);
+      color: var(--blue); cursor: pointer; transition: all .2s;
+    }
+    .btn-editar:hover { background: var(--blue); color: #fff; }
 
-    /* Badge perfil inline */
-    .perfil-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:3px 9px;margin-bottom:6px}
+    /* ══ CONTAINER ══ */
+    .wrap { max-width: 640px; margin: 0 auto; padding: 16px 14px; }
 
-    /* ── STATS ── */
-    .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;animation:fadeUp .35s ease}
-    .stat-box{background:var(--card);border:1.5px solid var(--shore);border-radius:12px;padding:12px;text-align:center}
-    .stat-val{font-family:var(--display);font-size:17px;letter-spacing:1px;color:var(--ink);line-height:1;margin-bottom:3px}
-    .stat-val.pos{color:var(--green)}.stat-val.neg{color:var(--red)}
-    .stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
+    /* ══ HERO ══ */
+    .hero {
+      display: flex; gap: 14px; align-items: flex-start;
+      margin-bottom: 14px; animation: fadeUp .3s ease;
+    }
 
-    /* ── TREEMAP ALOCAÇÃO ── */
-    .secao-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px}
-    .treemap-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;animation:fadeUp .4s ease}
-    canvas.treemap{width:100%;display:block}
-    .treemap-leg{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--shore)}
-    .tl-item{display:flex;align-items:center;gap:5px}
-    .tl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-    .tl-info{font-family:var(--mono);font-size:9px}
-    .tl-ticker{color:var(--ink);font-weight:500}
-    .tl-pct{color:var(--muted)}
+    .avatar-ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 3px solid var(--bg2);
+      box-shadow: 0 0 0 2px var(--blue), 0 4px 16px rgba(0,0,0,.12);
+      flex-shrink: 0; overflow: hidden; background: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .avatar-ring img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    /* ── GRÁFICO PERFORMANCE ── */
-    .perf-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:14px;animation:fadeUp .45s ease}
-    .perf-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
-    .perf-resultado{font-family:var(--display);font-size:22px;letter-spacing:1px}
-    .perf-resultado.pos{color:var(--green)}.perf-resultado.neg{color:var(--red)}
-    .perf-sub{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px}
-    .perf-pct{font-family:var(--mono);font-size:12px;font-weight:500}
-    .perf-pct.pos{color:var(--green)}.perf-pct.neg{color:var(--red)}
-    .perf-chart-wrap{height:90px;position:relative;margin-bottom:10px}
-    canvas#perf-chart{width:100%;height:90px}
+    .hero-info { flex: 1; min-width: 0; padding-top: 2px; }
 
-    /* mini lista de ganho/perda por ativo */
-    .ativo-rows{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--shore)}
-    .ativo-row{display:flex;align-items:center;gap:8px}
-    .ar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .ar-ticker{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--wave);width:52px;flex-shrink:0}
-    .ar-bar-wrap{flex:1;height:4px;background:var(--shore);border-radius:2px;overflow:hidden}
-    .ar-bar{height:100%;border-radius:2px}
-    .ar-val{font-family:var(--mono);font-size:10px;font-weight:500;text-align:right;width:72px;flex-shrink:0}
-    .ar-val.pos{color:var(--green)}.ar-val.neg{color:var(--red)}
+    .badge-perfil {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 7.5px; letter-spacing: 1.5px;
+      background: var(--blue-dim); color: var(--blue);
+      border-radius: 20px; padding: 2px 9px; margin-bottom: 5px;
+    }
 
-    /* ── POSTS ── */
-    .post-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px;margin-bottom:8px;animation:fadeUp .3s ease}
-    .post-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .post-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden}
-    .post-av img{width:100%;height:100%;object-fit:cover}
-    .post-nome{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink)}
-    .post-data{font-family:var(--mono);font-size:9px;color:var(--muted)}
-    .post-txt{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px}
-    .post-likes{font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer}
+    .hero-nome {
+      font-family: var(--display); font-size: 28px;
+      letter-spacing: 2px; line-height: 1; margin-bottom: 2px;
+      color: var(--ink);
+    }
+    .hero-handle { font-size: 10px; color: var(--ink3); margin-bottom: 5px; }
+    .hero-meta   { font-size: 11px; color: var(--ink2); line-height: 1.5; }
 
-    /* trade post */
-    .trade-pill{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block;margin-left:auto}
-    .trade-pill.c{background:#d4f5e2;color:var(--green)}.trade-pill.v{background:#ffd5ce;color:var(--red)}
-    .trade-ticker-big{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave);margin-bottom:8px}
-    .trade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
-    .tg-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:2px}
-    .tg-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
+    /* ══ STATS TRÍADE ══ */
+    .stats {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 7px;
+      margin-bottom: 18px; animation: fadeUp .35s ease;
+    }
+    .stat {
+      background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius-sm); padding: 12px 10px; text-align: center;
+    }
+    .stat-v {
+      font-family: var(--display); font-size: 18px; letter-spacing: 1px;
+      color: var(--ink); line-height: 1; margin-bottom: 3px;
+    }
+    .stat-v.pos { color: var(--green); }
+    .stat-v.neg { color: var(--red); }
+    .stat-l { font-size: 7px; letter-spacing: 2px; color: var(--ink3); }
 
-    .sk-line{height:11px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
-    .empty{text-align:center;padding:28px 20px;color:var(--muted);font-family:var(--mono);font-size:10px}
+    /* ══ SECTION LABEL ══ */
+    .sec-lbl {
+      font-size: 8px; letter-spacing: 2.5px; color: var(--ink3);
+      margin-bottom: 8px; margin-top: 2px;
+    }
 
-    /* NAV */
-    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
-    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
-    .ni:hover{background:var(--shore)}
-    .ni-ico{font-size:20px;line-height:1}
-    .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
-    .ni.on .ni-lbl{color:var(--wave);font-weight:500}
+    /* ══ ALOCAÇÃO — barras horizontais empilhadas ══
+       Muito mais legível que o treemap no mobile
+    ══ */
+    .aloc-card {
+      background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 14px; animation: fadeUp .4s ease;
+    }
+
+    /* Barra de stacked */
+    .stacked-bar {
+      display: flex; height: 28px; border-radius: 8px;
+      overflow: hidden; margin-bottom: 12px; gap: 2px;
+    }
+    .sb-seg { flex-shrink: 0; transition: flex .5s ease; cursor: default; }
+    .sb-seg:first-child { border-radius: 8px 0 0 8px; }
+    .sb-seg:last-child  { border-radius: 0 8px 8px 0; }
+    .sb-seg:only-child  { border-radius: 8px; }
+
+    /* Itens de legenda com barra */
+    .aloc-rows { display: flex; flex-direction: column; gap: 8px; }
+    .aloc-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .aloc-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .aloc-ticker { font-size: 10px; font-weight: 500; color: var(--blue); width: 56px; flex-shrink: 0; }
+    .aloc-bar-wrap { flex: 1; height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+    .aloc-bar { height: 100%; border-radius: 3px; transition: width .6s ease; }
+    .aloc-pct { font-size: 9.5px; color: var(--ink3); width: 38px; text-align: right; flex-shrink: 0; }
+    .aloc-val { font-size: 9.5px; color: var(--ink2); width: 68px; text-align: right; flex-shrink: 0; }
+
+    /* ══ PERFORMANCE ══ */
+    .perf-card {
+      background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 14px; animation: fadeUp .45s ease;
+    }
+    .perf-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .perf-valor { font-family: var(--display); font-size: 26px; letter-spacing: 1px; line-height: 1; }
+    .perf-valor.pos { color: var(--green); }
+    .perf-valor.neg { color: var(--red); }
+    .perf-sub { font-size: 8px; color: var(--ink3); margin-top: 3px; }
+    .perf-pct  { font-size: 13px; font-weight: 500; }
+    .perf-pct.pos { color: var(--green); }
+    .perf-pct.neg { color: var(--red); }
+
+    /* Mini lista resultado por ativo */
+    .perf-rows { display: flex; flex-direction: column; gap: 7px; }
+    .perf-row {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; border-radius: 8px; padding: 4px 6px;
+      transition: background .15s;
+    }
+    .perf-row:hover { background: var(--bg3); }
+    .pr-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .pr-tick { font-size: 10.5px; font-weight: 500; color: var(--blue); width: 54px; flex-shrink: 0; }
+    .pr-bar-wrap { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+    .pr-bar { height: 100%; border-radius: 2px; }
+    .pr-ganho { font-size: 10px; font-weight: 500; width: 68px; text-align: right; flex-shrink: 0; }
+    .pr-ganho.pos { color: var(--green); }
+    .pr-ganho.neg { color: var(--red); }
+
+    /* Estado vazio de performance */
+    .perf-empty {
+      text-align: center; padding: 24px 0;
+      font-size: 10px; color: var(--ink3); letter-spacing: 1px;
+    }
+
+    /* ══ CONVITES ══ */
+    .conv-card {
+      background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 14px; animation: fadeUp .48s ease;
+    }
+    .conv-title { font-size: 8px; letter-spacing: 2px; color: var(--ink3); margin-bottom: 10px; }
+    .conv-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--line); margin-bottom: 7px;
+      background: var(--bg); transition: border-color .2s;
+    }
+    .conv-row:last-child { margin-bottom: 0; }
+    .conv-row:hover:not(.usado) { border-color: var(--blue); }
+    .conv-row.usado { opacity: .45; border-style: dashed; }
+    .conv-cod { font-size: 13px; letter-spacing: 2px; color: var(--blue); }
+    .conv-row.usado .conv-cod { color: var(--ink3); text-decoration: line-through; }
+    .btn-copy {
+      font-size: 7.5px; letter-spacing: 1px; padding: 5px 12px;
+      border-radius: 20px; border: 1px solid var(--line2);
+      background: none; color: var(--ink3); cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-copy:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-copy.ok { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+    .badge-usado {
+      font-size: 8px; letter-spacing: 1px; color: var(--ink3);
+      background: var(--bg3); border-radius: 20px; padding: 4px 9px;
+    }
+
+    /* ══ POSTS ══ */
+    .posts-list { display: flex; flex-direction: column; gap: 7px; }
+    .post-card {
+      background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 13px 14px;
+      animation: fadeUp .3s ease;
+    }
+    /* Posts com texto vazio ficam invisíveis — não renderizamos */
+
+    .post-hdr { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+    .post-av  {
+      width: 30px; height: 30px; border-radius: 50%;
+      overflow: hidden; flex-shrink: 0; background: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; border: 1.5px solid var(--line);
+    }
+    .post-av img { width: 100%; height: 100%; object-fit: cover; }
+    .post-autor { font-size: 10px; font-weight: 500; color: var(--ink); }
+    .post-data  { font-size: 8.5px; color: var(--ink3); }
+
+    .post-mood  { font-size: 14px; margin-left: auto; }
+    .post-txt {
+      font-family: var(--serif); font-style: italic;
+      font-size: 13.5px; line-height: 1.7; color: var(--ink2);
+      margin-bottom: 9px; white-space: pre-wrap; word-break: break-word;
+    }
+    .post-footer { display: flex; align-items: center; gap: 10px; }
+    .post-likes { font-size: 9px; color: var(--ink3); }
+
+    /* Trade post */
+    .trade-pill {
+      font-size: 7.5px; letter-spacing: 1px; padding: 2px 8px;
+      border-radius: 20px; font-weight: 500; margin-left: auto;
+    }
+    .trade-pill.c { background: var(--green-bg); color: var(--green); }
+    .trade-pill.v { background: var(--red-bg);   color: var(--red); }
+    .trade-ticker { font-family: var(--display); font-size: 18px; letter-spacing: 2px; color: var(--blue); margin-bottom: 7px; }
+    .trade-grid   { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 6px; }
+    .tg-l { font-size: 7px; letter-spacing: 1.5px; color: var(--ink3); margin-bottom: 2px; }
+    .tg-v { font-size: 11px; font-weight: 500; color: var(--ink); }
+
+    /* ══ SKELETON ══ */
+    .skel-card {
+      background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 13px 14px;
+      display: flex; gap: 10px; margin-bottom: 7px;
+    }
+    .sk-c { width: 30px; height: 30px; border-radius: 50%; background: var(--bg3); flex-shrink: 0; animation: shimmer 1.6s infinite; }
+    .sk-b { flex: 1; display: flex; flex-direction: column; gap: 7px; padding-top: 4px; }
+    .sk-l { height: 9px; border-radius: 4px; background: var(--bg3); animation: shimmer 1.6s infinite; }
+    .sk-l:nth-child(1) { width: 40%; animation-delay:.1s }
+    .sk-l:nth-child(2) { width: 80%; animation-delay:.2s }
+    .sk-l:nth-child(3) { width: 55%; animation-delay:.3s }
+
+    /* ══ EMPTY / ERRO ══ */
+    .empty {
+      text-align: center; padding: 28px; font-size: 10px;
+      color: var(--ink3); letter-spacing: 1px;
+    }
+
+    /* ══ BTN SAIR ══ */
+    .btn-sair {
+      width: 100%; height: 46px; border-radius: 25px;
+      margin-top: 4px; margin-bottom: 18px;
+      font-size: 8.5px; letter-spacing: 2px;
+      background: none; border: 1px solid var(--line2);
+      color: var(--ink3); cursor: pointer;
+      transition: border-color .2s, color .2s;
+      font-family: var(--mono);
+    }
+    .btn-sair:hover { border-color: var(--red); color: var(--red); }
+
+    /* ══ TOAST ══ */
+    #toast {
+      position: fixed; bottom: 84px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--ink); color: var(--bg);
+      font-size: 10.5px; letter-spacing: .4px;
+      padding: 9px 20px; border-radius: 20px;
+      opacity: 0; pointer-events: none; z-index: 9000;
+      white-space: nowrap; transition: opacity .22s, transform .22s;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ══ NAV ══ */
+    .nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
+      background: rgba(240,235,227,.94);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--line);
+      display: flex; justify-content: space-around; align-items: center; z-index: 100;
+    }
+    .ni {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      text-decoration: none; color: inherit;
+      padding: 5px 16px; border-radius: 12px; cursor: pointer;
+      transition: background .18s; -webkit-tap-highlight-color: transparent;
+    }
+    .ni:hover { background: var(--bg3); }
+    .ni-ico { font-size: 18px; line-height: 1; }
+    .ni-lbl { font-size: 7.5px; letter-spacing: 1.5px; color: var(--ink3); }
+    .ni.on .ni-lbl { color: var(--blue); font-weight: 500; }
+
+    /* ══ COTAÇÕES BADGE ══ */
+    .cot-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 8px; letter-spacing: 1px; color: var(--ink3);
+      background: var(--bg3); border-radius: 20px; padding: 3px 9px;
+      margin-bottom: 12px;
+    }
+    .cot-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink3); }
+    .cot-badge.live { color: var(--green); }
+    .cot-badge.live .cot-dot { background: var(--green); animation: pulse 1.5s infinite; }
+    .cot-badge.offline { color: var(--red); }
+    .cot-badge.offline .cot-dot { background: var(--red); }
   </style>
 </head>
 <body>
-  <header class="hdr">
-    <div class="hdr-title">PERFIL</div>
-    <button class="btn-edit" onclick="location.href='editar-perfil.html'">✏️ EDITAR</button>
-  </header>
 
-  <div class="container">
+<header class="hdr">
+  <div class="hdr-title">PERFIL</div>
+  <button class="btn-editar" onclick="location.href='editar-perfil.html'">✏️ EDITAR</button>
+</header>
 
-    <!-- HERO: avatar + nome + bio -->
-    <div class="hero" id="hero">
-      <div class="avatar" id="avatar-el">🐦</div>
-      <div class="hero-info">
-        <div class="perfil-badge" id="badge-perfil">⚖️ MODERADO</div>
-        <p class="hero-nome" id="p-nome">···</p>
-        <p class="hero-username" id="p-username">@···</p>
-        <p class="hero-bio" id="p-bio">···</p>
-      </div>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero" id="hero">
+    <div class="avatar-ring" id="avatar-el">🐦</div>
+    <div class="hero-info">
+      <div class="badge-perfil" id="badge-perfil">⚖️ MODERADO</div>
+      <p class="hero-nome" id="p-nome">···</p>
+      <p class="hero-handle" id="p-handle">@···</p>
+      <p class="hero-meta" id="p-meta">···</p>
     </div>
-
-    <!-- STATS: patrimônio · resultado · ativos -->
-    <div class="stats-row" id="stats-row">
-      <div class="stat-box">
-        <p class="stat-val" id="st-pat">···</p>
-        <p class="stat-lbl">PATRIMÔNIO</p>
-      </div>
-      <div class="stat-box">
-        <p class="stat-val" id="st-res">···</p>
-        <p class="stat-lbl">RESULTADO</p>
-      </div>
-      <div class="stat-box">
-        <p class="stat-val" id="st-atv">···</p>
-        <p class="stat-lbl">ATIVOS</p>
-      </div>
-    </div>
-
-    <!-- TREEMAP -->
-    <p class="secao-lbl">ALOCAÇÃO</p>
-    <div class="treemap-card" id="treemap-card" style="display:none">
-      <canvas class="treemap" id="treemap-canvas"></canvas>
-      <div class="treemap-leg" id="treemap-leg"></div>
-    </div>
-
-    <!-- PERFORMANCE -->
-    <p class="secao-lbl">DESEMPENHO</p>
-    <div class="perf-card" id="perf-card" style="display:none">
-      <div class="perf-top">
-        <div>
-          <p class="perf-resultado" id="perf-res">···</p>
-          <p class="perf-sub">desde o início · capital R$ 500k</p>
-        </div>
-        <p class="perf-pct" id="perf-pct">···</p>
-      </div>
-      <div class="perf-chart-wrap">
-        <canvas id="perf-chart"></canvas>
-      </div>
-      <div class="ativo-rows" id="ativo-rows"></div>
-    </div>
-
-    <!-- POSTS -->
-    <p class="secao-lbl">COMPARTILHADO</p>
-    <div id="posts-list">
-      <div><div class="sk-line" style="width:55%"></div><div class="sk-line"></div><div class="sk-line" style="width:35%"></div></div>
-    </div>
-
   </div>
 
-  <nav class="nav">
-    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
-    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
-    <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
-    <a class="ni on" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
-  </nav>
+  <!-- STATUS COTAÇÕES -->
+  <div class="cot-badge" id="cot-badge">
+    <span class="cot-dot"></span>
+    <span id="cot-txt">carregando cotações...</span>
+  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
-  <script src="mercado-api.js"></script>
-  <script>
-  const CAPITAL = 500000;
-  const CORES = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
-  const COR_DISP = '#d4c9b8';
+  <!-- STATS -->
+  <div class="stats" id="stats">
+    <div class="stat"><p class="stat-v" id="st-pat">···</p><p class="stat-l">PATRIMÔNIO</p></div>
+    <div class="stat"><p class="stat-v" id="st-res">···</p><p class="stat-l">RESULTADO</p></div>
+    <div class="stat"><p class="stat-v" id="st-atv">···</p><p class="stat-l">ATIVOS</p></div>
+  </div>
 
-  const Rk  = v => { const a=Math.abs(v); return (v<0?'-':'')+'R$ '+(a>=1000?(a/1000).toFixed(0)+'k':a.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})); };
-  const R$  = v => 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const pct = v => (v>=0?'+':'')+v.toFixed(2)+'%';
+  <!-- ALOCAÇÃO -->
+  <p class="sec-lbl">ALOCAÇÃO</p>
+  <div class="aloc-card" id="aloc-card" style="display:none">
+    <!-- Barra stacked -->
+    <div class="stacked-bar" id="stacked-bar"></div>
+    <!-- Rows -->
+    <div class="aloc-rows" id="aloc-rows"></div>
+  </div>
 
-  let db, uid, userData={}, posicoes=[], cotacoes={};
+  <!-- DESEMPENHO -->
+  <p class="sec-lbl">DESEMPENHO</p>
+  <div class="perf-card" id="perf-card" style="display:none">
+    <div class="perf-header">
+      <div>
+        <p class="perf-valor" id="perf-valor">···</p>
+        <p class="perf-sub">desde o início · capital R$ 500k</p>
+      </div>
+      <p class="perf-pct" id="perf-pct">···</p>
+    </div>
+    <div class="perf-rows" id="perf-rows"></div>
+  </div>
 
-  firebase.auth().onAuthStateChanged(async user => {
-    if (!user) { location.href='invite.html'; return; }
-    uid = user.uid;
-    db  = window.db || firebase.firestore();
-    await carregar();
+  <!-- CONVITES -->
+  <p class="sec-lbl">🪶 CONVITES DA IRMANDADE</p>
+  <div class="conv-card" id="conv-card">
+    <div id="conv-list">
+      <div class="skel-card"><div class="sk-c"></div><div class="sk-b"><div class="sk-l"></div></div></div>
+    </div>
+  </div>
+
+  <!-- POSTS -->
+  <p class="sec-lbl">COMPARTILHADO</p>
+  <div id="posts-skel">
+    <div class="skel-card"><div class="sk-c"></div><div class="sk-b"><div class="sk-l"></div><div class="sk-l"></div><div class="sk-l"></div></div></div>
+    <div class="skel-card"><div class="sk-c"></div><div class="sk-b"><div class="sk-l"></div><div class="sk-l"></div></div></div>
+  </div>
+  <div class="posts-list" id="posts-list"></div>
+
+  <!-- SAIR -->
+  <button class="btn-sair" onclick="sair()">SAIR DA ORDEM</button>
+
+</div><!-- /.wrap -->
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
+  <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
+  <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
+  <a class="ni on" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+</nav>
+
+<div id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════
+   PERFIL.HTML — reescrito
+   Fixes:
+   1. Treemap → Stacked bar + rows (legível no mobile)
+   2. Cotações → brapi + awesomeapi + coingecko (sem CORS)
+   3. Patrimônio → disp + valor_atual_real das posições
+   4. Posts → filtra vazios, usa data_post OU criadoEm
+   5. Resultado por ativo → só mostra quando tem cotação
+════════════════════════════════════════════════ */
+
+const CAPITAL   = 500_000;
+const PAL_CORES = ['#2a5fff','#1a9c4e','#d4a800','#d93030','#7c3aed','#0891b2','#ea580c','#db2777'];
+const PAL_DISP  = '#cec7bb';
+
+// ── formatadores ──
+const BRL  = v => 'R$\u202f' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+const BRLk = v => { const a=Math.abs(v); const s=v<0?'-':''; return s+'R$\u202f'+(a>=1000?(a/1000).toFixed(0)+'k':a.toLocaleString('pt-BR',{maximumFractionDigits:0})); };
+const Pct  = v => (v>=0?'+':'')+Number(v).toFixed(2)+'%';
+
+function tempoRel(sec) {
+  if (!sec) return '—';
+  const diff = Math.floor(Date.now()/1000 - sec);
+  if (diff<60)    return 'agora';
+  if (diff<3600)  return Math.floor(diff/60)+'m';
+  if (diff<86400) return Math.floor(diff/3600)+'h';
+  return new Date(sec*1000).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── toast ──
+let _tt;
+function toast(msg, dur=2600) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+/* ════════════════════════
+   ESTADO
+════════════════════════ */
+let db, uid;
+let userData = {}, posicoes = [], cotacoes = {};
+let cotacoesStatus = 'loading'; // 'loading' | 'live' | 'offline'
+
+/* ════════════════════════
+   COTAÇÕES
+   FIX: sem Yahoo Finance (CORS)
+   Ordem: brapi → awesomeapi → coingecko → fallback
+════════════════════════ */
+async function buscarCotacoes(tickers) {
+  const result = {};
+  if (!tickers.length) return result;
+
+  const acoes = tickers.filter(t => !['BTC','ETH','BNB','SOL'].includes(t));
+  const crypto= tickers.filter(t =>  ['BTC','ETH','BNB','SOL'].includes(t));
+
+  // ── ações via brapi ──
+  if (acoes.length) {
+    try {
+      const r = await fetch(
+        `https://brapi.dev/api/quote/${acoes.join(',')}?range=1d&interval=1d`,
+        { signal: AbortSignal.timeout(7000) }
+      );
+      const d = await r.json();
+      (d.results || []).forEach(q => {
+        if (q.regularMarketPrice > 0) result[q.symbol] = q.regularMarketPrice;
+      });
+    } catch(e) { console.warn('[brapi]', e.message); }
+  }
+
+  // ── cripto via coingecko ──
+  if (crypto.length) {
+    const map = { BTC:'bitcoin', ETH:'ethereum', BNB:'binancecoin', SOL:'solana' };
+    const ids  = crypto.map(t=>map[t]).filter(Boolean);
+    if (ids.length) {
+      try {
+        const r = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd`,
+          { signal: AbortSignal.timeout(7000) }
+        );
+        const d = await r.json();
+        // pega USD e converte por câmbio
+        const usd2brl = await getUSD();
+        const rmap = { bitcoin:'BTC', ethereum:'ETH', binancecoin:'BNB', solana:'SOL' };
+        Object.entries(d).forEach(([id,v]) => {
+          const sym = rmap[id];
+          if (sym) result[sym] = v.usd * usd2brl;
+        });
+      } catch(e) { console.warn('[coingecko]', e.message); }
+    }
+  }
+
+  cotacoesStatus = Object.keys(result).length > 0 ? 'live' : 'offline';
+  atualizarCotBadge();
+  return result;
+}
+
+let _usdCache = null;
+async function getUSD() {
+  if (_usdCache) return _usdCache;
+  try {
+    const r = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL', { signal: AbortSignal.timeout(5000) });
+    const d = await r.json();
+    _usdCache = parseFloat(d.USDBRL?.bid) || 5.70;
+  } catch(e) { _usdCache = 5.70; }
+  return _usdCache;
+}
+
+function atualizarCotBadge() {
+  const el  = document.getElementById('cot-badge');
+  const txt = document.getElementById('cot-txt');
+  el.className  = 'cot-badge ' + (cotacoesStatus === 'live' ? 'live' : cotacoesStatus === 'offline' ? 'offline' : '');
+  txt.textContent = cotacoesStatus === 'live' ? 'cotações ao vivo' : cotacoesStatus === 'offline' ? 'cotações offline' : 'carregando cotações...';
+}
+
+/* ════════════════════════
+   CÁLCULO DE PATRIMÔNIO
+   FIX: disp = saldo real (após compras)
+        inv  = valor_atual de cada posição
+        total = disp + inv
+════════════════════════ */
+function calcPatrimonio(cartData) {
+  // Saldo disponível: pode estar em usuarios.saldo_disponivel
+  // ou em carteiras.saldo_disponivel. Usa o disponível real.
+  const dispFirestore = cartData?.saldo_disponivel ?? CAPITAL;
+  const pos = posicoes;
+
+  let totalPago = 0;
+  let valorAtual = 0;
+
+  pos.forEach(p => {
+    const qtd      = p.quantidade || 0;
+    const pm       = p.preco_medio || p.preco || 0;
+    const cotAtual = cotacoes[p.ticker] || 0;
+    const va       = cotAtual > 0 ? qtd * cotAtual : qtd * pm; // usa cot se tiver
+    totalPago  += qtd * pm;
+    valorAtual += va;
   });
 
-  async function carregar() {
-    const [uS, cS] = await Promise.all([
-      db.collection('usuarios').doc(uid).get(),
-      db.collection('carteiras').doc(uid).get()
-    ]);
-    userData = uS.data() || {};
-    posicoes = cS.exists ? (cS.data()?.posicoes || []) : [];
+  // Se cotações não carregaram, patrimônio = disponível + custo (sem ganho/perda)
+  const patrimonio = dispFirestore + valorAtual;
+  const resultado  = patrimonio - CAPITAL;
+  const rentab     = CAPITAL > 0 ? (resultado / CAPITAL) * 100 : 0;
 
-    // cotações
-    const tks = posicoes.filter(p=>p.tipo==='acoes'||p.tipo==='fiis'||!p.tipo).map(p=>p.ticker);
-    if (tks.length) {
-      try { const d=await MercadoAPI.buscarMultiplos(tks); d.forEach(x=>{if(x.preco>0)cotacoes[x.ticker]=x.preco;}); } catch(e){}
-    }
+  return { patrimonio, dispFirestore, valorAtual, totalPago, resultado, rentab };
+}
 
-    renderHero();
-    renderStats();
-    renderTreemap();
-    renderPerf();
-    renderPosts();
+/* ════════════════════════
+   HELPERS DE COR
+════════════════════════ */
+function corPombito() {
+  const MAP = {
+    'azul':'#2a5fff','azul celeste':'#87ceeb','azul mar':'#006994',
+    'verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#d93030',
+    'rosa':'#e75480','roxo':'#6a0dad','laranja':'#e86a1a',
+    'amarelo':'#d4a800','dourado':'#c9a84c','cinza':'#6b6b6b',
+    'marrom':'#7a4e2d','ciano':'#00b4d8','violeta':'#7c3aed',
+    'turquesa':'#40e0d0','coral':'#ff6b6b'
+  };
+  return MAP[(userData.cor || '').toLowerCase().trim()] || '#2a5fff';
+}
+
+/* ════════════════════════
+   RENDER HERO
+════════════════════════ */
+function renderHero() {
+  const cor = corPombito();
+  const avEl = document.getElementById('avatar-el');
+  avEl.style.background = cor;
+
+  if (userData.foto_perfil) {
+    avEl.innerHTML = `<img src="${userData.foto_perfil}" alt="">`;
   }
 
-  // ── HELPERS ──
-  function corPombito() {
-    const m={'azul':'#1a4fff','azul celeste':'#87ceeb','azul mar':'#006994','verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#cc2200','rosa':'#e75480','roxo':'#6a0dad','laranja':'#e86a1a','amarelo':'#f5b800','dourado':'#c9a84c','cinza':'#6b6b6b','marrom':'#7a4e2d','ciano':'#00b4d8','violeta':'#7c3aed','turquesa':'#40e0d0','coral':'#ff6b6b'};
-    return m[(userData.cor||'').toLowerCase().trim()] || '#1a4fff';
+  document.getElementById('p-nome').textContent   = userData.nome || 'Pombito';
+  document.getElementById('p-handle').textContent = '@' + (userData.username || '···');
+
+  const meta = [
+    userData.musica ? '🎵 ' + userData.musica : '',
+    userData.filme  ? '🎬 ' + userData.filme  : '',
+    userData.data_adesao?.toDate ? 'desde ' + userData.data_adesao.toDate().toLocaleDateString('pt-BR',{month:'short',year:'numeric'}) : '',
+  ].filter(Boolean).join('  ·  ');
+  document.getElementById('p-meta').textContent = meta || '—';
+
+  const badges = { conservador:'🛡️ CONSERVADOR', moderado:'⚖️ MODERADO', arrojado:'🚀 ARROJADO' };
+  document.getElementById('badge-perfil').textContent = badges[userData.perfil_investidor || 'moderado'];
+}
+
+/* ════════════════════════
+   RENDER STATS
+════════════════════════ */
+function renderStats(cartData) {
+  const { patrimonio, resultado, rentab } = calcPatrimonio(cartData);
+  const isPos = resultado >= 0;
+
+  document.getElementById('st-pat').textContent = BRLk(patrimonio);
+  const resEl = document.getElementById('st-res');
+  resEl.textContent = (isPos?'+':'') + BRLk(resultado);
+  resEl.className   = 'stat-v ' + (isPos ? 'pos' : 'neg');
+  document.getElementById('st-atv').textContent = posicoes.length;
+}
+
+/* ════════════════════════
+   RENDER ALOCAÇÃO
+   FIX: stacked bar + rows, sem treemap
+════════════════════════ */
+function renderAloc(cartData) {
+  if (!posicoes.length) return;
+  document.getElementById('aloc-card').style.display = 'block';
+
+  const { patrimonio, dispFirestore } = calcPatrimonio(cartData);
+
+  // Monta itens
+  const itens = posicoes.map((p, i) => {
+    const cotAtual = cotacoes[p.ticker] || p.preco_medio || 0;
+    const val = (p.quantidade || 0) * cotAtual;
+    const pct = patrimonio > 0 ? (val / patrimonio) * 100 : 0;
+    return { ticker: p.ticker, val, pct, cor: PAL_CORES[i % PAL_CORES.length] };
+  });
+
+  if (dispFirestore > 0) {
+    const pct = patrimonio > 0 ? (dispFirestore / patrimonio) * 100 : 0;
+    itens.push({ ticker: 'DISPONÍVEL', val: dispFirestore, pct, cor: PAL_DISP });
   }
 
-  function calcPatrimonio() {
-    const totalPago = posicoes.reduce((s,p)=>s+(p.quantidade||0)*(p.preco_medio||0),0);
-    const investReal = posicoes.reduce((s,p)=>{ const pa=cotacoes[p.ticker]||p.preco_medio||0; return s+(p.quantidade||0)*pa; },0);
-    const saldo = CAPITAL - totalPago;
-    return { saldo, investReal, patrimonio: saldo+investReal, totalPago };
+  itens.sort((a, b) => b.val - a.val);
+
+  // Stacked bar
+  const bar = document.getElementById('stacked-bar');
+  bar.innerHTML = '';
+  itens.forEach(it => {
+    const seg = document.createElement('div');
+    seg.className = 'sb-seg';
+    seg.style.flex    = it.pct.toFixed(2);
+    seg.style.background = it.cor;
+    seg.title = `${it.ticker}: ${it.pct.toFixed(1)}%`;
+    bar.appendChild(seg);
+  });
+
+  // Rows com mini barra
+  const rows = document.getElementById('aloc-rows');
+  rows.innerHTML = '';
+  const maxVal = itens[0]?.val || 1;
+
+  itens.forEach(it => {
+    const barW = ((it.val / maxVal) * 100).toFixed(1);
+    const row  = document.createElement('div');
+    row.className = 'aloc-row';
+    row.innerHTML = `
+      <div class="aloc-dot" style="background:${it.cor}"></div>
+      <span class="aloc-ticker">${esc(it.ticker)}</span>
+      <div class="aloc-bar-wrap">
+        <div class="aloc-bar" style="width:${barW}%;background:${it.cor}"></div>
+      </div>
+      <span class="aloc-pct">${it.pct.toFixed(1)}%</span>
+      <span class="aloc-val">${BRLk(it.val)}</span>`;
+    rows.appendChild(row);
+  });
+}
+
+/* ════════════════════════
+   RENDER DESEMPENHO
+   FIX: só mostra ganho/perda se tem cotação real
+════════════════════════ */
+function renderPerf(cartData) {
+  if (!posicoes.length) return;
+  document.getElementById('perf-card').style.display = 'block';
+
+  const { resultado, rentab } = calcPatrimonio(cartData);
+  const isPos = resultado >= 0;
+
+  const vEl = document.getElementById('perf-valor');
+  vEl.textContent = (isPos?'+':'') + BRL(resultado);
+  vEl.className   = 'perf-valor ' + (isPos ? 'pos' : 'neg');
+
+  const pEl = document.getElementById('perf-pct');
+  pEl.textContent = Pct(rentab);
+  pEl.className   = 'perf-pct ' + (isPos ? 'pos' : 'neg');
+
+  // Por ativo
+  const rows = document.getElementById('perf-rows');
+
+  const porAtivo = posicoes.map((p, i) => {
+    const cotAtual = cotacoes[p.ticker] || 0;
+    const pm       = p.preco_medio || p.preco || 0;
+    const qtd      = p.quantidade  || 0;
+    const temCot   = cotAtual > 0 && cotAtual !== pm;
+
+    const va    = temCot ? qtd * cotAtual : qtd * pm;
+    const vp    = qtd * pm;
+    const ganho = va - vp;
+    const ganhoP= vp > 0 ? (ganho / vp) * 100 : 0;
+
+    return { ticker: p.ticker, ganho, ganhoP, temCot, cor: PAL_CORES[i % PAL_CORES.length] };
+  }).sort((a, b) => b.ganho - a.ganho);
+
+  // Se nenhum tem cotação, mostra aviso
+  const algumTemCot = porAtivo.some(p => p.temCot);
+
+  if (!algumTemCot) {
+    rows.innerHTML = `
+      <div class="perf-empty">
+        ⚡ Aguardando cotações ao vivo<br>
+        <span style="opacity:.6">desempenho por ativo aparece após carregar</span>
+      </div>`;
+    return;
   }
 
-  // ── HERO ──
-  function renderHero() {
-    const cor = corPombito();
-    document.getElementById('avatar-el').style.background = cor;
+  const maxAbs = Math.max(...porAtivo.map(p => Math.abs(p.ganho)), 1);
 
-    document.getElementById('p-nome').textContent     = userData.nome     || 'Pombito';
-    document.getElementById('p-username').textContent = '@'+(userData.username||'···');
+  porAtivo.forEach(p => {
+    const ip   = p.ganho >= 0;
+    const barW = ((Math.abs(p.ganho) / maxAbs) * 100).toFixed(0);
+    const ganhoStr = p.temCot
+      ? (ip?'+':'') + BRLk(p.ganho)
+      : '···';
 
-    const bio = [userData.musica?'🎵 '+userData.musica:'', userData.filme?'🎬 '+userData.filme:''].filter(Boolean).join('  ·  ');
-    document.getElementById('p-bio').textContent = bio || '—';
+    const row = document.createElement('div');
+    row.className = 'perf-row';
+    row.onclick   = () => location.href = `relatorio.html?ticker=${encodeURIComponent(p.ticker)}`;
+    row.innerHTML = `
+      <div class="pr-dot" style="background:${p.cor}"></div>
+      <span class="pr-tick">${esc(p.ticker)}</span>
+      <div class="pr-bar-wrap">
+        <div class="pr-bar" style="width:${p.temCot?barW:0}%;background:${ip?'var(--green)':'var(--red)'}"></div>
+      </div>
+      <span class="pr-ganho ${p.temCot?(ip?'pos':'neg'):''}">${ganhoStr}</span>`;
+    rows.appendChild(row);
+  });
+}
 
-    const badges = {conservador:'🛡️ CONSERVADOR', moderado:'⚖️ MODERADO', arrojado:'🚀 ARROJADO'};
-    document.getElementById('badge-perfil').textContent = badges[userData.perfil_investidor||'moderado'];
+/* ════════════════════════
+   RENDER CONVITES
+════════════════════════ */
+async function renderConvites(codigos) {
+  const el = document.getElementById('conv-list');
+  if (!codigos?.length) {
+    el.innerHTML = `<div class="empty">Nenhum convite disponível.</div>`;
+    return;
   }
 
-  // ── STATS ──
-  function renderStats() {
-    const {patrimonio, investReal} = calcPatrimonio();
-    const resultado = patrimonio - CAPITAL;
-    const isPos     = resultado >= 0;
-
-    document.getElementById('st-pat').textContent = Rk(patrimonio);
-    const resEl = document.getElementById('st-res');
-    resEl.textContent = (isPos?'+':'')+Rk(resultado);
-    resEl.className   = 'stat-val '+(isPos?'pos':'neg');
-    document.getElementById('st-atv').textContent = posicoes.length;
-  }
-
-  // ── TREEMAP ──
-  function renderTreemap() {
-    if (!posicoes.length) return;
-    document.getElementById('treemap-card').style.display = 'block';
-
-    const {saldo, patrimonio} = calcPatrimonio();
-
-    // Monta itens: cada ativo + disponível
-    const itens = posicoes.map((p,i) => {
-      const pa  = cotacoes[p.ticker] || p.preco_medio || 0;
-      const val = (p.quantidade||0)*pa;
-      return { label:p.ticker, val, pct:val/patrimonio*100, cor:CORES[i%CORES.length] };
-    });
-    if (saldo > 0) itens.push({ label:'DISPONÍVEL', val:saldo, pct:saldo/patrimonio*100, cor:COR_DISP });
-    itens.sort((a,b)=>b.val-a.val);
-
-    // Canvas
-    const canvas = document.getElementById('treemap-canvas');
-    const dpr    = window.devicePixelRatio||1;
-    const W      = canvas.parentElement.offsetWidth;
-    const H      = Math.round(W * 0.52);
-    canvas.width  = W*dpr; canvas.height = H*dpr;
-    canvas.style.width=W+'px'; canvas.style.height=H+'px';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr,dpr);
-
-    squarify(ctx, itens, 0, 0, W, H);
-
-    // Legenda
-    const leg = document.getElementById('treemap-leg');
-    leg.innerHTML='';
-    itens.forEach(it=>{
-      const d=document.createElement('div'); d.className='tl-item';
-      d.innerHTML=`<div class="tl-dot" style="background:${it.cor}"></div><span class="tl-info"><span class="tl-ticker">${it.label}</span> <span class="tl-pct">${it.pct.toFixed(1)}%</span></span>`;
-      leg.appendChild(d);
-    });
-  }
-
-  function squarify(ctx, itens, x, y, w, h) {
-    if (!itens.length) return;
-    const total = itens.reduce((s,i)=>s+i.pct,0);
-    let rx=x,ry=y,rw=w,rh=h;
-    let fila=[];
-
-    const worst = (fila, side) => {
-      const s=side*side, sum=fila.reduce((a,f)=>a+f.pct,0)*s/total;
-      return Math.max(...fila.map(f=>{const a=f.pct*s/total; return Math.max(sum*sum/a,a/sum*sum);}));
-    };
-
-    let idx=0;
-    while(idx<itens.length){
-      const horizontal = rw>=rh;
-      const side=horizontal?rh:rw;
-      const novo=[...fila,itens[idx]];
-      if(!fila.length||worst(fila,side)>=worst(novo,side)){
-        fila=novo; idx++;
-        if(idx===itens.length) flush();
-      } else { flush(); }
-    }
-    function flush(){
-      if(!fila.length)return;
-      const filaPct=fila.reduce((s,f)=>s+f.pct,0);
-      const horizontal=rw>=rh;
-      const dim=horizontal?(filaPct/total)*rw:(filaPct/total)*rh;
-      let cur=horizontal?ry:rx;
-      fila.forEach(it=>{
-        const sz=(it.pct/filaPct)*(horizontal?rh:rw);
-        const cx=horizontal?rx:cur, cy=horizontal?cur:ry;
-        const iw=horizontal?dim:sz, ih=horizontal?sz:dim;
-        desenharBloco(ctx,cx,cy,iw,ih,it);
-        cur+=sz;
-      });
-      if(horizontal){rx+=dim;rw-=dim;}else{ry+=dim;rh-=dim;}
-      fila=[];
-    }
-  }
-
-  function desenharBloco(ctx,x,y,w,h,it){
-    const g=2;
-    ctx.fillStyle=it.cor;
-    ctx.fillRect(x+g,y+g,w-g*2,h-g*2);
-    if(w>44&&h>24){
-      ctx.save();
-      ctx.fillStyle='rgba(255,255,255,.92)';
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
-      const fs=Math.min(12,w/5.5);
-      ctx.font=`600 ${fs}px DM Mono,monospace`;
-      ctx.fillText(it.label,x+w/2,h>42?y+h/2-7:y+h/2);
-      if(h>42){
-        ctx.font=`${Math.min(9,w/7)}px DM Mono,monospace`;
-        ctx.fillStyle='rgba(255,255,255,.65)';
-        ctx.fillText(it.pct.toFixed(1)+'%',x+w/2,y+h/2+8);
-      }
-      ctx.restore();
-    }
-  }
-
-  // ── PERFORMANCE ──
-  function renderPerf() {
-    if (!posicoes.length) return;
-    document.getElementById('perf-card').style.display='block';
-
-    const {patrimonio} = calcPatrimonio();
-    const resultado = patrimonio - CAPITAL;
-    const rentab    = (resultado/CAPITAL)*100;
-    const isPos     = resultado >= 0;
-
-    const resEl = document.getElementById('perf-res');
-    resEl.textContent = (isPos?'+':'')+R$(resultado);
-    resEl.className   = 'perf-resultado '+(isPos?'pos':'neg');
-    const pctEl = document.getElementById('perf-pct');
-    pctEl.textContent = pct(rentab);
-    pctEl.className   = 'perf-pct '+(isPos?'pos':'neg');
-
-    // Mini barras por ativo
-    const ativoRows = document.getElementById('ativo-rows');
-    const porAtivo = posicoes.map((p,i)=>{
-      const pa=cotacoes[p.ticker]||p.preco_medio||0;
-      const va=(p.quantidade||0)*pa, vp=(p.quantidade||0)*(p.preco_medio||0);
-      const ganho=va-vp, ganhoP=vp>0?(ganho/vp)*100:0;
-      return {ticker:p.ticker, ganho, ganhoP, cor:CORES[i%CORES.length]};
-    }).sort((a,b)=>b.ganho-a.ganho);
-
-    const maxAbs=Math.max(...porAtivo.map(p=>Math.abs(p.ganho)),1);
-    ativoRows.innerHTML='';
-    porAtivo.forEach(p=>{
-      const ip=p.ganho>=0;
-      const barW=(Math.abs(p.ganho)/maxAbs*100).toFixed(0);
-      const row=document.createElement('div'); row.className='ativo-row';
-      row.style.cursor='pointer';
-      row.onclick=()=>location.href=`relatorio.html?ticker=${p.ticker}`;
-      row.innerHTML=`
-        <div class="ar-dot" style="background:${p.cor}"></div>
-        <span class="ar-ticker">${p.ticker}</span>
-        <div class="ar-bar-wrap"><div class="ar-bar" style="width:${barW}%;background:${ip?'var(--green)':'var(--red)'}"></div></div>
-        <span class="ar-val ${ip?'pos':'neg'}">${ip?'+':''}${Rk(p.ganho)}</span>`;
-      ativoRows.appendChild(row);
-    });
-
-    // Tenta carregar gráfico histórico do ativo principal
-    if (posicoes[0]) carregarGraficoPerfil(posicoes[0].ticker);
-  }
-
-  async function carregarGraficoPerfil(ticker) {
+  let html = '';
+  for (const cod of codigos) {
+    let usado = false;
     try {
-      const hist = await MercadoAPI.buscarHistorico(ticker,'3mo');
-      if (!hist?.historico?.length) return;
-      const precos = hist.historico.map(h=>h.preco);
-      const pm = posicoes[0]?.preco_medio || precos[0];
-      desenharGraficoPerfil(precos, pm);
-    } catch(e){}
+      const s = await db.collection('convites').doc(cod).get();
+      if (s.exists) usado = s.data()?.usado === true;
+    } catch(e) {}
+
+    html += usado
+      ? `<div class="conv-row usado"><span class="conv-cod">${cod}</span><span class="badge-usado">FLORESCEU 🌸</span></div>`
+      : `<div class="conv-row"><span class="conv-cod">${cod}</span><button class="btn-copy" onclick="copiar('${cod}',this)">COPIAR</button></div>`;
   }
+  el.innerHTML = html;
+}
 
-  function desenharGraficoPerfil(precos, pm) {
-    const canvas = document.getElementById('perf-chart');
-    const dpr    = window.devicePixelRatio||1;
-    const W      = canvas.parentElement.offsetWidth;
-    const H      = 90;
-    canvas.width=W*dpr; canvas.height=H*dpr;
-    canvas.style.width=W+'px'; canvas.style.height=H+'px';
-    const ctx=canvas.getContext('2d');
-    ctx.scale(dpr,dpr);
-
-    const pad={t:6,r:6,b:6,l:6};
-    const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
-
-    const allVals = [...precos, pm];
-    const minV = Math.min(...allVals)*0.997;
-    const maxV = Math.max(...allVals)*1.003;
-    const rng  = maxV-minV||1;
-
-    const xOf = i => pad.l+(i/(precos.length-1))*cw;
-    const yOf = v => pad.t+ch-((v-minV)/rng)*ch;
-
-    ctx.clearRect(0,0,W,H);
-
-    // Área preço
-    const isPos = precos[precos.length-1] >= precos[0];
-    const grad  = ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
-    grad.addColorStop(0, isPos?'rgba(26,138,74,.2)':'rgba(204,34,0,.2)');
-    grad.addColorStop(1, isPos?'rgba(26,138,74,.02)':'rgba(204,34,0,.02)');
-    ctx.beginPath();
-    ctx.moveTo(xOf(0),yOf(precos[0]));
-    precos.forEach((p,i)=>{if(i>0)ctx.lineTo(xOf(i),yOf(p));});
-    ctx.lineTo(xOf(precos.length-1),pad.t+ch);
-    ctx.lineTo(xOf(0),pad.t+ch);
-    ctx.closePath();
-    ctx.fillStyle=grad; ctx.fill();
-
-    // Linha preço (preta/escura como no rascunho)
-    ctx.beginPath();
-    ctx.strokeStyle='#0d0d0d';
-    ctx.lineWidth=1.8; ctx.lineJoin='round';
-    ctx.moveTo(xOf(0),yOf(precos[0]));
-    precos.forEach((p,i)=>{if(i>0)ctx.lineTo(xOf(i),yOf(p));});
-    ctx.stroke();
-
-    // Linha PM (vermelha pontilhada — preço médio de compra)
-    const yPM=yOf(pm);
-    ctx.save();
-    ctx.setLineDash([4,4]);
-    ctx.strokeStyle='#cc2200';
-    ctx.lineWidth=1.2;
-    ctx.beginPath(); ctx.moveTo(pad.l,yPM); ctx.lineTo(W-pad.r,yPM); ctx.stroke();
-    ctx.restore();
-
-    // Label PM
-    ctx.fillStyle='#cc2200';
-    ctx.font='8px DM Mono,monospace';
-    ctx.textAlign='left';
-    ctx.fillText('PM',pad.l+4,yPM-3);
-
-    // Ponto final
-    const lx=xOf(precos.length-1), ly=yOf(precos[precos.length-1]);
-    ctx.beginPath(); ctx.arc(lx,ly,3.5,0,Math.PI*2);
-    ctx.fillStyle='#0d0d0d'; ctx.fill();
-    ctx.strokeStyle='#faf8f5'; ctx.lineWidth=1.5; ctx.stroke();
+async function copiar(cod, btn) {
+  try { await navigator.clipboard.writeText(cod); }
+  catch {
+    const i = document.createElement('input');
+    i.value = cod; document.body.appendChild(i); i.select();
+    document.execCommand('copy'); document.body.removeChild(i);
   }
+  btn.textContent = '✓ COPIADO'; btn.classList.add('ok');
+  toast('🪶 Código copiado: ' + cod);
+  setTimeout(() => { btn.textContent = 'COPIAR'; btn.classList.remove('ok'); }, 2000);
+}
 
-  // ── POSTS ──
-  async function renderPosts() {
-    const listEl=document.getElementById('posts-list');
+/* ════════════════════════
+   RENDER POSTS
+   FIX:
+   - filtra posts sem texto
+   - usa data_post OU criadoEm (os dois campos existem)
+   - avatar real do usuário
+════════════════════════ */
+async function renderPosts() {
+  const skel = document.getElementById('posts-skel');
+  const list = document.getElementById('posts-list');
+
+  let snap;
+  try {
+    // Tenta orderBy data_post (campo usado no feed.html)
+    snap = await db.collection('posts')
+      .where('uid', '==', uid)
+      .orderBy('data_post', 'desc')
+      .limit(30)
+      .get();
+  } catch(e) {
     try {
-      let snap;
+      // Fallback: orderBy criadoEm (campo antigo)
+      snap = await db.collection('posts')
+        .where('uid', '==', uid)
+        .orderBy('criadoEm', 'desc')
+        .limit(30)
+        .get();
+    } catch(e2) {
+      // Último recurso: sem orderBy
       try {
-        snap=await db.collection('posts').where('uid','==',uid).orderBy('criadoEm','desc').limit(20).get();
-      } catch(e){
-        snap=await db.collection('posts').where('uid','==',uid).limit(20).get();
+        snap = await db.collection('posts')
+          .where('uid', '==', uid)
+          .limit(30)
+          .get();
+      } catch(e3) {
+        skel.style.display = 'none';
+        list.innerHTML = `<div class="empty">⚠️ Erro ao carregar posts.</div>`;
+        return;
       }
-
-      if(snap.empty){listEl.innerHTML='<div class="empty">📭 Nenhum post ainda.</div>';return;}
-
-      const posts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.criadoEm?.seconds||0)-(a.criadoEm?.seconds||0));
-      listEl.innerHTML='';
-      const avBg=corPombito();
-
-      posts.forEach(p=>{
-        const data=p.criadoEm?.toDate?p.criadoEm.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
-
-        if(p.tipo==='trade'&&p.trade){
-          const isC=p.trade.lado==='compra';
-          const card=document.createElement('div'); card.className='post-card';
-          card.innerHTML=`
-            <div class="post-hdr">
-              <div class="post-av" style="background:${avBg}">🐦</div>
-              <div><p class="post-nome">@${userData.username||'eu'}</p><p class="post-data">${data}</p></div>
-              <span class="trade-pill ${isC?'c':'v'}" style="margin-left:auto">${isC?'✅ COMPRA':'🔴 VENDA'}</span>
-            </div>
-            <p class="trade-ticker-big">${p.trade.ticker}</p>
-            <div class="trade-grid">
-              <div><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${p.trade.quantidade}</p></div>
-              <div><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${(p.trade.preco||0).toFixed(2)}</p></div>
-              <div><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(p.trade.total||0)}</p></div>
-            </div>
-            ${p.texto?`<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${p.texto}</p>`:''}
-            <p class="post-likes">❤️ ${p.likes||0}</p>`;
-          listEl.appendChild(card);
-        } else {
-          const card=document.createElement('div'); card.className='post-card';
-          card.innerHTML=`
-            <div class="post-hdr">
-              <div class="post-av" style="background:${avBg}">🐦</div>
-              <div><p class="post-nome">@${userData.username||'eu'}</p><p class="post-data">${data}</p></div>
-            </div>
-            <p class="post-txt">${p.texto||'—'}</p>
-            <p class="post-likes">❤️ ${p.likes||0}</p>`;
-          listEl.appendChild(card);
-        }
-      });
-    } catch(e){
-      listEl.innerHTML='<div class="empty">⚠️ Erro ao carregar posts.</div>';
     }
   }
-  </script>
+
+  skel.style.display = 'none';
+
+  // Mapeia e ordena pelo campo de data que existir
+  const posts = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(p => {
+      // FIX: filtra posts SEM texto e sem dados úteis
+      if (p.tipo === 'trade') return !!(p.ticker || p.trade?.ticker);
+      return !!(p.texto?.trim());
+    })
+    .sort((a, b) => {
+      const sa = a.data_post?.seconds || a.criadoEm?.seconds || 0;
+      const sb = b.data_post?.seconds || b.criadoEm?.seconds || 0;
+      return sb - sa;
+    });
+
+  if (!posts.length) {
+    list.innerHTML = `<div class="empty">📭 Nenhum post ainda.</div>`;
+    return;
+  }
+
+  const foto = userData.foto_perfil
+    || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
+  const cor  = corPombito();
+
+  posts.forEach(p => {
+    const sec  = p.data_post?.seconds || p.criadoEm?.seconds || 0;
+    const data = tempoRel(sec);
+    const card = document.createElement('div');
+    card.className = 'post-card';
+
+    /* Trade post */
+    if (p.tipo === 'trade') {
+      const ticker = p.ticker || p.trade?.ticker || '—';
+      const lado   = p.lado || p.trade?.lado || 'compra';
+      const qtd    = p.quantidade || p.trade?.quantidade || '—';
+      const preco  = p.preco || p.trade?.preco || 0;
+      const total  = p.total || p.trade?.total || 0;
+      const isBuy  = lado === 'compra';
+
+      card.innerHTML = `
+        <div class="post-hdr">
+          <div class="post-av" style="background:${cor}">
+            ${foto ? `<img src="${esc(foto)}" alt="">` : '🐦'}
+          </div>
+          <div>
+            <p class="post-autor">@${esc(userData.username||'eu')}</p>
+            <p class="post-data">${data}</p>
+          </div>
+          <span class="trade-pill ${isBuy?'c':'v'}">${isBuy?'📈 COMPRA':'📉 VENDA'}</span>
+        </div>
+        <p class="trade-ticker">${esc(ticker)}</p>
+        <div class="trade-grid">
+          <div><p class="tg-l">QUANTIDADE</p><p class="tg-v">${qtd}</p></div>
+          <div><p class="tg-l">PREÇO</p><p class="tg-v">R$${Number(preco).toFixed(2)}</p></div>
+          <div><p class="tg-l">TOTAL</p><p class="tg-v">${BRL(total)}</p></div>
+        </div>
+        ${p.texto?.trim() ? `<p class="post-txt">${esc(p.texto)}</p>` : ''}
+        <div class="post-footer">
+          <span class="post-likes">❤️ ${p.likes||0}</span>
+        </div>`;
+      list.appendChild(card);
+      return;
+    }
+
+    /* Post de texto */
+    const moodIco = p.mood ? `<span class="post-mood">${p.mood}</span>` : '';
+    card.innerHTML = `
+      <div class="post-hdr">
+        <div class="post-av" style="background:${cor}">
+          ${foto ? `<img src="${esc(foto)}" alt="">` : '🐦'}
+        </div>
+        <div>
+          <p class="post-autor">@${esc(userData.username||'eu')}</p>
+          <p class="post-data">${data}</p>
+        </div>
+        ${moodIco}
+      </div>
+      <p class="post-txt">${esc(p.texto||'').replace(/\n/g,'<br>')}</p>
+      <div class="post-footer">
+        <span class="post-likes">❤️ ${p.likes||0}</span>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+/* ════════════════════════
+   LOGOUT
+════════════════════════ */
+async function sair() {
+  if (!confirm('Sair do Ninho?')) return;
+  try {
+    await firebase.auth().signOut();
+    location.href = 'invite.html';
+  } catch(e) { toast('Erro ao sair.'); }
+}
+
+/* ════════════════════════
+   INIT
+════════════════════════ */
+firebase.auth().onAuthStateChanged(async user => {
+  if (!user) { location.href = 'invite.html'; return; }
+  uid = user.uid;
+  db  = firebase.firestore();
+
+  try {
+    const [uSnap, cSnap] = await Promise.all([
+      db.collection('usuarios').doc(uid).get(),
+      db.collection('carteiras').doc(uid).get(),
+    ]);
+
+    if (!uSnap.exists || !uSnap.data()?.perfil_completo) {
+      location.href = 'setup-perfil.html'; return;
+    }
+
+    userData = uSnap.data() || {};
+    const cartData = cSnap.exists ? cSnap.data() : {};
+    posicoes = cartData.posicoes || [];
+
+    // Render estático imediato (sem cotações)
+    renderHero();
+    renderStats(cartData);
+
+    // Busca cotações e re-renderiza
+    const tickers = posicoes.map(p => p.ticker).filter(Boolean);
+    cotacoes = await buscarCotacoes(tickers);
+
+    // Re-render com cotações
+    renderStats(cartData);
+    renderAloc(cartData);
+    renderPerf(cartData);
+
+    // Posts e convites (paralelo)
+    renderPosts();
+    renderConvites(userData.meus_codigos || []);
+
+  } catch(e) {
+    console.error('Init:', e);
+    toast('Erro ao carregar perfil. Recarregue.');
+  }
+});
+</script>
 </body>
 </html>
