@@ -16,7 +16,6 @@
     body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
 
-    /* HEADER */
     .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
     .btn-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px}
     .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
@@ -25,7 +24,6 @@
 
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
-    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 
     /* PATRIMÔNIO */
     .pat-card{
@@ -47,7 +45,6 @@
     .pat-item .pat-label{margin-bottom:2px}
     .pat-item-val{font-family:var(--mono);font-size:11px;font-weight:500}
 
-    /* RESULTADO TOTAL DESTAQUE */
     .resultado-banner{
       border-radius:16px;padding:16px 18px;margin-bottom:14px;
       display:flex;align-items:center;justify-content:space-between;
@@ -63,7 +60,6 @@
     .rb-pct{font-family:var(--display);font-size:26px;letter-spacing:1px}
     .rb-pct.pos{color:var(--green)}.rb-pct.neg{color:var(--red)}
 
-    /* GRÁFICO */
     .chart-card{
       background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);
       padding:18px;margin-bottom:14px;animation:fadeUp .35s ease
@@ -87,7 +83,6 @@
     .cs-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
     .cs-val.pos{color:var(--green)}.cs-val.neg{color:var(--red)}
 
-    /* TABS */
     .tabs{display:flex;gap:8px;margin-bottom:14px}
     .tab-btn{
       flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;
@@ -96,7 +91,6 @@
     }
     .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
 
-    /* POSIÇÃO */
     .pos-card{
       background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);
       padding:16px;margin-bottom:10px;animation:fadeUp .3s ease;transition:border-color .2s
@@ -113,7 +107,6 @@
     .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:2px}
     .pos-rentab.pos{color:var(--green)}.pos-rentab.neg{color:var(--red)}
 
-    /* Resultado desde a compra */
     .pos-resultado{
       display:flex;align-items:center;justify-content:space-between;
       padding:12px 14px;border-radius:12px;margin-bottom:10px
@@ -144,7 +137,6 @@
     .btn-sell{flex:1;height:34px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s}
     .btn-sell:hover{background:var(--red);color:white}
 
-    /* HISTÓRICO */
     .hist-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;animation:fadeUp .3s ease}
     .hist-row{display:flex;justify-content:space-between;align-items:center}
     .hist-left{display:flex;align-items:center;gap:10px}
@@ -156,13 +148,11 @@
     .hist-total{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right}
     .hist-data{font-size:9px;color:var(--muted);text-align:right;margin-top:2px}
 
-    /* SKELETON */
     .skel{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px}
     .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
     .empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1px}
     .empty-ico{font-size:38px;margin-bottom:12px;display:block}
 
-    /* NAV */
     .nav{
       position:fixed;bottom:0;left:0;right:0;height:64px;
       background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
@@ -187,8 +177,6 @@
   </header>
 
   <div class="container">
-
-    <!-- Patrimônio -->
     <div class="pat-card">
       <p class="pat-label">PATRIMÔNIO TOTAL</p>
       <p class="pat-valor" id="pat-total">R$ ···</p>
@@ -200,22 +188,18 @@
       </div>
     </div>
 
-    <!-- Resultado total desde o início (banner destacado) -->
     <div class="resultado-banner pos" id="resultado-banner" style="display:none">
       <div class="rb-left">
-        <p class="rb-label pos" id="rb-label">📈 RESULTADO TOTAL</p>
+        <p class="rb-label pos" id="rb-label">📈 GANHO TOTAL</p>
         <p class="rb-valor pos" id="rb-valor">···</p>
         <p class="rb-sub">vs capital inicial de R$ 500.000</p>
       </div>
       <p class="rb-pct pos" id="rb-pct">···</p>
     </div>
 
-    <!-- Gráfico de desempenho -->
     <div class="chart-card" id="chart-card" style="display:none">
       <div class="chart-header">
-        <div>
-          <p class="chart-title">📈 DESEMPENHO</p>
-        </div>
+        <p class="chart-title">📈 DESEMPENHO</p>
         <div class="chart-periods">
           <button class="period-btn on" onclick="mudarPeriodo('1mo',this)">1M</button>
           <button class="period-btn" onclick="mudarPeriodo('3mo',this)">3M</button>
@@ -226,9 +210,7 @@
       <div class="chart-top-row">
         <span class="chart-ticker-tag" id="chart-ticker-tag">···</span>
       </div>
-      <div class="chart-wrap">
-        <canvas id="perf-chart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="perf-chart"></canvas></div>
       <div class="chart-stats">
         <div class="cs-item"><p class="cs-label">MÍNIMO</p><p class="cs-val" id="cs-min">···</p></div>
         <div class="cs-item"><p class="cs-label">MÁXIMO</p><p class="cs-val" id="cs-max">···</p></div>
@@ -236,13 +218,11 @@
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tab-btn on" id="tab-pos" onclick="showTab('posicoes')">POSIÇÕES</button>
       <button class="tab-btn" id="tab-hist" onclick="showTab('historico')">HISTÓRICO</button>
     </div>
 
-    <!-- Posições -->
     <div id="sec-posicoes">
       <div id="pos-loading">
         <div class="skel"><div class="sk-line" style="width:40%;height:20px"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>
@@ -251,7 +231,6 @@
       <div id="pos-list"></div>
     </div>
 
-    <!-- Histórico -->
     <div id="sec-historico" style="display:none">
       <div id="hist-loading">
         <div class="skel"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div>
@@ -259,14 +238,13 @@
       </div>
       <div id="hist-list"></div>
     </div>
-
   </div>
 
   <nav class="nav">
     <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
     <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
     <a class="ni on" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
-    <a class="ni" href="feed.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+    <a class="ni" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
   </nav>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -275,24 +253,32 @@
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>
+  'use strict';
+
+  const CAPITAL = 500000;
   let db, meuUID;
-  const CAPITAL = 500000; // Capital fixo: R$ 500.000
   let posicoes = [], cotacoes = {}, periodoAtual = '1mo';
 
-  const R$ = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  const pct = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+  // ── Valores lidos do Firestore — fonte única de verdade ──
+  // Mesma lógica do perfil.html para garantir consistência
+  let saldoDisp       = 0;
+  let saldoInvestido  = 0;
+  let patrimonioTotal = 0;
+
+  const R$  = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
 
   function showTab(t) {
-    document.getElementById('sec-posicoes').style.display = t === 'posicoes' ? 'block' : 'none';
+    document.getElementById('sec-posicoes').style.display  = t === 'posicoes'  ? 'block' : 'none';
     document.getElementById('sec-historico').style.display = t === 'historico' ? 'block' : 'none';
-    document.getElementById('tab-pos').classList.toggle('on', t === 'posicoes');
+    document.getElementById('tab-pos').classList.toggle('on',  t === 'posicoes');
     document.getElementById('tab-hist').classList.toggle('on', t === 'historico');
   }
 
   firebase.auth().onAuthStateChanged(async user => {
     if (!user) { location.href = 'invite.html'; return; }
     meuUID = user.uid;
-    db = window.db || firebase.firestore();
+    db     = window.db || firebase.firestore();
     await carregar();
   });
 
@@ -308,7 +294,13 @@
 
       posicoes = c.posicoes || [];
 
-      // Busca cotações atuais
+      // ── FIX: lê do Firestore — mesma fonte que perfil.html ──
+      // Nunca recalcula CAPITAL - totalPago (ignora vendas)
+      saldoDisp       = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
+      saldoInvestido  = c.saldo_investido  ?? 0;
+      patrimonioTotal = c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
+
+      // Busca cotações atuais para exibir valor de mercado por ativo
       const tickers = posicoes
         .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
         .map(p => p.ticker);
@@ -317,32 +309,28 @@
         try {
           const dados = await MercadoAPI.buscarMultiplos(tickers);
           dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
-        } catch(e) {}
+        } catch (e) { console.warn('Cotações carteira:', e); }
       }
 
-      // Quanto foi pago no total (custo de compra de todas as posições)
-      const totalPago = posicoes.reduce((acc, p) => {
-        return acc + (p.quantidade || 0) * (p.preco_medio || 0);
+      // ── Patrimônio: usa Firestore como base ──
+      // Se tiver cotações novas, recalcula o valor atual dos ativos
+      // mas mantém saldoDisp do Firestore (contabiliza vendas corretamente)
+      const valorAtualAtivos = posicoes.reduce((acc, p) => {
+        const pa = cotacoes[p.ticker] || p.preco_medio || 0;
+        return acc + (p.quantidade || 0) * pa;
       }, 0);
 
-      // Valor atual de mercado de todas as posições
-      const investidoReal = posicoes.reduce((acc, p) => {
-        const precoAtual = cotacoes[p.ticker] || p.preco_medio || 0;
-        return acc + (p.quantidade || 0) * precoAtual;
-      }, 0);
-
-      // Saldo disponível = capital inicial menos o que foi gasto nas compras
-      // Isso garante que não conta o dinheiro investido duas vezes
-      const saldo      = CAPITAL - totalPago;
-      const patrimonio = saldo + investidoReal;        // quanto tenho agora
-      const resultado  = patrimonio - CAPITAL;          // ganho/perda vs R$ 500k
-      const rentab     = (resultado / CAPITAL) * 100;
-      const isPos      = resultado >= 0;
+      // Patrimônio display = saldo real (Firestore) + valor atual de mercado dos ativos
+      // Isso é mais preciso que o patrimonioTotal salvo (que usa preco_medio, não cotação atual)
+      const patrimonioDisplay = saldoDisp + valorAtualAtivos;
+      const resultado         = patrimonioDisplay - CAPITAL;
+      const rentab            = (resultado / CAPITAL) * 100;
+      const isPos             = resultado >= 0;
 
       // Header patrimônio
-      document.getElementById('pat-total').textContent = R$(patrimonio);
-      document.getElementById('pat-disp').textContent  = R$(saldo < 0 ? 0 : saldo);
-      document.getElementById('pat-inv').textContent   = R$(investidoReal);
+      document.getElementById('pat-total').textContent = R$(patrimonioDisplay);
+      document.getElementById('pat-disp').textContent  = R$(Math.max(0, saldoDisp));
+      document.getElementById('pat-inv').textContent   = R$(valorAtualAtivos);
 
       const rentEl = document.getElementById('pat-rentab');
       rentEl.textContent = pct(rentab) + ' desde o início';
@@ -350,7 +338,7 @@
 
       // Banner resultado total
       const banner = document.getElementById('resultado-banner');
-      banner.className = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
+      banner.className   = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
       banner.style.display = 'flex';
 
       const rbLabel = document.getElementById('rb-label');
@@ -365,20 +353,18 @@
       rbPct.textContent = pct(rentab);
       rbPct.className   = 'rb-pct ' + (isPos ? 'pos' : 'neg');
 
-      // Renderiza posições
       renderPosicoes();
 
-      // Gráfico para o principal ativo
       if (posicoes.length > 0) {
         await carregarGrafico(posicoes[0].ticker, periodoAtual);
       }
 
       carregarHistorico();
 
-    } catch(e) {
+    } catch (e) {
       console.error('Carteira:', e);
       document.getElementById('pos-loading').innerHTML =
-        '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">' + e.message + '</span></div>';
+        `<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">${e.message}</span></div>`;
     }
   }
 
@@ -397,15 +383,18 @@
       const pm         = pos.preco_medio || 0;
       const qtd        = pos.quantidade  || 0;
       const valorAtual = qtd * precoAtual;
-      const valorPago  = qtd * pm;              // quanto pagou na compra
-      const resultado  = valorAtual - valorPago; // ganho/perda desde a compra
+      const valorPago  = qtd * pm;
+      const resultado  = valorAtual - valorPago;
       const rentab     = valorPago > 0 ? (resultado / valorPago) * 100 : 0;
       const isPos      = resultado >= 0;
       const unit       = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
 
-      const dataCompraFmt = pos.data_compra
-        ? new Date(pos.data_compra).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'2-digit'})
+      const dataFmt = pos.data_compra
+        ? new Date(pos.data_compra).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
         : '—';
+      const atualizadoFmt = pos.ultima_atualizacao
+        ? new Date(pos.ultima_atualizacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
+        : dataFmt;
 
       const card = document.createElement('div');
       card.className = 'pos-card';
@@ -421,7 +410,6 @@
           </div>
         </div>
 
-        <!-- Ganho/Perda desde a compra (destaque) -->
         <div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
           <div class="pr-left">
             <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
@@ -429,7 +417,7 @@
           </div>
           <div class="pr-right">
             <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
-            <p class="pr-desde">desde ${dataCompraFmt}</p>
+            <p class="pr-desde">desde ${dataFmt}</p>
           </div>
         </div>
 
@@ -439,13 +427,13 @@
           <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span><span class="pos-stat-val">${R$(precoAtual)}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span><span class="pos-stat-val">${R$(valorAtual)}</span></div>
-          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${dataCompraFmt}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${atualizadoFmt}</span></div>
         </div>
 
         <div class="pos-actions">
-          <button class="btn-rel" onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}'">📊 RELATÓRIO</button>
-          <button class="btn-buy" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}'">+ COMPRAR</button>
-          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo||'acoes'}&preco=${precoAtual}'">VENDER</button>
+          <button class="btn-rel"  onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${pos.tipo || 'acoes'}'">📊 RELATÓRIO</button>
+          <button class="btn-buy"  onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo || 'acoes'}&preco=${precoAtual}'">+ COMPRAR</button>
+          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo || 'acoes'}&preco=${precoAtual}'">VENDER</button>
         </div>`;
       list.appendChild(card);
     });
@@ -467,7 +455,6 @@
 
       document.getElementById('cs-min').textContent = R$(min);
       document.getElementById('cs-max').textContent = R$(max);
-
       const csVar = document.getElementById('cs-var');
       csVar.textContent = pct(varPct);
       csVar.className   = 'cs-val ' + (isPos ? 'pos' : 'neg');
@@ -475,109 +462,84 @@
       document.getElementById('chart-ticker-tag').textContent = ticker;
       document.getElementById('chart-card').style.display = 'block';
 
-      desenharGrafico(labels, precos, isPos);
-
-    } catch(e) { console.warn('Gráfico:', e); }
+      desenharGrafico(labels, precos, isPos, ticker);
+    } catch (e) { console.warn('Gráfico:', e); }
   }
 
-  function desenharGrafico(labels, precos, isPos) {
+  function desenharGrafico(labels, precos, isPos, ticker) {
     const canvas = document.getElementById('perf-chart');
     const ctx    = canvas.getContext('2d');
-
-    // DPI fix
-    const dpr  = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width        = rect.width * dpr;
-    canvas.height       = 140 * dpr;
+    const dpr    = window.devicePixelRatio || 1;
+    const rect   = canvas.parentElement.getBoundingClientRect();
+    canvas.width  = rect.width * dpr;
+    canvas.height = 140 * dpr;
     canvas.style.width  = rect.width + 'px';
     canvas.style.height = '140px';
     ctx.scale(dpr, dpr);
 
-    const W  = rect.width, H = 140;
-    const pad = {t:10, r:8, b:28, l:52};
-    const cw  = W - pad.l - pad.r;
-    const ch  = H - pad.t - pad.b;
-
-    const minP  = Math.min(...precos) * 0.998;
-    const maxP  = Math.max(...precos) * 1.002;
+    const W   = rect.width, H = 140;
+    const pad = { t: 10, r: 8, b: 28, l: 52 };
+    const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const minP = Math.min(...precos) * 0.998, maxP = Math.max(...precos) * 1.002;
     const range = maxP - minP || 1;
-
-    const xOf = i => pad.l + (i / (precos.length - 1)) * cw;
-    const yOf = v => pad.t + ch - ((v - minP) / range) * ch;
+    const xOf  = i => pad.l + (i / (precos.length - 1)) * cw;
+    const yOf  = v => pad.t + ch - ((v - minP) / range) * ch;
 
     ctx.clearRect(0, 0, W, H);
 
-    // Grid horizontal
-    ctx.strokeStyle = '#e2d9cd';
-    ctx.lineWidth = 1;
+    // Grid
+    ctx.strokeStyle = '#e2d9cd'; ctx.lineWidth = 1;
     [0, 0.25, 0.5, 0.75, 1].forEach(f => {
       const y = pad.t + f * ch;
       ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-      const val = maxP - f * range;
-      ctx.fillStyle = '#8a8278';
-      ctx.font = '9px DM Mono, monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText('R$' + val.toFixed(0), pad.l - 4, y + 3);
+      ctx.fillStyle = '#8a8278'; ctx.font = '9px DM Mono, monospace'; ctx.textAlign = 'right';
+      ctx.fillText('R$' + (maxP - f * range).toFixed(0), pad.l - 4, y + 3);
     });
 
-    // Linha de preço médio de compra (se disponível)
-    if (posicoes.length > 0 && posicoes[0].preco_medio) {
-      const pm = posicoes[0].preco_medio;
+    // Linha PM (preço médio) do ativo se disponível
+    const pos = posicoes.find(p => p.ticker === ticker);
+    if (pos?.preco_medio) {
+      const pm = pos.preco_medio;
       if (pm >= minP && pm <= maxP) {
         const yPM = yOf(pm);
-        ctx.save();
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = '#8a8278';
-        ctx.lineWidth = 1;
+        ctx.save(); ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#8a8278'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
-        ctx.fillStyle = '#8a8278';
-        ctx.font = '8px DM Mono, monospace';
-        ctx.textAlign = 'left';
+        ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'left';
         ctx.fillText('PM', pad.l + 3, yPM - 3);
         ctx.restore();
       }
     }
 
-    // Área preenchida
+    // Área
     const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
     grad.addColorStop(0, isPos ? 'rgba(26,138,74,.25)' : 'rgba(204,34,0,.25)');
     grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
-
     ctx.beginPath();
     ctx.moveTo(xOf(0), yOf(precos[0]));
     precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
     ctx.lineTo(xOf(precos.length - 1), pad.t + ch);
     ctx.lineTo(xOf(0), pad.t + ch);
-    ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
+    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
 
-    // Linha principal
+    // Linha
     ctx.beginPath();
     ctx.strokeStyle = isPos ? '#1a8a4a' : '#cc2200';
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
+    ctx.lineWidth = 2; ctx.lineJoin = 'round';
     ctx.moveTo(xOf(0), yOf(precos[0]));
     precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
     ctx.stroke();
 
-    // Ponto final destacado
-    const lastX = xOf(precos.length - 1);
-    const lastY = yOf(precos[precos.length - 1]);
-    ctx.beginPath();
-    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
-    ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200';
-    ctx.fill();
-    ctx.strokeStyle = '#faf8f5';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    // Ponto final
+    const lx = xOf(precos.length - 1), ly = yOf(precos[precos.length - 1]);
+    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+    ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200'; ctx.fill();
+    ctx.strokeStyle = '#faf8f5'; ctx.lineWidth = 2; ctx.stroke();
 
-    // Labels eixo X
-    ctx.fillStyle = '#8a8278';
-    ctx.font = '8px DM Mono, monospace';
-    ctx.textAlign = 'center';
+    // Labels X
+    ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'center';
     [0, Math.floor(precos.length / 2), precos.length - 1].forEach(i => {
-      if (labels[i]) ctx.fillText(labels[i].slice(0,5), xOf(i), H - 6);
+      if (labels[i]) ctx.fillText(labels[i].slice(0, 5), xOf(i), H - 6);
     });
   }
 
@@ -592,28 +554,22 @@
   async function carregarHistorico() {
     const loading = document.getElementById('hist-loading');
     const list    = document.getElementById('hist-list');
-    try {
-      const snap = await db.collection('ordens')
-        .where('uid', '==', meuUID)
-        .orderBy('data', 'desc')
-        .limit(30)
-        .get();
 
+    const renderOrdens = ordens => {
       loading.style.display = 'none';
-
-      if (snap.empty) {
+      if (!ordens.length) {
         list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
         return;
       }
-
       list.innerHTML = '';
-      snap.forEach(doc => {
-        const o   = doc.data();
-        const isC = o.lado === 'compra';
-        const data = o.data?.toDate
-          ? o.data.toDate().toLocaleDateString('pt-BR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
-          : '—';
+      ordens.forEach(o => {
+        const isC  = o.lado === 'compra';
         const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
+        const data = o.data?.toDate
+          ? o.data.toDate().toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+          : o.data?.seconds
+            ? new Date(o.data.seconds * 1000).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' })
+            : '—';
         const card = document.createElement('div');
         card.className = 'hist-card';
         card.innerHTML = `
@@ -622,51 +578,35 @@
               <span class="hist-pill ${isC ? 'c' : 'v'}">${isC ? 'COMPRA' : 'VENDA'}</span>
               <div>
                 <p class="hist-ticker">${o.ticker}</p>
-                <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
+                <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco || 0)}/un</p>
               </div>
             </div>
             <div>
-              <p class="hist-total" style="color:${isC ? 'var(--red)' : 'var(--green)'}">${isC ? '-' : '+'} ${R$(o.total||0)}</p>
+              <p class="hist-total" style="color:${isC ? 'var(--red)' : 'var(--green)'}">${isC ? '-' : '+'} ${R$(o.total || 0)}</p>
               <p class="hist-data">${data}</p>
             </div>
           </div>`;
         list.appendChild(card);
       });
+    };
 
-    } catch(e) {
-      loading.style.display = 'none';
-      // fallback sem orderBy
+    try {
+      const snap = await db.collection('ordens')
+        .where('uid', '==', meuUID)
+        .orderBy('data', 'desc')
+        .limit(30)
+        .get();
+      renderOrdens(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (e) {
+      // Fallback sem orderBy se índice não existe
       try {
         const snap = await db.collection('ordens').where('uid', '==', meuUID).limit(30).get();
-        if (snap.empty) {
-          list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
-          return;
-        }
         const ordens = snap.docs
-          .map(d => ({id:d.id,...d.data()}))
-          .sort((a,b) => (b.data?.seconds||0) - (a.data?.seconds||0));
-        list.innerHTML = '';
-        ordens.forEach(o => {
-          const isC = o.lado === 'compra';
-          const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
-          const card = document.createElement('div');
-          card.className = 'hist-card';
-          card.innerHTML = `
-            <div class="hist-row">
-              <div class="hist-left">
-                <span class="hist-pill ${isC?'c':'v'}">${isC?'COMPRA':'VENDA'}</span>
-                <div>
-                  <p class="hist-ticker">${o.ticker}</p>
-                  <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
-                </div>
-              </div>
-              <div>
-                <p class="hist-total" style="color:${isC?'var(--red)':'var(--green)'}">${isC?'-':'+'} ${R$(o.total||0)}</p>
-              </div>
-            </div>`;
-          list.appendChild(card);
-        });
-      } catch(e2) {
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.data?.seconds || 0) - (a.data?.seconds || 0));
+        renderOrdens(ordens);
+      } catch (e2) {
+        loading.style.display = 'none';
         list.innerHTML = '<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar histórico.</div>';
       }
     }
