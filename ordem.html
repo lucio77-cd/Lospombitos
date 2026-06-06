@@ -19,12 +19,29 @@
     .mkt-badge.closed{background:var(--shore);color:var(--muted)}
     .container{padding:20px 16px;max-width:640px;margin:0 auto}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── Cotação warning banner ── */
+    .cotacao-warn{
+      display:none;background:#fff8d4;border:1.5px solid #f5c800;
+      border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;
+      font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:#7a6200;
+      line-height:1.6;
+    }
+    .cotacao-warn.show{display:block}
+    .cotacao-warn strong{display:block;margin-bottom:2px;font-size:11px;letter-spacing:1px}
+
     .ativo-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:16px;animation:fadeUp .3s ease;display:flex;justify-content:space-between;align-items:center}
     .ativo-ticker{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--wave);line-height:1}
     .ativo-nome{font-size:12px;color:var(--muted);margin-top:3px}
     .ativo-preco{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
     .ativo-var{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:3px;text-align:right}
     .pos{color:var(--green)}.neg{color:var(--red)}
+
+    /* preco loading indicator */
+    .preco-loading{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spin-dot{width:10px;height:10px;border:1.5px solid var(--shore);border-top-color:var(--wave);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
     .tabs{display:flex;background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:4px;margin-bottom:16px}
     .tab{flex:1;height:40px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1.5px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;background:none;color:var(--muted)}
     .tab.buy.on{background:var(--green);color:white}
@@ -65,6 +82,7 @@
     .resumo-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--muted)}
     .resumo-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
     .resumo-val.big{font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--wave)}
+    .resumo-val.aguardando{color:var(--muted);font-style:italic;font-size:11px}
     .btn-wrap{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 20px;background:linear-gradient(to top,var(--sand) 70%,transparent);z-index:50}
     .btn-confirm{width:100%;max-width:640px;margin:0 auto;height:54px;display:flex;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;align-items:center;justify-content:center;gap:10px}
     .btn-confirm.buy{background:var(--green);color:white}
@@ -114,15 +132,27 @@
 
   <div class="container">
     <div id="form-wrap">
+
+      <!-- ⚠️ Banner: cotação não carregada -->
+      <div class="cotacao-warn" id="cotacao-warn">
+        <strong>⚠️ COTAÇÃO NÃO CARREGADA</strong>
+        O preço de mercado não pôde ser obtido agora.
+        Use uma ordem <b>Limitada</b> e defina o preço manualmente para continuar.
+        Ordens a mercado estão bloqueadas até a cotação carregar.
+      </div>
+
       <!-- Ativo -->
       <div class="ativo-card">
         <div>
           <p class="ativo-ticker" id="a-ticker">···</p>
           <p class="ativo-nome" id="a-nome">Carregando...</p>
         </div>
-        <div>
-          <p class="ativo-preco" id="a-preco">R$ ···</p>
-          <p class="ativo-var" id="a-var">···</p>
+        <div id="preco-wrap">
+          <!-- Substituído por preço real ou loading state -->
+          <div class="preco-loading">
+            <span class="spin-dot"></span>
+            <span>buscando cotação</span>
+          </div>
         </div>
       </div>
 
@@ -177,7 +207,7 @@
 
         <label class="field-label">TIPO DE ORDEM</label>
         <div class="tipo-opts">
-          <div class="tipo-opt on" onclick="setTipo('mercado',this)">
+          <div class="tipo-opt on" id="opt-mercado" onclick="setTipo('mercado',this)">
             <p class="tipo-opt-name">A MERCADO</p>
             <p class="tipo-opt-desc">Executa imediatamente ao preço atual de mercado</p>
           </div>
@@ -223,7 +253,7 @@
 
   <!-- Botão fixo -->
   <div class="btn-wrap" id="btn-wrap">
-    <button class="btn-confirm buy" id="btn-confirm" onclick="abrirModal()">✅ CONFIRMAR COMPRA</button>
+    <button class="btn-confirm buy" id="btn-confirm" onclick="abrirModal()" disabled>✅ CONFIRMAR COMPRA</button>
   </div>
 
   <!-- Modal -->
@@ -253,257 +283,418 @@
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>
-  // db inicializado após Firebase carregar
-  let meuUID, saldoDisp=0, patrimonioTotal=0;
-  // Usa window.db e window.auth definidos pelo firebase.js
-  const db = window.db;
-  let precoAtual=0, lado='compra', tipoOrdem='mercado';
-  let posicao=null, mercadoStatus=null;
+  'use strict';
+
+  // ── Estado ──
+  let meuUID, saldoDisp = 0, patrimonioTotal = 0;
+  let precoAtual = 0;       // 0 = ainda não carregou ou falhou
+  let cotacaoCarregada = false; // flag: cotação real foi obtida
+  let lado = 'compra', tipoOrdem = 'mercado';
+  let posicao = null, mercadoStatus = null;
 
   const params  = new URLSearchParams(location.search);
-  const TICKER  = decodeURIComponent(params.get('ticker')||'').toUpperCase();
-  const TIPO    = params.get('tipo')||'acoes';
-  const PRECO_P = parseFloat(params.get('preco')||'0');
-  precoAtual    = PRECO_P;
+  const TICKER  = decodeURIComponent(params.get('ticker') || '').toUpperCase();
+  const TIPO    = params.get('tipo') || 'acoes';
+  const PRECO_P = parseFloat(params.get('preco') || '0'); // preço da URL (nem sempre confiável)
 
+  // db vem do firebase.js
+  const db = window.db;
+
+  // ── Helpers ──
   let toastT;
-  function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),d)}
-
-  const R$ = v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const pct = v=>(v>=0?'+':'')+v.toFixed(2)+'%';
-  const unit = ()=>TIPO==='tesouro'?'títulos':TIPO==='cripto'?'unidades':'cotas';
-
-  // Mercado status
-  function getMercado(){
-    const br=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
-    const h=br.getHours(),m=br.getMinutes(),d=br.getDay(),t=h*60+m;
-    const ab=d>0&&d<6&&t>=9*60+45&&t<17*60+30;
-    return ab?'aberto':'fechado';
+  function toast(m, d = 3000) {
+    const t = document.getElementById('toast');
+    t.textContent = m;
+    t.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.remove('show'), d);
   }
 
-  firebase.auth().onAuthStateChanged(async user=>{
-    if(!user){location.href='invite.html';return}
-    meuUID=user.uid;
+  const R$ = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+  const unit = () => TIPO === 'tesouro' ? 'títulos' : TIPO === 'cripto' ? 'unidades' : 'cotas';
 
-    try{
-      const[uS,cS]=await Promise.all([
+  // ── Mercado status ──
+  function getMercado() {
+    const br = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const h = br.getHours(), m = br.getMinutes(), d = br.getDay(), t = h * 60 + m;
+    return (d > 0 && d < 6 && t >= 9 * 60 + 45 && t < 17 * 60 + 30) ? 'aberto' : 'fechado';
+  }
+
+  // ── Atualiza o bloco de preço no card do ativo ──
+  function renderPreco(preco, variacaoPct) {
+    const wrap = document.getElementById('preco-wrap');
+    if (!preco || preco <= 0) {
+      wrap.innerHTML = `<div class="preco-loading"><span class="spin-dot"></span><span>cotação indisponível</span></div>`;
+      return;
+    }
+    const cls = variacaoPct !== null ? (variacaoPct >= 0 ? 'pos' : 'neg') : '';
+    const chg = variacaoPct !== null ? pct(variacaoPct) : '—';
+    wrap.innerHTML = `
+      <p class="ativo-preco" id="a-preco">${R$(preco)}</p>
+      <p class="ativo-var ${cls}" id="a-var">${chg}</p>`;
+  }
+
+  // ── Mostra/esconde warning de cotação e bloqueia botão mercado ──
+  function atualizarEstadoCotacao() {
+    const warn = document.getElementById('cotacao-warn');
+    const optMercado = document.getElementById('opt-mercado');
+
+    if (!cotacaoCarregada) {
+      warn.classList.add('show');
+      // Desabilita opção "A Mercado" visualmente
+      optMercado.style.opacity = '0.45';
+      optMercado.style.cursor = 'not-allowed';
+      optMercado.title = 'Cotação não disponível — use ordem Limitada';
+      // Se estava em mercado, força troca para limitada
+      if (tipoOrdem === 'mercado') {
+        tipoOrdem = 'limitada';
+        optMercado.classList.remove('on');
+        // Seleciona "Limitada" automaticamente
+        const opts = document.querySelectorAll('.tipo-opt');
+        opts[1].classList.add('on');
+        document.getElementById('price-limit-wrap').classList.add('show');
+        document.getElementById('price-limit-label').textContent = 'PREÇO LIMITE (executa ≤ este valor)';
+      }
+    } else {
+      warn.classList.remove('show');
+      optMercado.style.opacity = '';
+      optMercado.style.cursor = '';
+      optMercado.title = '';
+    }
+    updateResumo();
+  }
+
+  // ── Init ──
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) { location.href = 'invite.html'; return; }
+    meuUID = user.uid;
+
+    try {
+      const [uS, cS] = await Promise.all([
         db.collection('usuarios').doc(meuUID).get(),
         db.collection('carteiras').doc(meuUID).get()
       ]);
 
-      const u=uS.data()||{};
-      const c=cS.exists?cS.data():{};
+      const u = uS.data() || {};
+      const c = cS.exists ? cS.data() : {};
 
-      saldoDisp      = c.saldo_disponivel ?? u.saldo_disponivel ?? 500000;
-      patrimonioTotal= c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
+      saldoDisp       = c.saldo_disponivel ?? u.saldo_disponivel ?? 500000;
+      patrimonioTotal = c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
 
-      document.getElementById('saldo-val').textContent  = R$(saldoDisp);
-      document.getElementById('capital-val').textContent= R$(patrimonioTotal);
+      document.getElementById('saldo-val').textContent   = R$(saldoDisp);
+      document.getElementById('capital-val').textContent = R$(patrimonioTotal);
 
       // Posição atual
-      const posicoes=c.posicoes||[];
-      posicao=posicoes.find(p=>p.ticker===TICKER)||null;
-      if(posicao) mostrarPosicao();
+      const posicoes = c.posicoes || [];
+      posicao = posicoes.find(p => p.ticker === TICKER) || null;
+      if (posicao) mostrarPosicao();
 
       // Mercado
-      mercadoStatus=getMercado();
-      const badge=document.getElementById('mkt-badge');
-      if(mercadoStatus==='aberto'){badge.textContent='● Aberto';badge.className='mkt-badge open'}
-      else{badge.textContent='○ Fechado';badge.className='mkt-badge closed';document.getElementById('aviso-fechado').classList.add('show')}
-
-      // Cotação atualizada
-      document.getElementById('hdr-title').textContent='ORDEM — '+TICKER;
-      document.getElementById('a-ticker').textContent=TICKER;
-
-      try{
-        const d=await MercadoAPI.buscarAtivo(TICKER);
-        if(d){
-          precoAtual=d.preco||PRECO_P||1;
-          document.getElementById('a-nome').textContent=d.nome||TICKER;
-          document.getElementById('a-preco').textContent=R$(precoAtual);
-          const vp=d.variacao_pct||0;
-          const vel=document.getElementById('a-var');
-          vel.textContent=pct(vp);vel.className='ativo-var '+(vp>=0?'pos':'neg');
-          document.getElementById('price-limit').value=precoAtual.toFixed(2);
-        }
-      }catch(e){
-        precoAtual=PRECO_P||1;
-        document.getElementById('a-nome').textContent=TICKER;
-        document.getElementById('a-preco').textContent=R$(precoAtual);
+      mercadoStatus = getMercado();
+      const badge = document.getElementById('mkt-badge');
+      if (mercadoStatus === 'aberto') {
+        badge.textContent = '● Aberto'; badge.className = 'mkt-badge open';
+      } else {
+        badge.textContent = '○ Fechado'; badge.className = 'mkt-badge closed';
+        document.getElementById('aviso-fechado').classList.add('show');
       }
 
-      updateResumo();
-    }catch(e){
-      console.error('Init ordem:',e);
-      toast('Erro ao carregar: '+e.message);
+      // Header e ticker
+      document.getElementById('hdr-title').textContent = 'ORDEM — ' + TICKER;
+      document.getElementById('a-ticker').textContent = TICKER;
+      document.getElementById('a-nome').textContent = TICKER;
+
+      // ── Busca cotação real ──
+      try {
+        const d = await MercadoAPI.buscarAtivo(TICKER);
+        if (d && d.preco > 0) {
+          precoAtual = d.preco;
+          cotacaoCarregada = true;
+          document.getElementById('a-nome').textContent = d.nome || TICKER;
+          renderPreco(precoAtual, d.variacao_pct ?? null);
+          document.getElementById('price-limit').value = precoAtual.toFixed(2);
+        } else {
+          // API retornou mas sem preço válido
+          cotacaoCarregada = false;
+          renderPreco(0, null);
+        }
+      } catch (e) {
+        console.warn('Cotação falhou:', e.message);
+        // Tenta usar preço da URL como fallback APENAS se veio da página de listagem
+        // e for claramente > 0 (não é um placeholder)
+        if (PRECO_P > 0) {
+          precoAtual = PRECO_P;
+          cotacaoCarregada = true; // URL price is acceptable
+          renderPreco(precoAtual, null);
+          document.getElementById('price-limit').value = precoAtual.toFixed(2);
+        } else {
+          cotacaoCarregada = false;
+          renderPreco(0, null);
+        }
+      }
+
+      atualizarEstadoCotacao();
+
+    } catch (e) {
+      console.error('Init ordem:', e);
+      toast('Erro ao carregar: ' + e.message);
     }
   });
 
-  function mostrarPosicao(){
-    const el=document.getElementById('posicao-box');
+  // ── Posição atual ──
+  function mostrarPosicao() {
+    const el = document.getElementById('posicao-box');
     el.classList.add('show');
-    const va=posicao.quantidade*(precoAtual||posicao.preco_medio);
-    const vp=posicao.quantidade*posicao.preco_medio;
-    const r=vp?((va-vp)/vp)*100:0;
-    document.getElementById('pos-qtd').textContent=posicao.quantidade+' '+unit();
-    document.getElementById('pos-pm').textContent=R$(posicao.preco_medio||0);
-    document.getElementById('pos-total').textContent=R$(va);
-    const rel=document.getElementById('pos-rentab');
-    rel.textContent=pct(r);rel.style.color=r>=0?'var(--green)':'var(--red)';
+    const va = posicao.quantidade * (precoAtual || posicao.preco_medio);
+    const vp = posicao.quantidade * posicao.preco_medio;
+    const r  = vp ? ((va - vp) / vp) * 100 : 0;
+    document.getElementById('pos-qtd').textContent = posicao.quantidade + ' ' + unit();
+    document.getElementById('pos-pm').textContent  = R$(posicao.preco_medio || 0);
+    document.getElementById('pos-total').textContent = R$(va);
+    const rel = document.getElementById('pos-rentab');
+    rel.textContent = pct(r);
+    rel.style.color = r >= 0 ? 'var(--green)' : 'var(--red)';
   }
 
-  function setLado(l){
-    lado=l;
-    document.getElementById('tab-buy').classList.toggle('on',l==='compra');
-    document.getElementById('tab-sell').classList.toggle('on',l==='venda');
-    const btn=document.getElementById('btn-confirm');
-    btn.className='btn-confirm '+(l==='compra'?'buy':'sell');
-    btn.textContent=l==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
-    if(l==='venda'&&!posicao)toast('Você não possui este ativo na carteira.');
+  // ── Lado (compra / venda) ──
+  function setLado(l) {
+    lado = l;
+    document.getElementById('tab-buy').classList.toggle('on', l === 'compra');
+    document.getElementById('tab-sell').classList.toggle('on', l === 'venda');
+    const btn = document.getElementById('btn-confirm');
+    btn.className = 'btn-confirm ' + (l === 'compra' ? 'buy' : 'sell');
+    btn.textContent = l === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
+    if (l === 'venda' && !posicao) toast('Você não possui este ativo na carteira.');
     updateResumo();
   }
 
-  function setTipo(tipo,el){
-    tipoOrdem=tipo;
-    document.querySelectorAll('.tipo-opt').forEach(o=>o.classList.remove('on'));
+  // ── Tipo de ordem ──
+  function setTipo(tipo, el) {
+    // Bloqueia "a mercado" se cotação não carregou
+    if (tipo === 'mercado' && !cotacaoCarregada) {
+      toast('⚠️ Cotação indisponível. Use ordem Limitada e defina o preço.');
+      return;
+    }
+    tipoOrdem = tipo;
+    document.querySelectorAll('.tipo-opt').forEach(o => o.classList.remove('on'));
     el.classList.add('on');
-    const w=document.getElementById('price-limit-wrap');
-    const l=document.getElementById('price-limit-label');
-    if(tipo==='limitada'){w.classList.add('show');l.textContent='PREÇO LIMITE (executa ≤ este valor)'}
-    else if(tipo==='stop'){w.classList.add('show');l.textContent='PREÇO STOP (vende abaixo deste valor)'}
+    const w = document.getElementById('price-limit-wrap');
+    const l = document.getElementById('price-limit-label');
+    if (tipo === 'limitada') { w.classList.add('show'); l.textContent = 'PREÇO LIMITE (executa ≤ este valor)'; }
+    else if (tipo === 'stop') { w.classList.add('show'); l.textContent = 'PREÇO STOP (vende abaixo deste valor)'; }
     else w.classList.remove('show');
     updateResumo();
   }
 
-  function ajustarQtd(d){
-    const i=document.getElementById('qtd');
-    i.value=Math.max(1,(parseInt(i.value)||1)+d);
+  function ajustarQtd(d) {
+    const i = document.getElementById('qtd');
+    i.value = Math.max(1, (parseInt(i.value) || 1) + d);
     updateResumo();
   }
 
-  function updateResumo(){
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-    const u=unit();
+  // ── Preço efectivo da ordem ──
+  function getPrecoEfetivo() {
+    if (tipoOrdem === 'mercado') return precoAtual;
+    return parseFloat(document.getElementById('price-limit').value) || 0;
+  }
 
-    document.getElementById('qtd-unit').textContent=u;
-    document.getElementById('r-ticker').textContent=TICKER;
-    document.getElementById('r-lado').textContent=lado==='compra'?'Compra':'Venda';
-    document.getElementById('r-qtd').textContent=qtd+' '+u;
-    document.getElementById('r-preco').textContent=R$(preco);
-    document.getElementById('r-tipo').textContent=tipoOrdem==='mercado'?'A Mercado':tipoOrdem==='limitada'?'Limitada':'Stop';
-    document.getElementById('r-total').textContent=R$(total);
+  // ── Atualiza resumo ──
+  function updateResumo() {
+    const qtd   = parseInt(document.getElementById('qtd').value) || 1;
+    const preco = getPrecoEfetivo();
+    const total = qtd * preco;
+    const u     = unit();
 
-    const exec=mercadoStatus==='aberto'&&tipoOrdem==='mercado'?'Imediata ao preço atual':'Próxima abertura — dia útil';
-    document.getElementById('r-exec').textContent=exec;
+    document.getElementById('qtd-unit').textContent = u;
+    document.getElementById('r-ticker').textContent = TICKER;
+    document.getElementById('r-lado').textContent   = lado === 'compra' ? 'Compra' : 'Venda';
+    document.getElementById('r-qtd').textContent    = qtd + ' ' + u;
+    document.getElementById('r-tipo').textContent   = tipoOrdem === 'mercado' ? 'A Mercado' : tipoOrdem === 'limitada' ? 'Limitada' : 'Stop';
 
-    if(lado==='compra'){
-      const apos=saldoDisp-total;
-      const el=document.getElementById('r-apos');
-      el.textContent=R$(apos);el.className='resumo-val '+(apos<0?'neg':'');
-      document.getElementById('saldo-insuf').classList.toggle('show',total>saldoDisp);
-      document.getElementById('btn-confirm').disabled=total>saldoDisp;
-    }else{
-      document.getElementById('r-apos').textContent='+'+R$(total);
-      document.getElementById('r-apos').className='resumo-val pos';
-      document.getElementById('btn-confirm').disabled=false;
+    if (preco > 0) {
+      document.getElementById('r-preco').textContent = R$(preco);
+      document.getElementById('r-total').textContent = R$(total);
+      document.getElementById('r-total').className   = 'resumo-val big';
+    } else {
+      document.getElementById('r-preco').textContent = '—';
+      document.getElementById('r-total').textContent = 'aguardando cotação';
+      document.getElementById('r-total').className   = 'resumo-val aguardando';
+    }
+
+    const exec = mercadoStatus === 'aberto' && tipoOrdem === 'mercado'
+      ? 'Imediata ao preço atual'
+      : 'Próxima abertura — dia útil';
+    document.getElementById('r-exec').textContent = exec;
+
+    const btnConfirm = document.getElementById('btn-confirm');
+
+    if (lado === 'compra') {
+      if (preco > 0) {
+        const apos = saldoDisp - total;
+        const el   = document.getElementById('r-apos');
+        el.textContent = R$(apos);
+        el.className   = 'resumo-val ' + (apos < 0 ? 'neg' : '');
+        const insuf = total > saldoDisp;
+        document.getElementById('saldo-insuf').classList.toggle('show', insuf);
+        // Bloqueia botão se: saldo insuficiente OU preço inválido
+        btnConfirm.disabled = insuf || preco <= 0;
+      } else {
+        document.getElementById('r-apos').textContent = '—';
+        document.getElementById('r-apos').className   = 'resumo-val';
+        btnConfirm.disabled = true; // sem preço, sem ordem
+      }
+    } else {
+      document.getElementById('r-apos').textContent = preco > 0 ? '+' + R$(total) : '—';
+      document.getElementById('r-apos').className   = 'resumo-val pos';
+      btnConfirm.disabled = preco <= 0;
     }
   }
 
-  function abrirModal(){
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
-    const u=unit();
+  // ── Abre modal de confirmação ──
+  function abrirModal() {
+    const qtd   = parseInt(document.getElementById('qtd').value) || 1;
+    const preco = getPrecoEfetivo();
+    const total = qtd * preco;
+    const u     = unit();
 
-    if(lado==='compra'&&total>saldoDisp){toast('Saldo insuficiente.');return}
-    if(lado==='venda'&&!posicao){toast('Você não possui este ativo.');return}
-    if(lado==='venda'&&qtd>(posicao?.quantidade||0)){toast('Quantidade maior que sua posição.');return}
+    // Validações finais antes do modal
+    if (preco <= 0) {
+      toast('⚠️ Defina um preço válido antes de confirmar.');
+      return;
+    }
+    if (lado === 'compra' && total > saldoDisp) { toast('Saldo insuficiente.'); return; }
+    if (lado === 'venda' && !posicao)            { toast('Você não possui este ativo.'); return; }
+    if (lado === 'venda' && qtd > (posicao?.quantidade || 0)) { toast('Quantidade maior que sua posição.'); return; }
 
-    document.getElementById('mod-title').textContent=lado==='compra'?'CONFIRMAR COMPRA':'CONFIRMAR VENDA';
-    document.getElementById('mod-title').className='modal-title '+(lado==='compra'?'buy':'sell');
-    document.getElementById('mod-ticker').textContent=TICKER;
-    document.getElementById('mod-lado').textContent=lado==='compra'?'COMPRA':'VENDA';
-    document.getElementById('mod-qtd').textContent=qtd+' '+u;
-    document.getElementById('mod-preco').textContent=R$(preco);
-    document.getElementById('mod-exec').textContent=mercadoStatus==='aberto'?'Imediata':'Próximo dia útil';
-    document.getElementById('mod-total').textContent=R$(total);
-    document.getElementById('mod-total').className='modal-row-val big '+(lado==='compra'?'buy':'sell');
-    const ok=document.getElementById('btn-modal-ok');
-    ok.className='btn-modal-ok '+(lado==='compra'?'buy':'sell');
-    ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
+    document.getElementById('mod-title').textContent = lado === 'compra' ? 'CONFIRMAR COMPRA' : 'CONFIRMAR VENDA';
+    document.getElementById('mod-title').className   = 'modal-title ' + (lado === 'compra' ? 'buy' : 'sell');
+    document.getElementById('mod-ticker').textContent = TICKER;
+    document.getElementById('mod-lado').textContent  = lado === 'compra' ? 'COMPRA' : 'VENDA';
+    document.getElementById('mod-qtd').textContent   = qtd + ' ' + u;
+    document.getElementById('mod-preco').textContent = R$(preco);
+    document.getElementById('mod-exec').textContent  = mercadoStatus === 'aberto' ? 'Imediata' : 'Próximo dia útil';
+    document.getElementById('mod-total').textContent = R$(total);
+    document.getElementById('mod-total').className   = 'modal-row-val big ' + (lado === 'compra' ? 'buy' : 'sell');
+
+    const ok = document.getElementById('btn-modal-ok');
+    ok.className   = 'btn-modal-ok ' + (lado === 'compra' ? 'buy' : 'sell');
+    ok.textContent = lado === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
+
     document.getElementById('modal').classList.add('open');
   }
 
-  function fecharModal(){document.getElementById('modal').classList.remove('open')}
+  function fecharModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
 
-  async function executar(){
-    const ok=document.getElementById('btn-modal-ok');
-    ok.disabled=true;ok.textContent='PROCESSANDO...';
-    const qtd=parseInt(document.getElementById('qtd').value)||1;
-    const preco=tipoOrdem==='mercado'?precoAtual:parseFloat(document.getElementById('price-limit').value)||precoAtual;
-    const total=qtd*preco;
+  // ── Executa a ordem ──
+  async function executar() {
+    const ok    = document.getElementById('btn-modal-ok');
+    const qtd   = parseInt(document.getElementById('qtd').value) || 1;
+    const preco = getPrecoEfetivo();
+    const total = qtd * preco;
 
-    try{
-      await db.runTransaction(async t=>{
-        const cRef=db.collection('carteiras').doc(meuUID);
-        const cSnap=await t.get(cRef);
-        const c=cSnap.exists?cSnap.data():{};
-        let saldo=c.saldo_disponivel??500000;
-        let posicoes=[...(c.posicoes||[])];
+    // ══ GUARD PRINCIPAL: nunca salva com preco=0 ou total=0 ══
+    if (!preco || preco <= 0 || !total || total <= 0) {
+      fecharModal();
+      toast('❌ Preço inválido. A ordem não pode ser executada com preço zero.');
+      return;
+    }
 
-        if(lado==='compra'){
-          if(total>saldo)throw new Error('Saldo insuficiente.');
-          saldo-=total;
-          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
-          if(idx>=0){
-            const qtdAnt=posicoes[idx].quantidade;
-            const totAnt=qtdAnt*posicoes[idx].preco_medio;
-            posicoes[idx].quantidade+=qtd;
-            posicoes[idx].preco_medio=(totAnt+total)/posicoes[idx].quantidade;
-            posicoes[idx].ultima_atualizacao=new Date().toISOString();
-          }else{
-            posicoes.push({ticker:TICKER,tipo:TIPO,quantidade:qtd,preco_medio:preco,data_compra:new Date().toISOString(),ultima_atualizacao:new Date().toISOString()});
+    ok.disabled = true; ok.textContent = 'PROCESSANDO...';
+
+    try {
+      await db.runTransaction(async t => {
+        const cRef  = db.collection('carteiras').doc(meuUID);
+        const cSnap = await t.get(cRef);
+        const c     = cSnap.exists ? cSnap.data() : {};
+        let saldo   = c.saldo_disponivel ?? 500000;
+        let posicoes = [...(c.posicoes || [])];
+
+        if (lado === 'compra') {
+          if (total > saldo) throw new Error('Saldo insuficiente.');
+          saldo -= total;
+          const idx = posicoes.findIndex(p => p.ticker === TICKER);
+          if (idx >= 0) {
+            const qtdAnt = posicoes[idx].quantidade;
+            const totAnt = qtdAnt * posicoes[idx].preco_medio;
+            posicoes[idx].quantidade += qtd;
+            posicoes[idx].preco_medio = (totAnt + total) / posicoes[idx].quantidade;
+            posicoes[idx].ultima_atualizacao = new Date().toISOString();
+          } else {
+            posicoes.push({
+              ticker: TICKER, tipo: TIPO, quantidade: qtd,
+              preco_medio: preco,
+              data_compra: new Date().toISOString(),
+              ultima_atualizacao: new Date().toISOString()
+            });
           }
-        }else{
-          const idx=posicoes.findIndex(p=>p.ticker===TICKER);
-          if(idx<0)throw new Error('Ativo não encontrado na carteira.');
-          if(posicoes[idx].quantidade<qtd)throw new Error('Quantidade insuficiente.');
-          saldo+=total;
-          posicoes[idx].quantidade-=qtd;
-          if(posicoes[idx].quantidade===0)posicoes.splice(idx,1);
+        } else {
+          const idx = posicoes.findIndex(p => p.ticker === TICKER);
+          if (idx < 0) throw new Error('Ativo não encontrado na carteira.');
+          if (posicoes[idx].quantidade < qtd) throw new Error('Quantidade insuficiente.');
+          saldo += total;
+          posicoes[idx].quantidade -= qtd;
+          if (posicoes[idx].quantidade === 0) posicoes.splice(idx, 1);
         }
 
-        const investido=posicoes.reduce((a,p)=>a+p.quantidade*p.preco_medio,0);
-        const patrimonio=saldo+investido;
+        const investido   = posicoes.reduce((a, p) => a + p.quantidade * p.preco_medio, 0);
+        const patrimonio  = saldo + investido;
 
-        // Salva ou cria carteira
-        t.set(cRef,{uid:meuUID,saldo_disponivel:saldo,saldo_investido:investido,patrimonio_total:patrimonio,posicoes,ultima_atualizacao:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        // Salva carteira
+        t.set(cRef, {
+          uid: meuUID, saldo_disponivel: saldo, saldo_investido: investido,
+          patrimonio_total: patrimonio, posicoes,
+          ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
         // Histórico da ordem
-        t.set(db.collection('ordens').doc(),{uid:meuUID,ticker:TICKER,tipo:TIPO,lado,quantidade:qtd,preco,total,tipo_ordem:tipoOrdem,status:mercadoStatus==='aberto'?'executada':'agendada',data:firebase.firestore.FieldValue.serverTimestamp()});
+        t.set(db.collection('ordens').doc(), {
+          uid: meuUID, ticker: TICKER, tipo: TIPO, lado, quantidade: qtd,
+          preco, total, tipo_ordem: tipoOrdem,
+          status: mercadoStatus === 'aberto' ? 'executada' : 'agendada',
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-        // Post automático no feed
-        t.set(db.collection('posts').doc(),{uid:meuUID,tipo:'trade',tipo_ativo:TIPO,ticker:TICKER,lado,quantidade:qtd,preco,total,auto:true,data_post:firebase.firestore.FieldValue.serverTimestamp()});
+        // ══ Post no feed — só salva se preco e total são válidos ══
+        // (já garantido pelo guard acima, mas verifica de novo por segurança)
+        if (preco > 0 && total > 0) {
+          t.set(db.collection('posts').doc(), {
+            uid: meuUID, tipo: 'trade', tipo_ativo: TIPO,
+            ticker: TICKER, lado, quantidade: qtd,
+            preco,   // ✅ garantidamente > 0
+            total,   // ✅ garantidamente > 0
+            auto: true,
+            data_post: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
 
-        // Atualiza usuário também
-        const uRef=db.collection('usuarios').doc(meuUID);
-        t.update(uRef,{saldo_disponivel:saldo,patrimonio_total:patrimonio});
+        // Atualiza usuário
+        const uRef = db.collection('usuarios').doc(meuUID);
+        t.update(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio });
       });
 
       fecharModal();
-      // Mostra sucesso
-      document.getElementById('form-wrap').style.display='none';
-      document.getElementById('btn-wrap').style.display='none';
-      const s=document.getElementById('sucesso');s.classList.add('show');
-      document.getElementById('s-icon').textContent=lado==='compra'?'✅':'💰';
-      document.getElementById('s-title').textContent=mercadoStatus==='aberto'?'ORDEM EXECUTADA':'ORDEM AGENDADA';
-      document.getElementById('s-desc').textContent=`${lado==='compra'?'Compra':'Venda'} de ${qtd} ${unit()} de ${TICKER}\na ${R$(preco)} por unidade\nTotal: ${R$(total)}\n${mercadoStatus==='aberto'?'Executada imediatamente ✅':'Agendada para o próximo dia útil ⏰'}`;
 
-    }catch(e){
-      console.error(e);toast(e.message||'Erro ao executar ordem.');
-      ok.disabled=false;ok.textContent=lado==='compra'?'✅ CONFIRMAR COMPRA':'📉 CONFIRMAR VENDA';
+      // Sucesso
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('btn-wrap').style.display  = 'none';
+      const s = document.getElementById('sucesso');
+      s.classList.add('show');
+      document.getElementById('s-icon').textContent = lado === 'compra' ? '✅' : '💰';
+      document.getElementById('s-title').textContent = mercadoStatus === 'aberto' ? 'ORDEM EXECUTADA' : 'ORDEM AGENDADA';
+      document.getElementById('s-desc').textContent =
+        `${lado === 'compra' ? 'Compra' : 'Venda'} de ${qtd} ${unit()} de ${TICKER}\n` +
+        `a ${R$(preco)} por unidade\n` +
+        `Total: ${R$(total)}\n` +
+        `${mercadoStatus === 'aberto' ? 'Executada imediatamente ✅' : 'Agendada para o próximo dia útil ⏰'}`;
+
+    } catch (e) {
+      console.error(e);
+      toast(e.message || 'Erro ao executar ordem.');
+      ok.disabled = false;
+      ok.textContent = lado === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
     }
   }
   </script>
