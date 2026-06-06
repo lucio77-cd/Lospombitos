@@ -18,37 +18,27 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
-    /* HEADER */
     .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
     .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink)}
     .btn-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
 
     .container{max-width:640px;margin:0 auto;padding:20px 16px}
 
-    /* ── HERO ── */
     .hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;animation:fadeUp .3s ease}
-
-    /* Avatar */
     .avatar{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:3px solid white;box-shadow:0 0 0 2px var(--shore);flex-shrink:0;overflow:hidden;background:var(--wave)}
     .avatar img{width:100%;height:100%;object-fit:cover}
-
-    /* Info direita do avatar */
     .hero-info{flex:1;min-width:0}
     .hero-nome{font-family:var(--display);font-size:26px;letter-spacing:2px;line-height:1;margin-bottom:2px}
     .hero-username{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px}
     .hero-bio{font-size:13px;line-height:1.5;color:var(--ink);opacity:.75}
-
-    /* Badge perfil inline */
     .perfil-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:3px 9px;margin-bottom:6px}
 
-    /* ── STATS ── */
     .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;animation:fadeUp .35s ease}
     .stat-box{background:var(--card);border:1.5px solid var(--shore);border-radius:12px;padding:12px;text-align:center}
     .stat-val{font-family:var(--display);font-size:17px;letter-spacing:1px;color:var(--ink);line-height:1;margin-bottom:3px}
     .stat-val.pos{color:var(--green)}.stat-val.neg{color:var(--red)}
     .stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
 
-    /* ── TREEMAP ALOCAÇÃO ── */
     .secao-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px}
     .treemap-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;animation:fadeUp .4s ease}
     canvas.treemap{width:100%;display:block}
@@ -59,7 +49,6 @@
     .tl-ticker{color:var(--ink);font-weight:500}
     .tl-pct{color:var(--muted)}
 
-    /* ── GRÁFICO PERFORMANCE ── */
     .perf-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:14px;animation:fadeUp .45s ease}
     .perf-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
     .perf-resultado{font-family:var(--display);font-size:22px;letter-spacing:1px}
@@ -70,9 +59,8 @@
     .perf-chart-wrap{height:90px;position:relative;margin-bottom:10px}
     canvas#perf-chart{width:100%;height:90px}
 
-    /* mini lista de ganho/perda por ativo */
     .ativo-rows{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--shore)}
-    .ativo-row{display:flex;align-items:center;gap:8px}
+    .ativo-row{display:flex;align-items:center;gap:8px;cursor:pointer}
     .ar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
     .ar-ticker{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--wave);width:52px;flex-shrink:0}
     .ar-bar-wrap{flex:1;height:4px;background:var(--shore);border-radius:2px;overflow:hidden}
@@ -80,28 +68,30 @@
     .ar-val{font-family:var(--mono);font-size:10px;font-weight:500;text-align:right;width:72px;flex-shrink:0}
     .ar-val.pos{color:var(--green)}.ar-val.neg{color:var(--red)}
 
-    /* ── POSTS ── */
+    /* Posts */
     .post-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px;margin-bottom:8px;animation:fadeUp .3s ease}
     .post-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .post-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden}
+    .post-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;background:var(--wave)}
     .post-av img{width:100%;height:100%;object-fit:cover}
     .post-nome{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink)}
     .post-data{font-family:var(--mono);font-size:9px;color:var(--muted)}
     .post-txt{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px}
-    .post-likes{font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer}
+    .post-likes{font-family:var(--mono);font-size:10px;color:var(--muted)}
 
-    /* trade post */
+    /* Trade posts — mesma estrutura do feed.html */
     .trade-pill{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block;margin-left:auto}
     .trade-pill.c{background:#d4f5e2;color:var(--green)}.trade-pill.v{background:#ffd5ce;color:var(--red)}
-    .trade-ticker-big{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave);margin-bottom:8px}
-    .trade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+    .trade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;background:var(--shore);border-radius:8px;overflow:hidden}
+    .tc{background:var(--sand);padding:8px 10px}
     .tg-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:2px}
     .tg-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
+    .trade-total-row{background:var(--sand);border-radius:8px;padding:8px 10px;margin-bottom:8px}
+    .ticker-big{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave);margin-bottom:8px}
 
+    /* Posts vazios / erro */
     .sk-line{height:11px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
     .empty{text-align:center;padding:28px 20px;color:var(--muted);font-family:var(--mono);font-size:10px}
 
-    /* NAV */
     .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
     .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
     .ni:hover{background:var(--shore)}
@@ -117,8 +107,6 @@
   </header>
 
   <div class="container">
-
-    <!-- HERO: avatar + nome + bio -->
     <div class="hero" id="hero">
       <div class="avatar" id="avatar-el">🐦</div>
       <div class="hero-info">
@@ -129,7 +117,6 @@
       </div>
     </div>
 
-    <!-- STATS: patrimônio · resultado · ativos -->
     <div class="stats-row" id="stats-row">
       <div class="stat-box">
         <p class="stat-val" id="st-pat">···</p>
@@ -145,20 +132,18 @@
       </div>
     </div>
 
-    <!-- TREEMAP -->
     <p class="secao-lbl">ALOCAÇÃO</p>
     <div class="treemap-card" id="treemap-card" style="display:none">
       <canvas class="treemap" id="treemap-canvas"></canvas>
       <div class="treemap-leg" id="treemap-leg"></div>
     </div>
 
-    <!-- PERFORMANCE -->
     <p class="secao-lbl">DESEMPENHO</p>
     <div class="perf-card" id="perf-card" style="display:none">
       <div class="perf-top">
         <div>
           <p class="perf-resultado" id="perf-res">···</p>
-          <p class="perf-sub">desde o início · capital R$ 500k</p>
+          <p class="perf-sub" id="perf-sub">desde o início · capital R$ 500k</p>
         </div>
         <p class="perf-pct" id="perf-pct">···</p>
       </div>
@@ -168,12 +153,10 @@
       <div class="ativo-rows" id="ativo-rows"></div>
     </div>
 
-    <!-- POSTS -->
     <p class="secao-lbl">COMPARTILHADO</p>
     <div id="posts-list">
       <div><div class="sk-line" style="width:55%"></div><div class="sk-line"></div><div class="sk-line" style="width:35%"></div></div>
     </div>
-
   </div>
 
   <nav class="nav">
@@ -189,18 +172,40 @@
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>
+  'use strict';
+
   const CAPITAL = 500000;
-  const CORES = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
+  const CORES   = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
   const COR_DISP = '#d4c9b8';
 
-  const Rk  = v => { const a=Math.abs(v); return (v<0?'-':'')+'R$ '+(a>=1000?(a/1000).toFixed(0)+'k':a.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})); };
-  const R$  = v => 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const pct = v => (v>=0?'+':'')+v.toFixed(2)+'%';
+  // ── Formatadores ──
+  // Rk: arredonda para K com 1 casa — ex: R$503k, não R$504k
+  // Usa Math.floor para garantir que 503.808 → 503k (não 504k)
+  const Rk = v => {
+    const neg = v < 0;
+    const a   = Math.abs(v);
+    let str;
+    if (a >= 1000) str = Math.floor(a / 1000) + 'k';  // FLOOR, não round
+    else str = a.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    return (neg ? '-' : '') + 'R$ ' + str;
+  };
+  const RkSigned = v => (v >= 0 ? '+' : '') + Rk(v);
 
-  let db, uid, userData={}, posicoes=[], cotacoes={};
+  const R$  = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+
+  let db, uid;
+  let userData = {}, carteiraData = {};
+  let posicoes = [], cotacoes = {};
+
+  // ── FIX 1: saldo e patrimônio VÊM DO FIRESTORE (carteiras doc) ──
+  // Nunca recalcula CAPITAL - totalPago, que ignora vendas.
+  let saldoDisp       = 0;  // direto do Firestore
+  let saldoInvestido  = 0;  // direto do Firestore
+  let patrimonioTotal = 0;  // direto do Firestore
 
   firebase.auth().onAuthStateChanged(async user => {
-    if (!user) { location.href='invite.html'; return; }
+    if (!user) { location.href = 'invite.html'; return; }
     uid = user.uid;
     db  = window.db || firebase.firestore();
     await carregar();
@@ -211,13 +216,26 @@
       db.collection('usuarios').doc(uid).get(),
       db.collection('carteiras').doc(uid).get()
     ]);
-    userData = uS.data() || {};
-    posicoes = cS.exists ? (cS.data()?.posicoes || []) : [];
 
-    // cotações
-    const tks = posicoes.filter(p=>p.tipo==='acoes'||p.tipo==='fiis'||!p.tipo).map(p=>p.ticker);
+    userData     = uS.data() || {};
+    carteiraData = cS.exists ? cS.data() : {};
+    posicoes     = carteiraData.posicoes || [];
+
+    // ── FIX 1: lê valores direto do Firestore ──
+    saldoDisp       = carteiraData.saldo_disponivel ?? userData.saldo_disponivel ?? CAPITAL;
+    saldoInvestido  = carteiraData.saldo_investido  ?? 0;
+    patrimonioTotal = carteiraData.patrimonio_total ?? userData.patrimonio_total ?? saldoDisp;
+
+    // Cotações para ativos que têm preço de mercado
+    const tks = posicoes
+      .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
+      .map(p => p.ticker);
+
     if (tks.length) {
-      try { const d=await MercadoAPI.buscarMultiplos(tks); d.forEach(x=>{if(x.preco>0)cotacoes[x.ticker]=x.preco;}); } catch(e){}
+      try {
+        const d = await MercadoAPI.buscarMultiplos(tks);
+        d.forEach(x => { if (x.preco > 0) cotacoes[x.ticker] = x.preco; });
+      } catch (e) { console.warn('Cotações perfil:', e); }
     }
 
     renderHero();
@@ -227,322 +245,370 @@
     renderPosts();
   }
 
-  // ── HELPERS ──
+  // ── Cor do pombito ──
   function corPombito() {
-    const m={'azul':'#1a4fff','azul celeste':'#87ceeb','azul mar':'#006994','verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#cc2200','rosa':'#e75480','roxo':'#6a0dad','laranja':'#e86a1a','amarelo':'#f5b800','dourado':'#c9a84c','cinza':'#6b6b6b','marrom':'#7a4e2d','ciano':'#00b4d8','violeta':'#7c3aed','turquesa':'#40e0d0','coral':'#ff6b6b'};
-    return m[(userData.cor||'').toLowerCase().trim()] || '#1a4fff';
+    const m = {
+      'azul':'#1a4fff','azul celeste':'#87ceeb','azul mar':'#006994',
+      'verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#cc2200',
+      'rosa':'#e75480','roxo':'#6a0dad','laranja':'#e86a1a',
+      'amarelo':'#f5b800','dourado':'#c9a84c','cinza':'#6b6b6b',
+      'marrom':'#7a4e2d','ciano':'#00b4d8','violeta':'#7c3aed',
+      'turquesa':'#40e0d0','coral':'#ff6b6b'
+    };
+    return m[(userData.cor || '').toLowerCase().trim()] || '#1a4fff';
   }
 
-  function calcPatrimonio() {
-    const totalPago = posicoes.reduce((s,p)=>s+(p.quantidade||0)*(p.preco_medio||0),0);
-    const investReal = posicoes.reduce((s,p)=>{ const pa=cotacoes[p.ticker]||p.preco_medio||0; return s+(p.quantidade||0)*pa; },0);
-    const saldo = CAPITAL - totalPago;
-    return { saldo, investReal, patrimonio: saldo+investReal, totalPago };
+  // ── Patrimônio com cotações atuais (para treemap e barras de ativo) ──
+  // Usa saldoDisp do Firestore + valor atual das posições com cotações
+  function calcPatrimonioAtual() {
+    const valorAtualPosicoes = posicoes.reduce((s, p) => {
+      const pa = cotacoes[p.ticker] || p.preco_medio || 0;
+      return s + (p.quantidade || 0) * pa;
+    }, 0);
+    // Patrimônio "visual" para treemap: saldo real + valor atual dos ativos
+    return saldoDisp + valorAtualPosicoes;
   }
 
   // ── HERO ──
   function renderHero() {
     const cor = corPombito();
     document.getElementById('avatar-el').style.background = cor;
-
     document.getElementById('p-nome').textContent     = userData.nome     || 'Pombito';
-    document.getElementById('p-username').textContent = '@'+(userData.username||'···');
-
-    const bio = [userData.musica?'🎵 '+userData.musica:'', userData.filme?'🎬 '+userData.filme:''].filter(Boolean).join('  ·  ');
+    document.getElementById('p-username').textContent = '@' + (userData.username || '···');
+    const bio = [
+      userData.musica ? '🎵 ' + userData.musica : '',
+      userData.filme  ? '🎬 ' + userData.filme  : ''
+    ].filter(Boolean).join('  ·  ');
     document.getElementById('p-bio').textContent = bio || '—';
-
-    const badges = {conservador:'🛡️ CONSERVADOR', moderado:'⚖️ MODERADO', arrojado:'🚀 ARROJADO'};
-    document.getElementById('badge-perfil').textContent = badges[userData.perfil_investidor||'moderado'];
+    const badges = { conservador:'🛡️ CONSERVADOR', moderado:'⚖️ MODERADO', arrojado:'🚀 ARROJADO' };
+    document.getElementById('badge-perfil').textContent = badges[userData.perfil_investidor || 'moderado'];
   }
 
   // ── STATS ──
+  // FIX 1: usa patrimonioTotal do Firestore — idêntico ao que carteira.html exibe
   function renderStats() {
-    const {patrimonio, investReal} = calcPatrimonio();
-    const resultado = patrimonio - CAPITAL;
+    const resultado = patrimonioTotal - CAPITAL;
     const isPos     = resultado >= 0;
 
-    document.getElementById('st-pat').textContent = Rk(patrimonio);
+    document.getElementById('st-pat').textContent = Rk(patrimonioTotal);
+
     const resEl = document.getElementById('st-res');
-    resEl.textContent = (isPos?'+':'')+Rk(resultado);
-    resEl.className   = 'stat-val '+(isPos?'pos':'neg');
+    resEl.textContent = RkSigned(resultado);
+    resEl.className   = 'stat-val ' + (isPos ? 'pos' : 'neg');
+
     document.getElementById('st-atv').textContent = posicoes.length;
   }
 
   // ── TREEMAP ──
   function renderTreemap() {
-    if (!posicoes.length) return;
+    if (!posicoes.length && saldoDisp <= 0) return;
     document.getElementById('treemap-card').style.display = 'block';
 
-    const {saldo, patrimonio} = calcPatrimonio();
+    const patrimonioVis = calcPatrimonioAtual();
+    if (patrimonioVis <= 0) return;
 
-    // Monta itens: cada ativo + disponível
-    const itens = posicoes.map((p,i) => {
+    const itens = posicoes.map((p, i) => {
       const pa  = cotacoes[p.ticker] || p.preco_medio || 0;
-      const val = (p.quantidade||0)*pa;
-      return { label:p.ticker, val, pct:val/patrimonio*100, cor:CORES[i%CORES.length] };
+      const val = (p.quantidade || 0) * pa;
+      return { label: p.ticker, val, pct: val / patrimonioVis * 100, cor: CORES[i % CORES.length] };
     });
-    if (saldo > 0) itens.push({ label:'DISPONÍVEL', val:saldo, pct:saldo/patrimonio*100, cor:COR_DISP });
-    itens.sort((a,b)=>b.val-a.val);
 
-    // Canvas
+    if (saldoDisp > 0) {
+      itens.push({ label: 'DISPONÍVEL', val: saldoDisp, pct: saldoDisp / patrimonioVis * 100, cor: COR_DISP });
+    }
+    itens.sort((a, b) => b.val - a.val);
+
     const canvas = document.getElementById('treemap-canvas');
-    const dpr    = window.devicePixelRatio||1;
+    const dpr    = window.devicePixelRatio || 1;
     const W      = canvas.parentElement.offsetWidth;
     const H      = Math.round(W * 0.52);
-    canvas.width  = W*dpr; canvas.height = H*dpr;
-    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    canvas.width  = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     const ctx = canvas.getContext('2d');
-    ctx.scale(dpr,dpr);
-
+    ctx.scale(dpr, dpr);
     squarify(ctx, itens, 0, 0, W, H);
 
-    // Legenda
     const leg = document.getElementById('treemap-leg');
-    leg.innerHTML='';
-    itens.forEach(it=>{
-      const d=document.createElement('div'); d.className='tl-item';
-      d.innerHTML=`<div class="tl-dot" style="background:${it.cor}"></div><span class="tl-info"><span class="tl-ticker">${it.label}</span> <span class="tl-pct">${it.pct.toFixed(1)}%</span></span>`;
+    leg.innerHTML = '';
+    itens.forEach(it => {
+      const d = document.createElement('div'); d.className = 'tl-item';
+      d.innerHTML = `<div class="tl-dot" style="background:${it.cor}"></div>
+        <span class="tl-info"><span class="tl-ticker">${it.label}</span> <span class="tl-pct">${it.pct.toFixed(1)}%</span></span>`;
       leg.appendChild(d);
     });
   }
 
   function squarify(ctx, itens, x, y, w, h) {
     if (!itens.length) return;
-    const total = itens.reduce((s,i)=>s+i.pct,0);
-    let rx=x,ry=y,rw=w,rh=h;
-    let fila=[];
-
+    const total = itens.reduce((s, i) => s + i.pct, 0);
+    let rx = x, ry = y, rw = w, rh = h, fila = [];
     const worst = (fila, side) => {
-      const s=side*side, sum=fila.reduce((a,f)=>a+f.pct,0)*s/total;
-      return Math.max(...fila.map(f=>{const a=f.pct*s/total; return Math.max(sum*sum/a,a/sum*sum);}));
+      const s = side * side, sum = fila.reduce((a, f) => a + f.pct, 0) * s / total;
+      return Math.max(...fila.map(f => { const a = f.pct * s / total; return Math.max(sum * sum / a, a / sum * sum); }));
     };
-
-    let idx=0;
-    while(idx<itens.length){
-      const horizontal = rw>=rh;
-      const side=horizontal?rh:rw;
-      const novo=[...fila,itens[idx]];
-      if(!fila.length||worst(fila,side)>=worst(novo,side)){
-        fila=novo; idx++;
-        if(idx===itens.length) flush();
+    let idx = 0;
+    while (idx < itens.length) {
+      const side = rw >= rh ? rh : rw;
+      const novo  = [...fila, itens[idx]];
+      if (!fila.length || worst(fila, side) >= worst(novo, side)) {
+        fila = novo; idx++;
+        if (idx === itens.length) flush();
       } else { flush(); }
     }
-    function flush(){
-      if(!fila.length)return;
-      const filaPct=fila.reduce((s,f)=>s+f.pct,0);
-      const horizontal=rw>=rh;
-      const dim=horizontal?(filaPct/total)*rw:(filaPct/total)*rh;
-      let cur=horizontal?ry:rx;
-      fila.forEach(it=>{
-        const sz=(it.pct/filaPct)*(horizontal?rh:rw);
-        const cx=horizontal?rx:cur, cy=horizontal?cur:ry;
-        const iw=horizontal?dim:sz, ih=horizontal?sz:dim;
-        desenharBloco(ctx,cx,cy,iw,ih,it);
-        cur+=sz;
+    function flush() {
+      if (!fila.length) return;
+      const fp = fila.reduce((s, f) => s + f.pct, 0);
+      const hz = rw >= rh;
+      const dim = hz ? (fp / total) * rw : (fp / total) * rh;
+      let cur   = hz ? ry : rx;
+      fila.forEach(it => {
+        const sz = (it.pct / fp) * (hz ? rh : rw);
+        desenharBloco(ctx, hz ? rx : cur, hz ? cur : ry, hz ? dim : sz, hz ? sz : dim, it);
+        cur += sz;
       });
-      if(horizontal){rx+=dim;rw-=dim;}else{ry+=dim;rh-=dim;}
-      fila=[];
+      if (hz) { rx += dim; rw -= dim; } else { ry += dim; rh -= dim; }
+      fila = [];
     }
   }
 
-  function desenharBloco(ctx,x,y,w,h,it){
-    const g=2;
-    ctx.fillStyle=it.cor;
-    ctx.fillRect(x+g,y+g,w-g*2,h-g*2);
-    if(w>44&&h>24){
+  function desenharBloco(ctx, x, y, w, h, it) {
+    const g = 2;
+    ctx.fillStyle = it.cor;
+    ctx.fillRect(x + g, y + g, w - g * 2, h - g * 2);
+    if (w > 44 && h > 24) {
       ctx.save();
-      ctx.fillStyle='rgba(255,255,255,.92)';
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
-      const fs=Math.min(12,w/5.5);
-      ctx.font=`600 ${fs}px DM Mono,monospace`;
-      ctx.fillText(it.label,x+w/2,h>42?y+h/2-7:y+h/2);
-      if(h>42){
-        ctx.font=`${Math.min(9,w/7)}px DM Mono,monospace`;
-        ctx.fillStyle='rgba(255,255,255,.65)';
-        ctx.fillText(it.pct.toFixed(1)+'%',x+w/2,y+h/2+8);
+      ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const fs = Math.min(12, w / 5.5);
+      ctx.font = `600 ${fs}px DM Mono,monospace`;
+      ctx.fillText(it.label, x + w / 2, h > 42 ? y + h / 2 - 7 : y + h / 2);
+      if (h > 42) {
+        ctx.font = `${Math.min(9, w / 7)}px DM Mono,monospace`;
+        ctx.fillStyle = 'rgba(255,255,255,.65)';
+        ctx.fillText(it.pct.toFixed(1) + '%', x + w / 2, y + h / 2 + 8);
       }
       ctx.restore();
     }
   }
 
   // ── PERFORMANCE ──
+  // FIX 1: resultado usa patrimonioTotal do Firestore — igual à carteira
   function renderPerf() {
     if (!posicoes.length) return;
-    document.getElementById('perf-card').style.display='block';
+    document.getElementById('perf-card').style.display = 'block';
 
-    const {patrimonio} = calcPatrimonio();
-    const resultado = patrimonio - CAPITAL;
-    const rentab    = (resultado/CAPITAL)*100;
+    const resultado = patrimonioTotal - CAPITAL;
+    const rentab    = (resultado / CAPITAL) * 100;
     const isPos     = resultado >= 0;
 
     const resEl = document.getElementById('perf-res');
-    resEl.textContent = (isPos?'+':'')+R$(resultado);
-    resEl.className   = 'perf-resultado '+(isPos?'pos':'neg');
+    resEl.textContent = (isPos ? '+' : '') + R$(resultado);
+    resEl.className   = 'perf-resultado ' + (isPos ? 'pos' : 'neg');
+
     const pctEl = document.getElementById('perf-pct');
     pctEl.textContent = pct(rentab);
-    pctEl.className   = 'perf-pct '+(isPos?'pos':'neg');
+    pctEl.className   = 'perf-pct ' + (isPos ? 'pos' : 'neg');
 
-    // Mini barras por ativo
+    // Mini barras — ganho/perda por ativo (preço atual vs preço médio)
     const ativoRows = document.getElementById('ativo-rows');
-    const porAtivo = posicoes.map((p,i)=>{
-      const pa=cotacoes[p.ticker]||p.preco_medio||0;
-      const va=(p.quantidade||0)*pa, vp=(p.quantidade||0)*(p.preco_medio||0);
-      const ganho=va-vp, ganhoP=vp>0?(ganho/vp)*100:0;
-      return {ticker:p.ticker, ganho, ganhoP, cor:CORES[i%CORES.length]};
-    }).sort((a,b)=>b.ganho-a.ganho);
+    const porAtivo  = posicoes.map((p, i) => {
+      const pa    = cotacoes[p.ticker] || p.preco_medio || 0;
+      const va    = (p.quantidade || 0) * pa;
+      const vp    = (p.quantidade || 0) * (p.preco_medio || 0);
+      const ganho = va - vp;
+      return { ticker: p.ticker, ganho, cor: CORES[i % CORES.length], tipo: p.tipo || 'acoes' };
+    }).sort((a, b) => b.ganho - a.ganho);
 
-    const maxAbs=Math.max(...porAtivo.map(p=>Math.abs(p.ganho)),1);
-    ativoRows.innerHTML='';
-    porAtivo.forEach(p=>{
-      const ip=p.ganho>=0;
-      const barW=(Math.abs(p.ganho)/maxAbs*100).toFixed(0);
-      const row=document.createElement('div'); row.className='ativo-row';
-      row.style.cursor='pointer';
-      row.onclick=()=>location.href=`relatorio.html?ticker=${p.ticker}`;
-      row.innerHTML=`
+    const maxAbs = Math.max(...porAtivo.map(p => Math.abs(p.ganho)), 1);
+    ativoRows.innerHTML = '';
+    porAtivo.forEach(p => {
+      const ip   = p.ganho >= 0;
+      const barW = (Math.abs(p.ganho) / maxAbs * 100).toFixed(0);
+      const row  = document.createElement('div'); row.className = 'ativo-row';
+      row.onclick = () => location.href = `relatorio.html?ticker=${p.ticker}&tipo=${p.tipo}`;
+      row.innerHTML = `
         <div class="ar-dot" style="background:${p.cor}"></div>
         <span class="ar-ticker">${p.ticker}</span>
-        <div class="ar-bar-wrap"><div class="ar-bar" style="width:${barW}%;background:${ip?'var(--green)':'var(--red)'}"></div></div>
-        <span class="ar-val ${ip?'pos':'neg'}">${ip?'+':''}${Rk(p.ganho)}</span>`;
+        <div class="ar-bar-wrap"><div class="ar-bar" style="width:${barW}%;background:${ip ? 'var(--green)' : 'var(--red)'}"></div></div>
+        <span class="ar-val ${ip ? 'pos' : 'neg'}">${ip ? '+' : ''}${Rk(p.ganho)}</span>`;
       ativoRows.appendChild(row);
     });
 
-    // Tenta carregar gráfico histórico do ativo principal
     if (posicoes[0]) carregarGraficoPerfil(posicoes[0].ticker);
   }
 
   async function carregarGraficoPerfil(ticker) {
     try {
-      const hist = await MercadoAPI.buscarHistorico(ticker,'3mo');
+      const hist = await MercadoAPI.buscarHistorico(ticker, '3mo');
       if (!hist?.historico?.length) return;
-      const precos = hist.historico.map(h=>h.preco);
-      const pm = posicoes[0]?.preco_medio || precos[0];
+      const precos = hist.historico.map(h => h.preco);
+      const pm     = posicoes[0]?.preco_medio || precos[0];
       desenharGraficoPerfil(precos, pm);
-    } catch(e){}
+    } catch (e) {}
   }
 
   function desenharGraficoPerfil(precos, pm) {
     const canvas = document.getElementById('perf-chart');
-    const dpr    = window.devicePixelRatio||1;
+    const dpr    = window.devicePixelRatio || 1;
     const W      = canvas.parentElement.offsetWidth;
     const H      = 90;
-    canvas.width=W*dpr; canvas.height=H*dpr;
-    canvas.style.width=W+'px'; canvas.style.height=H+'px';
-    const ctx=canvas.getContext('2d');
-    ctx.scale(dpr,dpr);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
 
-    const pad={t:6,r:6,b:6,l:6};
-    const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+    const pad = { t: 6, r: 6, b: 6, l: 6 };
+    const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const allV = [...precos, pm];
+    const minV = Math.min(...allV) * 0.997, maxV = Math.max(...allV) * 1.003;
+    const rng  = maxV - minV || 1;
+    const xOf  = i => pad.l + (i / (precos.length - 1)) * cw;
+    const yOf  = v => pad.t + ch - ((v - minV) / rng) * ch;
 
-    const allVals = [...precos, pm];
-    const minV = Math.min(...allVals)*0.997;
-    const maxV = Math.max(...allVals)*1.003;
-    const rng  = maxV-minV||1;
+    ctx.clearRect(0, 0, W, H);
 
-    const xOf = i => pad.l+(i/(precos.length-1))*cw;
-    const yOf = v => pad.t+ch-((v-minV)/rng)*ch;
-
-    ctx.clearRect(0,0,W,H);
-
-    // Área preço
-    const isPos = precos[precos.length-1] >= precos[0];
-    const grad  = ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
-    grad.addColorStop(0, isPos?'rgba(26,138,74,.2)':'rgba(204,34,0,.2)');
-    grad.addColorStop(1, isPos?'rgba(26,138,74,.02)':'rgba(204,34,0,.02)');
+    const isPos = precos[precos.length - 1] >= precos[0];
+    const grad  = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+    grad.addColorStop(0, isPos ? 'rgba(26,138,74,.2)'  : 'rgba(204,34,0,.2)');
+    grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
     ctx.beginPath();
-    ctx.moveTo(xOf(0),yOf(precos[0]));
-    precos.forEach((p,i)=>{if(i>0)ctx.lineTo(xOf(i),yOf(p));});
-    ctx.lineTo(xOf(precos.length-1),pad.t+ch);
-    ctx.lineTo(xOf(0),pad.t+ch);
+    ctx.moveTo(xOf(0), yOf(precos[0]));
+    precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
+    ctx.lineTo(xOf(precos.length - 1), pad.t + ch);
+    ctx.lineTo(xOf(0), pad.t + ch);
     ctx.closePath();
-    ctx.fillStyle=grad; ctx.fill();
+    ctx.fillStyle = grad; ctx.fill();
 
-    // Linha preço (preta/escura como no rascunho)
     ctx.beginPath();
-    ctx.strokeStyle='#0d0d0d';
-    ctx.lineWidth=1.8; ctx.lineJoin='round';
-    ctx.moveTo(xOf(0),yOf(precos[0]));
-    precos.forEach((p,i)=>{if(i>0)ctx.lineTo(xOf(i),yOf(p));});
+    ctx.strokeStyle = '#0d0d0d'; ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
+    ctx.moveTo(xOf(0), yOf(precos[0]));
+    precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
     ctx.stroke();
 
-    // Linha PM (vermelha pontilhada — preço médio de compra)
-    const yPM=yOf(pm);
-    ctx.save();
-    ctx.setLineDash([4,4]);
-    ctx.strokeStyle='#cc2200';
-    ctx.lineWidth=1.2;
-    ctx.beginPath(); ctx.moveTo(pad.l,yPM); ctx.lineTo(W-pad.r,yPM); ctx.stroke();
+    const yPM = yOf(pm);
+    ctx.save(); ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#cc2200'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
     ctx.restore();
 
-    // Label PM
-    ctx.fillStyle='#cc2200';
-    ctx.font='8px DM Mono,monospace';
-    ctx.textAlign='left';
-    ctx.fillText('PM',pad.l+4,yPM-3);
+    ctx.fillStyle = '#cc2200'; ctx.font = '8px DM Mono,monospace';
+    ctx.textAlign = 'left'; ctx.fillText('PM', pad.l + 4, yPM - 3);
 
-    // Ponto final
-    const lx=xOf(precos.length-1), ly=yOf(precos[precos.length-1]);
-    ctx.beginPath(); ctx.arc(lx,ly,3.5,0,Math.PI*2);
-    ctx.fillStyle='#0d0d0d'; ctx.fill();
-    ctx.strokeStyle='#faf8f5'; ctx.lineWidth=1.5; ctx.stroke();
+    const lx = xOf(precos.length - 1), ly = yOf(precos[precos.length - 1]);
+    ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#0d0d0d'; ctx.fill();
+    ctx.strokeStyle = '#faf8f5'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
   // ── POSTS ──
+  // FIX 2: lê campos diretos do post (ticker, lado, quantidade, preco, total)
+  // porque ordem.html salva assim — sem objeto aninhado p.trade
   async function renderPosts() {
-    const listEl=document.getElementById('posts-list');
+    const listEl = document.getElementById('posts-list');
     try {
       let snap;
       try {
-        snap=await db.collection('posts').where('uid','==',uid).orderBy('criadoEm','desc').limit(20).get();
-      } catch(e){
-        snap=await db.collection('posts').where('uid','==',uid).limit(20).get();
+        snap = await db.collection('posts')
+          .where('uid', '==', uid)
+          .orderBy('data_post', 'desc')
+          .limit(30)
+          .get();
+      } catch (e) {
+        // Fallback sem orderBy se índice não existe
+        snap = await db.collection('posts').where('uid', '==', uid).limit(30).get();
       }
 
-      if(snap.empty){listEl.innerHTML='<div class="empty">📭 Nenhum post ainda.</div>';return;}
+      if (snap.empty) {
+        listEl.innerHTML = '<div class="empty">📭 Nenhum post ainda.</div>';
+        return;
+      }
 
-      const posts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.criadoEm?.seconds||0)-(a.criadoEm?.seconds||0));
-      listEl.innerHTML='';
-      const avBg=corPombito();
+      const posts = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.data_post?.seconds || b.criadoEm?.seconds || 0)
+                      - (a.data_post?.seconds || a.criadoEm?.seconds || 0));
 
-      posts.forEach(p=>{
-        const data=p.criadoEm?.toDate?p.criadoEm.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'—';
+      listEl.innerHTML = '';
+      const avBg = corPombito();
+      const foto = userData.foto_perfil
+        || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
 
-        if(p.tipo==='trade'&&p.trade){
-          const isC=p.trade.lado==='compra';
-          const card=document.createElement('div'); card.className='post-card';
-          card.innerHTML=`
+      posts.forEach(p => {
+        // Timestamp compatível com ambos os campos
+        const ts   = p.data_post || p.criadoEm;
+        const data = ts?.toDate
+          ? ts.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+          : ts?.seconds
+            ? new Date(ts.seconds * 1000).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+            : '—';
+
+        const card = document.createElement('div');
+        card.className = 'post-card';
+
+        // ── FIX 2: trade post com estrutura FLAT (como salvo em ordem.html) ──
+        if (p.tipo === 'trade') {
+          // Tenta estrutura flat (nova) e aninhada (legado) como fallback
+          const ticker = p.ticker   || p.trade?.ticker   || '—';
+          const lado   = p.lado     || p.trade?.lado     || 'compra';
+          const qtd    = p.quantidade ?? p.trade?.quantidade ?? 0;
+          const preco  = p.preco    ?? p.trade?.preco    ?? 0;
+          const total  = p.total    ?? p.trade?.total    ?? 0;
+
+          // Posts com preco=0 são inválidos — mostra aviso em vez de esconder
+          const isValido = preco > 0 && total > 0;
+          const isC      = lado === 'compra';
+
+          card.innerHTML = `
             <div class="post-hdr">
-              <div class="post-av" style="background:${avBg}">🐦</div>
-              <div><p class="post-nome">@${userData.username||'eu'}</p><p class="post-data">${data}</p></div>
-              <span class="trade-pill ${isC?'c':'v'}" style="margin-left:auto">${isC?'✅ COMPRA':'🔴 VENDA'}</span>
+              <div class="post-av" style="background:${avBg}">
+                <img src="${foto}" alt="" onerror="this.style.display='none'">
+              </div>
+              <div>
+                <p class="post-nome">@${userData.username || 'pombito'}</p>
+                <p class="post-data">${data}</p>
+              </div>
+              <span class="trade-pill ${isC ? 'c' : 'v'}" style="margin-left:auto">
+                ${isC ? '📈 COMPRA' : '📉 VENDA'}
+              </span>
             </div>
-            <p class="trade-ticker-big">${p.trade.ticker}</p>
-            <div class="trade-grid">
-              <div><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${p.trade.quantidade}</p></div>
-              <div><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${(p.trade.preco||0).toFixed(2)}</p></div>
-              <div><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(p.trade.total||0)}</p></div>
-            </div>
-            ${p.texto?`<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${p.texto}</p>`:''}
-            <p class="post-likes">❤️ ${p.likes||0}</p>`;
-          listEl.appendChild(card);
+            <p class="ticker-big">${ticker}</p>
+            ${isValido ? `
+              <div class="trade-grid">
+                <div class="tc"><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${qtd}</p></div>
+                <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toFixed(2)}</p></div>
+                <div class="tc"><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(total)}</p></div>
+              </div>
+            ` : `
+              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px">
+                ⚠️ cotação não disponível no momento da ordem
+              </p>
+            `}
+            ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${p.texto}</p>` : ''}
+            <p class="post-likes">❤️ ${p.likes || 0}</p>`;
+
         } else {
-          const card=document.createElement('div'); card.className='post-card';
-          card.innerHTML=`
+          // Post de texto normal
+          card.innerHTML = `
             <div class="post-hdr">
-              <div class="post-av" style="background:${avBg}">🐦</div>
-              <div><p class="post-nome">@${userData.username||'eu'}</p><p class="post-data">${data}</p></div>
+              <div class="post-av" style="background:${avBg}">
+                <img src="${foto}" alt="" onerror="this.style.display='none'">
+              </div>
+              <div>
+                <p class="post-nome">@${userData.username || 'pombito'}</p>
+                <p class="post-data">${data}</p>
+              </div>
             </div>
-            <p class="post-txt">${p.texto||'—'}</p>
-            <p class="post-likes">❤️ ${p.likes||0}</p>`;
-          listEl.appendChild(card);
+            <p class="post-txt">${p.texto || '—'}</p>
+            <p class="post-likes">❤️ ${p.likes || 0}</p>`;
         }
+
+        listEl.appendChild(card);
       });
-    } catch(e){
-      listEl.innerHTML='<div class="empty">⚠️ Erro ao carregar posts.</div>';
+
+    } catch (e) {
+      console.error('renderPosts:', e);
+      listEl.innerHTML = '<div class="empty">⚠️ Erro ao carregar posts.</div>';
     }
   }
   </script>
 </body>
 </html>
-
