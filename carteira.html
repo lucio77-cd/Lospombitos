@@ -25,7 +25,6 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
-    /* PATRIMÔNIO */
     .pat-card{
       background:var(--wave);
       background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);
@@ -82,6 +81,13 @@
     .cs-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px}
     .cs-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
     .cs-val.pos{color:var(--green)}.cs-val.neg{color:var(--red)}
+
+    /* Seletor de ativo para o gráfico */
+    .chart-ativo-select{
+      width:100%;font-family:var(--mono);font-size:11px;color:var(--wave);
+      background:var(--foam);border:none;border-radius:20px;padding:5px 12px;
+      cursor:pointer;margin-bottom:12px;appearance:none;text-align:center
+    }
 
     .tabs{display:flex;gap:8px;margin-bottom:14px}
     .tab-btn{
@@ -207,6 +213,8 @@
           <button class="period-btn" onclick="mudarPeriodo('1y',this)">1A</button>
         </div>
       </div>
+      <!-- FIX Bug 3: seletor de ativo para o gráfico -->
+      <select class="chart-ativo-select" id="chart-ativo-select" onchange="trocarAtivoGrafico(this.value)"></select>
       <div class="chart-top-row">
         <span class="chart-ticker-tag" id="chart-ticker-tag">···</span>
       </div>
@@ -257,13 +265,27 @@
 
   const CAPITAL = 500000;
   let db, meuUID;
-  let posicoes = [], cotacoes = {}, cotacoesFallback = new Set(), periodoAtual = '1mo';
+  let posicoes = [], cotacoes = {}, periodoAtual = '1mo', ativoGraficoAtual = null;
 
-  // ── Valores lidos do Firestore — fonte única de verdade ──
-  // Mesma lógica do perfil.html para garantir consistência
-  let saldoDisp       = 0;
-  let saldoInvestido  = 0;
-  let patrimonioTotal = 0;
+  let saldoDisp      = 0;
+  let saldoInvestido = 0;
+
+  // ── Formata data com ano completo de 4 dígitos ──
+  // FIX Bug 1: year:'numeric' em vez de '2-digit'
+  function fmtData(valor) {
+    if (!valor) return '—';
+    let d;
+    if (valor?.toDate) {
+      d = valor.toDate(); // Firestore Timestamp
+    } else if (valor?.seconds) {
+      d = new Date(valor.seconds * 1000);
+    } else {
+      d = new Date(valor);
+    }
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    // → "04 de jun. de 2026"
+  }
 
   const R$  = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
@@ -279,6 +301,44 @@
     if (!user) { location.href = 'invite.html'; return; }
     meuUID = user.uid;
     db     = window.db || firebase.firestore();
+
+    // FIX Bug 5: injeta callback de fallback Firestore no mercado-api v3
+    // Se brapi falhar para um ticker, busca o último preço de execução salvo
+    MercadoAPI.onPrecioFallback = async (ticker) => {
+      try {
+        const snap = await db.collection('ordens')
+          .where('uid', '==', meuUID)
+          .where('ticker', '==', ticker)
+          .orderBy('data', 'desc')
+          .limit(1)
+          .get();
+        if (!snap.empty) {
+          const preco = snap.docs[0].data().preco;
+          if (preco > 0) {
+            console.log(`[Fallback Firestore] ${ticker}: R$${preco}`);
+            return preco;
+          }
+        }
+      } catch (e) {
+        // Se falhar orderBy (índice), tenta sem ordenação
+        try {
+          const snap2 = await db.collection('ordens')
+            .where('uid', '==', meuUID)
+            .where('ticker', '==', ticker)
+            .limit(5)
+            .get();
+          if (!snap2.empty) {
+            const ordens = snap2.docs
+              .map(d => d.data())
+              .sort((a, b) => (b.data?.seconds || 0) - (a.data?.seconds || 0));
+            const preco = ordens[0]?.preco;
+            if (preco > 0) return preco;
+          }
+        } catch (_) {}
+      }
+      return null;
+    };
+
     await carregar();
   });
 
@@ -294,26 +354,22 @@
 
       posicoes = c.posicoes || [];
 
-      // ── FIX: lê do Firestore — mesma fonte que perfil.html ──
-      // Nunca recalcula CAPITAL - totalPago (ignora vendas)
-      saldoDisp       = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
-      saldoInvestido  = c.saldo_investido  ?? 0;
-      patrimonioTotal = c.patrimonio_total ?? u.patrimonio_total ?? saldoDisp;
+      saldoDisp      = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
+      saldoInvestido = c.saldo_investido  ?? 0;
 
-      // Busca cotações atuais para exibir valor de mercado por ativo
+      // Busca cotações para ações e FIIs
       const tickers = posicoes
         .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
         .map(p => p.ticker);
 
       if (tickers.length) {
-        // Passo 1: busca em lote
+        // Busca em lote — mercado-api v3 já faz retry interno + fallback Firestore
         try {
           const dados = await MercadoAPI.buscarMultiplos(tickers);
           dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
         } catch (e) { console.warn('Cotações lote:', e); }
 
-        // Passo 2: retry individual para qualquer ticker que não veio
-        // Crítico: sem isso USIM5, CSNA3 etc ficam sem cotação real
+        // FIX Bug 2: retry individual sem referência a _PRECOS_FALLBACK (removido na v3)
         const faltam = tickers.filter(t => !cotacoes[t]);
         if (faltam.length) {
           console.warn('[Carteira] Retry individual para:', faltam);
@@ -323,16 +379,8 @@
               if (d?.preco > 0) {
                 cotacoes[ticker] = d.preco;
                 console.log(`[Carteira] ${ticker} via individual: R$${d.preco}`);
-              } else {
-                // Último recurso: fallback estático do mercado-api
-                const fb = MercadoAPI._PRECOS_FALLBACK?.[ticker];
-                if (fb) {
-                  cotacoes[ticker] = fb;
-                  cotacoesFallback.add(ticker); // marca como fallback estático
-                  console.warn(`[Carteira] ${ticker} usando fallback estático: R$${fb}`);
-                }
-                // Se nem o fallback existe: deixa undefined → mostra aviso na UI
               }
+              // Se retornar null, a API já tentou o fallback Firestore internamente
             } catch (e) {
               console.warn(`[Carteira] ${ticker} sem cotação:`, e.message);
             }
@@ -342,22 +390,17 @@
         console.log('[Carteira] Cotações finais:', cotacoes);
       }
 
-      // ── Patrimônio: saldoDisp do Firestore + valor atual real dos ativos ──
-      // Só conta ativos que têm cotação real; para os sem cotação usa PM (melhor estimativa)
+      // Valor atual real dos ativos (cotação real ou PM como estimativa)
       const valorAtualAtivos = posicoes.reduce((acc, p) => {
-        // Prefere cotação real; se não tem, usa PM como estimativa conservadora
         const pa = cotacoes[p.ticker] || p.preco_medio || 0;
         return acc + (p.quantidade || 0) * pa;
       }, 0);
 
-      // Patrimônio display = saldo real (Firestore) + valor atual de mercado dos ativos
-      // Isso é mais preciso que o patrimonioTotal salvo (que usa preco_medio, não cotação atual)
       const patrimonioDisplay = saldoDisp + valorAtualAtivos;
       const resultado         = patrimonioDisplay - CAPITAL;
       const rentab            = (resultado / CAPITAL) * 100;
       const isPos             = resultado >= 0;
 
-      // Header patrimônio
       document.getElementById('pat-total').textContent = R$(patrimonioDisplay);
       document.getElementById('pat-disp').textContent  = R$(Math.max(0, saldoDisp));
       document.getElementById('pat-inv').textContent   = R$(valorAtualAtivos);
@@ -366,9 +409,8 @@
       rentEl.textContent = pct(rentab) + ' desde o início';
       rentEl.className   = 'pat-rentab ' + (isPos ? 'pos' : 'neg');
 
-      // Banner resultado total
       const banner = document.getElementById('resultado-banner');
-      banner.className   = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
+      banner.className     = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
       banner.style.display = 'flex';
 
       const rbLabel = document.getElementById('rb-label');
@@ -385,8 +427,18 @@
 
       renderPosicoes();
 
+      // FIX Bug 3: popula seletor de ativo para o gráfico
       if (posicoes.length > 0) {
-        await carregarGrafico(posicoes[0].ticker, periodoAtual);
+        const sel = document.getElementById('chart-ativo-select');
+        sel.innerHTML = '';
+        posicoes.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value       = p.ticker;
+          opt.textContent = `${p.ticker} — ${(p.tipo || 'AÇÕES').toUpperCase()}`;
+          sel.appendChild(opt);
+        });
+        ativoGraficoAtual = posicoes[0].ticker;
+        await carregarGrafico(ativoGraficoAtual, periodoAtual);
       }
 
       carregarHistorico();
@@ -396,6 +448,12 @@
       document.getElementById('pos-loading').innerHTML =
         `<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">${e.message}</span></div>`;
     }
+  }
+
+  // FIX Bug 3: função para trocar ativo no gráfico via seletor
+  async function trocarAtivoGrafico(ticker) {
+    ativoGraficoAtual = ticker;
+    await carregarGrafico(ticker, periodoAtual);
   }
 
   function renderPosicoes() {
@@ -409,41 +467,32 @@
 
     list.innerHTML = '';
     posicoes.forEach(pos => {
-      const cotacao    = cotacoes[pos.ticker]; // undefined = sem cotação real
+      const cotacao    = cotacoes[pos.ticker];
       const temCotacao = cotacao > 0;
-      const isFallback = cotacoesFallback.has(pos.ticker);
 
-      // precoAtual: usa cotação real se disponível, senão PM (mas avisa na UI)
       const precoAtual = temCotacao ? cotacao : (pos.preco_medio || 0);
       const pm         = pos.preco_medio || 0;
       const qtd        = pos.quantidade  || 0;
       const valorAtual = qtd * precoAtual;
       const valorPago  = qtd * pm;
 
-      // Resultado só é confiável se tiver cotação real
-      // Se não tem cotação, mostra 0 (nem positivo nem negativo enganoso)
       const resultado = temCotacao ? valorAtual - valorPago : 0;
       const rentab    = temCotacao && valorPago > 0 ? (resultado / valorPago) * 100 : 0;
       const isPos     = resultado >= 0;
       const unit      = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
 
-      const dataFmt = pos.data_compra
-        ? new Date(pos.data_compra).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
-        : '—';
-      const atualizadoFmt = pos.ultima_atualizacao
-        ? new Date(pos.ultima_atualizacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
-        : dataFmt;
+      // FIX Bug 1: usa fmtData() com year:'numeric' → "04 de jun. de 2026"
+      const dataFmt       = fmtData(pos.data_compra);
+      const atualizadoFmt = pos.ultima_atualizacao ? fmtData(pos.ultima_atualizacao) : dataFmt;
 
-      // Bloco do preço atual com estado visual claro
       const precoAtualHtml = temCotacao
-        ? `<span class="pos-stat-val">${R$(precoAtual)}${isFallback ? ' <span style="font-size:8px;color:var(--muted)">~est.</span>' : ''}</span>`
-        : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">cotação indisponível</span>`;
+        ? `<span class="pos-stat-val">${R$(precoAtual)}</span>`
+        : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">indisponível</span>`;
 
       const valorHojeHtml = temCotacao
         ? `<span class="pos-stat-val">${R$(valorAtual)}</span>`
         : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">—</span>`;
 
-      // Bloco resultado: só mostra se tiver cotação real
       const resultadoHtml = temCotacao
         ? `<div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
             <div class="pr-left">
@@ -456,16 +505,19 @@
             </div>
           </div>`
         : `<div style="background:var(--shore);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">
-            ⚡ Cotação de mercado indisponível agora — resultado não calculado
+            ⚡ Cotação indisponível — resultado não calculado
           </div>`;
 
+      const tipo = pos.tipo || 'acoes';
+
+      // FIX Bug 4: botões COMPRAR e VENDER com lado correto na URL
       const card = document.createElement('div');
       card.className = 'pos-card';
       card.innerHTML = `
         <div class="pos-top">
           <div class="pos-left">
             <p class="pos-ticker">${pos.ticker}</p>
-            <span class="pos-tipo">${(pos.tipo || 'acoes').toUpperCase()}</span>
+            <span class="pos-tipo">${tipo.toUpperCase()}</span>
           </div>
           <div class="pos-right">
             <p class="pos-valor">${temCotacao ? R$(valorAtual) : R$(valorPago)}</p>
@@ -487,9 +539,9 @@
         </div>
 
         <div class="pos-actions">
-          <button class="btn-rel"  onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${pos.tipo || 'acoes'}'">📊 RELATÓRIO</button>
-          <button class="btn-buy"  onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo || 'acoes'}&preco=${precoAtual}'">+ COMPRAR</button>
-          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${pos.tipo || 'acoes'}&preco=${precoAtual}'">VENDER</button>
+          <button class="btn-rel"  onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${tipo}'">📊 RELATÓRIO</button>
+          <button class="btn-buy"  onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${tipo}&preco=${precoAtual}&lado=compra'">+ COMPRAR</button>
+          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${tipo}&preco=${precoAtual}&lado=venda'">VENDER</button>
         </div>`;
       list.appendChild(card);
     });
@@ -552,7 +604,7 @@
       ctx.fillText('R$' + (maxP - f * range).toFixed(0), pad.l - 4, y + 3);
     });
 
-    // Linha PM (preço médio) do ativo se disponível
+    // Linha PM (preço médio)
     const pos = posicoes.find(p => p.ticker === ticker);
     if (pos?.preco_medio) {
       const pm = pos.preco_medio;
@@ -603,7 +655,7 @@
     document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
     periodoAtual = periodo;
-    if (posicoes.length) await carregarGrafico(posicoes[0].ticker, periodo);
+    if (ativoGraficoAtual) await carregarGrafico(ativoGraficoAtual, periodo);
   }
 
   // ── HISTÓRICO ──
@@ -621,11 +673,8 @@
       ordens.forEach(o => {
         const isC  = o.lado === 'compra';
         const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
-        const data = o.data?.toDate
-          ? o.data.toDate().toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
-          : o.data?.seconds
-            ? new Date(o.data.seconds * 1000).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' })
-            : '—';
+        // FIX Bug 1: usa fmtData() com ano completo
+        const data = fmtData(o.data);
         const card = document.createElement('div');
         card.className = 'hist-card';
         card.innerHTML = `
@@ -654,7 +703,6 @@
         .get();
       renderOrdens(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (e) {
-      // Fallback sem orderBy se índice não existe
       try {
         const snap = await db.collection('ordens').where('uid', '==', meuUID).limit(30).get();
         const ordens = snap.docs
