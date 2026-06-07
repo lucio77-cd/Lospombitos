@@ -1,7 +1,15 @@
 // ============================================================
-//  LOS POMBITOS — mercado-api.js v2
+//  LOS POMBITOS — mercado-api.js v3
 //  APIs: brapi.dev (B3) + CoinGecko (cripto) + BACEN (taxas)
-//  FIX: fallback robusto + debug + retry sem token
+//
+//  FIXES v3:
+//  - Bug 1: _PRECOS_FALLBACK removido — nunca sobrescreve cotação real
+//  - Bug 2: awesomeapi removido (era API de câmbio, inútil pra B3)
+//  - Bug 3: brapi aceita preço 0 com fallback só de última cotação salva
+//  - Bug 4: cache inválido é invalidado imediatamente se preço = 0
+//  - Bug 5: CONSENSO_FALLBACK com VALE3 duplicado corrigido
+//  - Bug 6: buscarAtivo e buscarMultiplos usam mesma lógica de fallback
+//  - Bug 7: fallback final usa preço salvo no Firestore (via callback)
 // ============================================================
 
 const MercadoAPI = {
@@ -10,6 +18,11 @@ const MercadoAPI = {
   TOKEN:    'dxg6v14WGQmfM1t9Hdms17',
   _cache:   {},
   _cacheTTL: 5 * 60 * 1000,
+
+  // Callback opcional: fn(ticker) => Promise<number|null>
+  // Injete no app principal para buscar último preço salvo no Firestore
+  // Ex: MercadoAPI.onPrecioFallback = async (t) => { const doc = await db....; return doc.preco; }
+  onPrecioFallback: null,
 
   _url(path, params = {}) {
     const u = new URL(this.BRAPI + path);
@@ -26,7 +39,7 @@ const MercadoAPI = {
       const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
-    } catch(e) {
+    } catch (e) {
       // Retry sem token se falhou (pode ser limite do plano)
       if (url.includes('token=')) {
         const urlSemToken = url.replace(/[&?]token=[^&]+/, '').replace(/\?&/, '?');
@@ -34,7 +47,7 @@ const MercadoAPI = {
           const res2 = await fetch(urlSemToken, { signal: AbortSignal.timeout(timeoutMs) });
           if (!res2.ok) throw new Error(`HTTP ${res2.status} (sem token)`);
           return await res2.json();
-        } catch(e2) {
+        } catch (e2) {
           throw e2;
         }
       }
@@ -48,17 +61,37 @@ const MercadoAPI = {
   async buscarAtivo(ticker) {
     const t = ticker.toUpperCase().trim();
     const cacheKey = `ativo_${t}`;
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
 
     try {
       const data = await this._fetch(this._url(`/quote/${t}`, { fundamental: 'false' }));
       if (!data.results?.length) return null;
 
       const q = data.results[0];
+
+      // Se brapi retornar preço 0, não cacheia e tenta fallback Firestore
+      if (!q.regularMarketPrice || q.regularMarketPrice === 0) {
+        console.warn(`[API] buscarAtivo ${t}: preço 0 retornado pela brapi — tentando fallback`);
+        const precoFb = await this._fallbackFirestore(t);
+        if (!precoFb) return null;
+        // Retorna objeto parcial com preço do Firestore, sem cachear
+        return {
+          ticker: t, nome: q.longName || q.shortName || t,
+          preco: precoFb, fechamento_ant: precoFb,
+          variacao: 0, variacao_pct: 0, volume: 0,
+          mercado_aberto: false,
+          max_dia: precoFb, min_dia: precoFb,
+          max_52s: q.fiftyTwoWeekHigh || 0,
+          min_52s: q.fiftyTwoWeekLow  || 0,
+          _fonte: 'firestore_fallback',
+        };
+      }
+
       const r = {
         ticker:         q.symbol,
         nome:           q.longName || q.shortName || t,
-        preco:          q.regularMarketPrice || 0,
+        preco:          q.regularMarketPrice,
         fechamento_ant: q.regularMarketPreviousClose || 0,
         variacao:       q.regularMarketChange || 0,
         variacao_pct:   q.regularMarketChangePercent || 0,
@@ -67,34 +100,48 @@ const MercadoAPI = {
         max_dia:        q.regularMarketDayHigh || 0,
         min_dia:        q.regularMarketDayLow || 0,
         max_52s:        q.fiftyTwoWeekHigh || 0,
-        min_52s:        q.fiftyTwoWeekLow || 0,
+        min_52s:        q.fiftyTwoWeekLow  || 0,
+        _fonte:         'brapi',
       };
 
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) {
+    } catch (e) {
       console.error(`[API] buscarAtivo ${t}:`, e.message);
+      // Tenta fallback Firestore antes de retornar null
+      const precoFb = await this._fallbackFirestore(t);
+      if (precoFb) {
+        return {
+          ticker: t, nome: t,
+          preco: precoFb, fechamento_ant: precoFb,
+          variacao: 0, variacao_pct: 0, volume: 0,
+          mercado_aberto: false, max_dia: 0, min_dia: 0,
+          max_52s: 0, min_52s: 0,
+          _fonte: 'firestore_fallback',
+        };
+      }
       return null;
     }
   },
 
   // ────────────────────────────────────────────
-  //  MÚLTIPLOS — FIX principal: tenta brapi, fallback awesomeapi
+  //  MÚLTIPLOS — sem awesomeapi (era câmbio, não B3)
   // ────────────────────────────────────────────
   async buscarMultiplos(tickers) {
     if (!tickers?.length) return [];
     const lista = [...new Set(tickers.map(t => t.toUpperCase().trim()))];
     const cacheKey = `multi_${lista.join(',')}`;
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
 
     // Separa ações/FIIs de cripto
-    const CRIPTOS = ['BTC','ETH','BNB','SOL','ADA','DOT','AVAX'];
+    const CRIPTOS = ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'DOT', 'AVAX'];
     const acoes   = lista.filter(t => !CRIPTOS.includes(t));
     const criptos = lista.filter(t =>  CRIPTOS.includes(t));
 
     let resultado = [];
 
-    // ── Tenta brapi ──
+    // ── Tenta brapi para todas as ações de uma vez ──
     if (acoes.length) {
       try {
         const data = await this._fetch(
@@ -103,8 +150,8 @@ const MercadoAPI = {
         );
 
         if (data.results?.length) {
-          data.results.forEach(q => {
-            if (q.regularMarketPrice > 0) {
+          for (const q of data.results) {
+            if (q.regularMarketPrice && q.regularMarketPrice > 0) {
               resultado.push({
                 ticker:       q.symbol,
                 nome:         q.longName || q.shortName || q.symbol,
@@ -116,53 +163,41 @@ const MercadoAPI = {
                 pl:           q.priceEarnings || 0,
                 dy:           (q.dividendYield || 0) * 100,
                 max_52s:      q.fiftyTwoWeekHigh || 0,
-                min_52s:      q.fiftyTwoWeekLow || 0,
+                min_52s:      q.fiftyTwoWeekLow  || 0,
+                _fonte:       'brapi',
               });
+            } else {
+              // Brapi retornou o ticker mas com preço 0 — loga para debug
+              console.warn(`[API] buscarMultiplos: ${q.symbol} veio com preço 0 da brapi`);
             }
-          });
+          }
         }
 
-        console.log(`[API] brapi ok: ${resultado.map(r=>r.ticker+' R$'+r.preco).join(', ')}`);
-      } catch(e) {
-        console.warn('[API] brapi falhou:', e.message);
+        console.log(`[API] brapi ok: ${resultado.map(r => r.ticker + ' R$' + r.preco).join(', ')}`);
+      } catch (e) {
+        console.warn('[API] brapi falhou em buscarMultiplos:', e.message);
       }
     }
 
-    // ── Fallback: awesomeapi para ações que não vieram ──
-    const jaTem = new Set(resultado.map(r => r.ticker));
+    // ── Fallback Firestore para tickers que não vieram ou vieram com preço 0 ──
+    const jaTem  = new Set(resultado.map(r => r.ticker));
     const faltam = acoes.filter(t => !jaTem.has(t));
 
     if (faltam.length) {
-      console.warn('[API] Usando awesomeapi para:', faltam);
+      console.warn('[API] Tentando fallback Firestore para:', faltam);
       for (const ticker of faltam) {
-        try {
-          const data = await this._fetch(
-            `https://economia.awesomeapi.com.br/json/last/${ticker}-BRL`,
-            5000
-          );
-          const key = Object.keys(data)[0];
-          if (data[key]?.bid) {
-            resultado.push({
-              ticker,
-              nome:         ticker,
-              preco:        parseFloat(data[key].bid),
-              variacao_pct: parseFloat(data[key].pctChange) || 0,
-              variacao:     parseFloat(data[key].varBid) || 0,
-              volume:       0, market_cap:0, pl:0, dy:0, max_52s:0, min_52s:0,
-            });
-          }
-        } catch(e2) {
-          // Usa preço do fallback estático se tiver
-          const fb = this._PRECOS_FALLBACK[ticker];
-          if (fb) {
-            console.warn(`[API] Usando preço fallback para ${ticker}: R$${fb}`);
-            resultado.push({
-              ticker, nome:ticker, preco:fb,
-              variacao_pct:0, variacao:0, volume:0,
-              market_cap:0, pl:0, dy:0, max_52s:0, min_52s:0,
-              _fallback: true,
-            });
-          }
+        const precoFb = await this._fallbackFirestore(ticker);
+        if (precoFb) {
+          console.warn(`[API] Fallback Firestore ok para ${ticker}: R$${precoFb}`);
+          resultado.push({
+            ticker, nome: ticker,
+            preco: precoFb,
+            variacao_pct: 0, variacao: 0, volume: 0,
+            market_cap: 0, pl: 0, dy: 0, max_52s: 0, min_52s: 0,
+            _fonte: 'firestore_fallback',
+          });
+        } else {
+          console.error(`[API] Sem preço para ${ticker} — brapi e Firestore falharam`);
         }
       }
     }
@@ -170,39 +205,56 @@ const MercadoAPI = {
     // ── Cripto via CoinGecko ──
     if (criptos.length) {
       try {
-        const MAP_ID = {BTC:'bitcoin',ETH:'ethereum',BNB:'binancecoin',SOL:'solana',ADA:'cardano',DOT:'polkadot',AVAX:'avalanche-2'};
+        const MAP_ID = {
+          BTC: 'bitcoin', ETH: 'ethereum', BNB: 'binancecoin',
+          SOL: 'solana',  ADA: 'cardano',  DOT: 'polkadot', AVAX: 'avalanche-2',
+        };
         const ids = criptos.map(t => MAP_ID[t]).filter(Boolean).join(',');
         const usd2brl = await this._getUSD();
         const data = await this._fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
           6000
         );
-        const MAP_BACK = {bitcoin:'BTC',ethereum:'ETH',binancecoin:'BNB',solana:'SOL',cardano:'ADA',polkadot:'DOT','avalanche-2':'AVAX'};
+        const MAP_BACK = {
+          bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB',
+          solana: 'SOL', cardano: 'ADA', polkadot: 'DOT', 'avalanche-2': 'AVAX',
+        };
         Object.entries(data).forEach(([id, v]) => {
           const sym = MAP_BACK[id];
           if (sym) resultado.push({
             ticker: sym, nome: sym,
             preco:        v.usd * usd2brl,
             variacao_pct: v.usd_24h_change || 0,
-            variacao:     0, volume:0, market_cap:0, pl:0, dy:0, max_52s:0, min_52s:0,
+            variacao: 0, volume: 0, market_cap: 0, pl: 0, dy: 0, max_52s: 0, min_52s: 0,
+            _fonte: 'coingecko',
           });
         });
-      } catch(e) { console.warn('[API] CoinGecko:', e.message); }
+      } catch (e) { console.warn('[API] CoinGecko:', e.message); }
     }
 
-    if (resultado.length) this._toCache(cacheKey, resultado);
+    // Só cacheia se todos os tickers foram resolvidos com preço real (não fallback)
+    const todosReais = resultado.every(r => r._fonte !== 'firestore_fallback');
+    if (resultado.length && todosReais) {
+      this._toCache(cacheKey, resultado);
+    }
+
     return resultado;
   },
 
-  // Preços de fallback estáticos (última atualização manual — junho 2025)
-  // Usados APENAS quando todas as APIs falharem
-  _PRECOS_FALLBACK: {
-    PETR4:41.25, PETR3:40.80, VALE3:61.80, ITUB4:37.20, BBAS3:29.50,
-    BBDC4:13.40, WEGE3:52.30, ABEV3:11.80, RENT3:52.40, PRIO3:62.70,
-    RDOR3:32.10, EGIE3:42.90, MGLU3:6.80,  TOTS3:28.50, AZUL4:11.20,
-    CSAN3:11.80, USIM5:10.80, CSNA3:9.40,  GGBR4:18.90, CMIN3:3.20,
-    HGLG11:162.0,MXRF11:9.80,XPML11:102.0,KNRI11:145.0,VISC11:96.0,
-    HGRE11:118.0,BTLG11:95.0,ALZR11:110.0,
+  // ────────────────────────────────────────────
+  //  FALLBACK FIRESTORE
+  //  Busca o último preço salvo no Firestore via callback injetado
+  //  Para injetar: MercadoAPI.onPrecioFallback = async (ticker) => { ... }
+  // ────────────────────────────────────────────
+  async _fallbackFirestore(ticker) {
+    if (typeof this.onPrecioFallback !== 'function') return null;
+    try {
+      const preco = await this.onPrecioFallback(ticker);
+      return (preco && preco > 0) ? preco : null;
+    } catch (e) {
+      console.warn(`[API] _fallbackFirestore ${ticker}:`, e.message);
+      return null;
+    }
   },
 
   // ────────────────────────────────────────────
@@ -214,7 +266,7 @@ const MercadoAPI = {
     try {
       const d = await this._fetch('https://economia.awesomeapi.com.br/last/USD-BRL', 5000);
       this._usdCache = parseFloat(d.USDBRL?.bid) || 5.70;
-    } catch(e) { this._usdCache = 5.70; }
+    } catch (e) { this._usdCache = 5.70; }
     return this._usdCache;
   },
 
@@ -224,7 +276,8 @@ const MercadoAPI = {
   async buscarDetalhadoAtivo(ticker) {
     const t = ticker.toUpperCase().trim();
     const cacheKey = `detalhe_${t}`;
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
 
     try {
       const data = await this._fetch(
@@ -249,17 +302,17 @@ const MercadoAPI = {
             const precos = hist.historico.map(h => h.preco);
             if (!media50 && precos.length >= 50) {
               const u50 = precos.slice(-50);
-              media50 = u50.reduce((a,b)=>a+b,0) / u50.length;
+              media50 = u50.reduce((a, b) => a + b, 0) / u50.length;
             }
             if (!media200) {
-              media200 = precos.reduce((a,b)=>a+b,0) / precos.length;
+              media200 = precos.reduce((a, b) => a + b, 0) / precos.length;
             }
             if (!volMedio) {
-              const vols = hist.historico.map(h=>h.volume||0).filter(v=>v>0).slice(-63);
-              if (vols.length) volMedio = Math.round(vols.reduce((a,b)=>a+b,0)/vols.length);
+              const vols = hist.historico.map(h => h.volume || 0).filter(v => v > 0).slice(-63);
+              if (vols.length) volMedio = Math.round(vols.reduce((a, b) => a + b, 0) / vols.length);
             }
           }
-        } catch(_) {}
+        } catch (_) {}
       }
 
       let nAnal   = fin.numberOfAnalystOpinions?.raw || 0;
@@ -310,35 +363,37 @@ const MercadoAPI = {
 
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) {
+    } catch (e) {
       console.error(`[API] buscarDetalhadoAtivo ${t}:`, e.message);
       return null;
     }
   },
 
+  // FIX: VALE3 duplicado removido
   CONSENSO_FALLBACK: {
-    PETR4:{n_analistas:18,rec:'buy',alvo:48.50,c:12,n:4,v:2},
-    VALE3:{n_analistas:20,rec:'buy',alvo:68.00,c:13,n:5,v:2},
-    ITUB4:{n_analistas:16,rec:'buy',alvo:40.00,c:11,n:4,v:1},
-    BBAS3:{n_analistas:14,rec:'buy',alvo:35.00,c:10,n:3,v:1},
-    BBDC4:{n_analistas:15,rec:'hold',alvo:16.50,c:5,n:7,v:3},
-    WEGE3:{n_analistas:14,rec:'buy',alvo:58.00,c:10,n:3,v:1},
-    ABEV3:{n_analistas:13,rec:'hold',alvo:13.50,c:4,n:6,v:3},
-    PRIO3:{n_analistas:12,rec:'strongBuy',alvo:68.00,c:10,n:2,v:0},
-    RDOR3:{n_analistas:11,rec:'buy',alvo:38.00,c:8,n:2,v:1},
-    USIM5:{n_analistas:10,rec:'hold',alvo:13.00,c:4,n:4,v:2},
-    VALE3:{n_analistas:20,rec:'buy',alvo:68.00,c:13,n:5,v:2},
+    PETR4: { n_analistas: 18, rec: 'buy',       alvo: 48.50, c: 12, n: 4, v: 2 },
+    VALE3: { n_analistas: 20, rec: 'buy',       alvo: 68.00, c: 13, n: 5, v: 2 },
+    ITUB4: { n_analistas: 16, rec: 'buy',       alvo: 40.00, c: 11, n: 4, v: 1 },
+    BBAS3: { n_analistas: 14, rec: 'buy',       alvo: 35.00, c: 10, n: 3, v: 1 },
+    BBDC4: { n_analistas: 15, rec: 'hold',      alvo: 16.50, c: 5,  n: 7, v: 3 },
+    WEGE3: { n_analistas: 14, rec: 'buy',       alvo: 58.00, c: 10, n: 3, v: 1 },
+    ABEV3: { n_analistas: 13, rec: 'hold',      alvo: 13.50, c: 4,  n: 6, v: 3 },
+    PRIO3: { n_analistas: 12, rec: 'strongBuy', alvo: 68.00, c: 10, n: 2, v: 0 },
+    RDOR3: { n_analistas: 11, rec: 'buy',       alvo: 38.00, c: 8,  n: 2, v: 1 },
+    USIM5: { n_analistas: 10, rec: 'hold',      alvo: 13.00, c: 4,  n: 4, v: 2 },
   },
 
   _estimarConsenso(rec, total) {
     const dist = {
-      strongBuy:{c:.80,n:.15,v:.05,def:12},buy:{c:.65,n:.25,v:.10,def:14},
-      hold:{c:.25,n:.50,v:.25,def:12},underperform:{c:.10,n:.30,v:.60,def:10},
-      sell:{c:.05,n:.15,v:.80,def:8},
+      strongBuy:    { c: .80, n: .15, v: .05, def: 12 },
+      buy:          { c: .65, n: .25, v: .10, def: 14 },
+      hold:         { c: .25, n: .50, v: .25, def: 12 },
+      underperform: { c: .10, n: .30, v: .60, def: 10 },
+      sell:         { c: .05, n: .15, v: .80, def: 8  },
     };
     const d = dist[rec] || dist.hold;
     const n = total > 0 ? total : d.def;
-    return { compra:Math.round(d.c*n), neutro:Math.round(d.n*n), venda:Math.round(d.v*n), estimado:total===0 };
+    return { compra: Math.round(d.c * n), neutro: Math.round(d.n * n), venda: Math.round(d.v * n), estimado: total === 0 };
   },
 
   // ────────────────────────────────────────────
@@ -347,14 +402,15 @@ const MercadoAPI = {
   async buscarHistorico(ticker, periodo = '1y') {
     const t = ticker.toUpperCase().trim();
     const cacheKey = `hist_${t}_${periodo}`;
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
 
-    const intervaloMap = {'1mo':'1d','3mo':'1d','6mo':'1d','1y':'1d','5y':'1wk'};
+    const intervaloMap = { '1mo': '1d', '3mo': '1d', '6mo': '1d', '1y': '1d', '5y': '1wk' };
     const intervalo = intervaloMap[periodo] || '1d';
 
     try {
       const data = await this._fetch(
-        this._url(`/quote/${t}`, { range:periodo, interval:intervalo, fundamental:'false' }),
+        this._url(`/quote/${t}`, { range: periodo, interval: intervalo, fundamental: 'false' }),
         10000
       );
       if (!data.results?.[0]?.historicalDataPrice) return null;
@@ -374,13 +430,13 @@ const MercadoAPI = {
       const r = {
         historico,
         variacao_periodo: primeiro ? ((ultimo - primeiro) / primeiro) * 100 : 0,
-        min_periodo: historico.length ? Math.min(...historico.map(h=>h.preco)) : 0,
-        max_periodo: historico.length ? Math.max(...historico.map(h=>h.preco)) : 0,
+        min_periodo: historico.length ? Math.min(...historico.map(h => h.preco)) : 0,
+        max_periodo: historico.length ? Math.max(...historico.map(h => h.preco)) : 0,
       };
 
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) {
+    } catch (e) {
       console.error(`[API] buscarHistorico ${t}:`, e.message);
       return null;
     }
@@ -391,14 +447,15 @@ const MercadoAPI = {
   // ────────────────────────────────────────────
   async buscarIndices() {
     const cacheKey = 'indices';
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
     try {
       const data = await this._fetch(
-        this._url('/quote/%5EBVSP,USDBRL%3DX,BTC-USD', { fundamental:'false' }),
+        this._url('/quote/%5EBVSP,USDBRL%3DX,BTC-USD', { fundamental: 'false' }),
         8000
       );
-      const nomeMap = {'^BVSP':'Ibovespa','USDBRL=X':'Dólar','BTC-USD':'Bitcoin'};
-      const r = (data.results||[]).map(q => ({
+      const nomeMap = { '^BVSP': 'Ibovespa', 'USDBRL=X': 'Dólar', 'BTC-USD': 'Bitcoin' };
+      const r = (data.results || []).map(q => ({
         ticker:       q.symbol,
         nome:         nomeMap[q.symbol] || q.shortName || q.symbol,
         preco:        q.regularMarketPrice || 0,
@@ -406,7 +463,7 @@ const MercadoAPI = {
       }));
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) { return []; }
+    } catch (e) { return []; }
   },
 
   // ────────────────────────────────────────────
@@ -415,11 +472,11 @@ const MercadoAPI = {
   async buscarAutoComplete(query) {
     if (!query || query.length < 2) return [];
     try {
-      const data = await this._fetch(this._url('/quote/list', { search:query, limit:'8' }), 5000);
-      return (data.stocks||[]).slice(0,8).map(s=>({
-        ticker: s.stock, nome: s.name||s.stock, tipo: s.type||'Ação',
+      const data = await this._fetch(this._url('/quote/list', { search: query, limit: '8' }), 5000);
+      return (data.stocks || []).slice(0, 8).map(s => ({
+        ticker: s.stock, nome: s.name || s.stock, tipo: s.type || 'Ação',
       }));
-    } catch(e) { return []; }
+    } catch (e) { return []; }
   },
 
   // ────────────────────────────────────────────
@@ -427,7 +484,8 @@ const MercadoAPI = {
   // ────────────────────────────────────────────
   async buscarCripto(id) {
     const cacheKey = `cripto_${id}`;
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
     try {
       const data = await this._fetch(
         `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&community_data=false&developer_data=false`,
@@ -435,35 +493,36 @@ const MercadoAPI = {
       );
       const r = {
         id, nome: data.name,
-        simbolo:      data.symbol?.toUpperCase(),
-        preco_brl:    data.market_data?.current_price?.brl || 0,
-        variacao_24h: data.market_data?.price_change_percentage_24h || 0,
-        variacao_7d:  data.market_data?.price_change_percentage_7d  || 0,
+        simbolo:       data.symbol?.toUpperCase(),
+        preco_brl:     data.market_data?.current_price?.brl || 0,
+        variacao_24h:  data.market_data?.price_change_percentage_24h || 0,
+        variacao_7d:   data.market_data?.price_change_percentage_7d  || 0,
         max_historico: data.market_data?.ath?.brl || 0,
-        market_cap:   data.market_data?.market_cap?.brl || 0,
-        rank:         data.market_cap_rank || 0,
+        market_cap:    data.market_data?.market_cap?.brl || 0,
+        rank:          data.market_cap_rank || 0,
       };
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) { return null; }
+    } catch (e) { return null; }
   },
 
   async listarCriptos(limite = 20) {
     const cacheKey = `criptos_${limite}`;
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
     try {
       const data = await this._fetch(
         `https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl&order=market_cap_desc&per_page=${limite}&page=1&price_change_percentage=24h`,
         8000
       );
-      const r = data.map(c=>({
-        id:c.id, nome:c.name, simbolo:c.symbol?.toUpperCase(),
-        preco:c.current_price||0, variacao_24h:c.price_change_percentage_24h||0,
-        market_cap:c.market_cap||0, rank:c.market_cap_rank||0, imagem:c.image||'',
+      const r = data.map(c => ({
+        id: c.id, nome: c.name, simbolo: c.symbol?.toUpperCase(),
+        preco: c.current_price || 0, variacao_24h: c.price_change_percentage_24h || 0,
+        market_cap: c.market_cap || 0, rank: c.market_cap_rank || 0, imagem: c.image || '',
       }));
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) { return []; }
+    } catch (e) { return []; }
   },
 
   // ────────────────────────────────────────────
@@ -471,13 +530,13 @@ const MercadoAPI = {
   // ────────────────────────────────────────────
   async buscarTesouroDireto() {
     return [
-      {nome:'Tesouro Selic 2027',    tipo:'selic',     taxa_compra:14.65, vencimento:'2027-03-01', min_investimento:100, preco_compra:13879.44},
-      {nome:'Tesouro Selic 2029',    tipo:'selic',     taxa_compra:14.65, vencimento:'2029-03-01', min_investimento:100, preco_compra:12456.78},
-      {nome:'Tesouro IPCA+ 2029',    tipo:'ipca',      taxa_compra:7.28,  vencimento:'2029-05-15', min_investimento:100, preco_compra:3456.89},
-      {nome:'Tesouro IPCA+ 2035',    tipo:'ipca',      taxa_compra:7.45,  vencimento:'2035-05-15', min_investimento:100, preco_compra:2987.34},
-      {nome:'Tesouro IPCA+ 2045',    tipo:'ipca',      taxa_compra:7.62,  vencimento:'2045-05-15', min_investimento:100, preco_compra:1876.23},
-      {nome:'Tesouro Prefixado 2027',tipo:'prefixado', taxa_compra:14.20, vencimento:'2027-01-01', min_investimento:100, preco_compra:756.89},
-      {nome:'Tesouro Prefixado 2031',tipo:'prefixado', taxa_compra:14.45, vencimento:'2031-01-01', min_investimento:100, preco_compra:534.67},
+      { nome: 'Tesouro Selic 2027',     tipo: 'selic',     taxa_compra: 14.65, vencimento: '2027-03-01', min_investimento: 100, preco_compra: 13879.44 },
+      { nome: 'Tesouro Selic 2029',     tipo: 'selic',     taxa_compra: 14.65, vencimento: '2029-03-01', min_investimento: 100, preco_compra: 12456.78 },
+      { nome: 'Tesouro IPCA+ 2029',     tipo: 'ipca',      taxa_compra: 7.28,  vencimento: '2029-05-15', min_investimento: 100, preco_compra: 3456.89  },
+      { nome: 'Tesouro IPCA+ 2035',     tipo: 'ipca',      taxa_compra: 7.45,  vencimento: '2035-05-15', min_investimento: 100, preco_compra: 2987.34  },
+      { nome: 'Tesouro IPCA+ 2045',     tipo: 'ipca',      taxa_compra: 7.62,  vencimento: '2045-05-15', min_investimento: 100, preco_compra: 1876.23  },
+      { nome: 'Tesouro Prefixado 2027', tipo: 'prefixado', taxa_compra: 14.20, vencimento: '2027-01-01', min_investimento: 100, preco_compra: 756.89   },
+      { nome: 'Tesouro Prefixado 2031', tipo: 'prefixado', taxa_compra: 14.45, vencimento: '2031-01-01', min_investimento: 100, preco_compra: 534.67   },
     ];
   },
 
@@ -486,23 +545,24 @@ const MercadoAPI = {
   // ────────────────────────────────────────────
   async buscarTaxasBacen() {
     const cacheKey = 'bacen';
-    if (this._fromCache(cacheKey)) return this._fromCache(cacheKey);
+    const cached = this._fromCache(cacheKey);
+    if (cached) return cached;
     try {
       const [cdi, selic, ipca] = await Promise.all([
         this._fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json', 6000),
         this._fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json',  6000),
-        this._fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.13522/dados/ultimos/1?formato=json',6000),
+        this._fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.13522/dados/ultimos/1?formato=json', 6000),
       ]);
       const r = {
-        cdi_diario:       parseFloat(cdi[0]?.valor   || '0.0579'),
-        selic_meta:       parseFloat(selic[0]?.valor || '14.75'),
-        ipca_12m:         parseFloat(ipca[0]?.valor  || '5.06'),
-        cdi_anual_aprox:  parseFloat(selic[0]?.valor || '14.75') - 0.10,
+        cdi_diario:      parseFloat(cdi[0]?.valor   || '0.0579'),
+        selic_meta:      parseFloat(selic[0]?.valor || '14.75'),
+        ipca_12m:        parseFloat(ipca[0]?.valor  || '5.06'),
+        cdi_anual_aprox: parseFloat(selic[0]?.valor || '14.75') - 0.10,
       };
       this._toCache(cacheKey, r);
       return r;
-    } catch(e) {
-      return { cdi_diario:0.0579, selic_meta:14.75, ipca_12m:5.06, cdi_anual_aprox:14.65 };
+    } catch (e) {
+      return { cdi_diario: 0.0579, selic_meta: 14.75, ipca_12m: 5.06, cdi_anual_aprox: 14.65 };
     }
   },
 
@@ -510,16 +570,16 @@ const MercadoAPI = {
   //  CONCORRENTES
   // ────────────────────────────────────────────
   SETORES: {
-    'Petróleo & Gás':       ['PETR4','PETR3','PRIO3','RECV3','CSAN3'],
-    'Bancos':               ['ITUB4','BBDC4','BBAS3','SANB11','BPAC11'],
-    'Varejo':               ['MGLU3','LREN3','AMER3','VIVA3'],
-    'Energia Elétrica':     ['EGIE3','ENGI11','CPFE3','CPLE6','EQTL3'],
-    'Mineração & Siderurgia':['VALE3','CSNA3','GGBR4','USIM5','CMIN3'],
-    'Saúde':                ['RDOR3','HAPV3','FLRY3','DASA3'],
-    'Tecnologia':           ['TOTS3','LWSA3','POSI3'],
-    'Transporte':           ['RAIL3','CCRO3','GOLL4','AZUL4'],
-    'Bens Industriais':     ['WEGE3','EMAE4','FRAS3'],
-    'Consumo':              ['ABEV3','RENT3','LREN3'],
+    'Petróleo & Gás':        ['PETR4', 'PETR3', 'PRIO3', 'RECV3', 'CSAN3'],
+    'Bancos':                ['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'BPAC11'],
+    'Varejo':                ['MGLU3', 'LREN3', 'AMER3', 'VIVA3'],
+    'Energia Elétrica':      ['EGIE3', 'ENGI11', 'CPFE3', 'CPLE6', 'EQTL3'],
+    'Mineração & Siderurgia':['VALE3', 'CSNA3', 'GGBR4', 'USIM5', 'CMIN3'],
+    'Saúde':                 ['RDOR3', 'HAPV3', 'FLRY3', 'DASA3'],
+    'Tecnologia':            ['TOTS3', 'LWSA3', 'POSI3'],
+    'Transporte':            ['RAIL3', 'CCRO3', 'GOLL4', 'AZUL4'],
+    'Bens Industriais':      ['WEGE3', 'EMAE4', 'FRAS3'],
+    'Consumo':               ['ABEV3', 'RENT3', 'LREN3'],
   },
 
   obterConcorrentes(ticker) {
@@ -527,21 +587,21 @@ const MercadoAPI = {
     for (const [setor, lista] of Object.entries(this.SETORES)) {
       if (lista.includes(t)) return { setor, concorrentes: lista.filter(c => c !== t) };
     }
-    return { setor:'Outros', concorrentes:[] };
+    return { setor: 'Outros', concorrentes: [] };
   },
 
   // ────────────────────────────────────────────
   //  HORÁRIO DE MERCADO
   // ────────────────────────────────────────────
   verificarHorarioMercado() {
-    const br = new Date(new Date().toLocaleString('en-US', { timeZone:'America/Sao_Paulo' }));
+    const br = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
     const h = br.getHours(), m = br.getMinutes(), dia = br.getDay();
     const total = h * 60 + m;
     const fds = dia === 0 || dia === 6;
-    if (fds || total < 9*60 || total >= 18*60) return { status:'fechado', proxima: this._proximoDiaUtil(br) };
-    if (total < 9*60+45) return { status:'pre_abertura', proxima: null };
-    if (total < 17*60+30) return { status:'aberto', proxima: null };
-    return { status:'after', proxima: this._proximoDiaUtil(br) };
+    if (fds || total < 9 * 60 || total >= 18 * 60) return { status: 'fechado', proxima: this._proximoDiaUtil(br) };
+    if (total < 9 * 60 + 45) return { status: 'pre_abertura', proxima: null };
+    if (total < 17 * 60 + 30) return { status: 'aberto', proxima: null };
+    return { status: 'after', proxima: this._proximoDiaUtil(br) };
   },
 
   _proximoDiaUtil(d) {
@@ -558,17 +618,20 @@ const MercadoAPI = {
   simularRendaFixa({ valor, tipo, taxa, prazoMeses }) {
     const anos = prazoMeses / 12;
     let montante;
-    if (tipo === 'cdi_pct')   montante = valor * Math.pow(1 + (taxa/100 * 14.65/100), anos);
-    else if (tipo === 'ipca_mais') montante = valor * Math.pow(1 + (5.06 + taxa)/100, anos);
-    else                       montante = valor * Math.pow(1 + taxa/100, anos);
+    if (tipo === 'cdi_pct')    montante = valor * Math.pow(1 + (taxa / 100 * 14.65 / 100), anos);
+    else if (tipo === 'ipca_mais') montante = valor * Math.pow(1 + (5.06 + taxa) / 100, anos);
+    else                       montante = valor * Math.pow(1 + taxa / 100, anos);
 
     const rendaBruta = montante - valor;
     const aliq = prazoMeses <= 6 ? .225 : prazoMeses <= 12 ? .20 : prazoMeses <= 24 ? .175 : .15;
     const rendaLiq = rendaBruta * (1 - aliq);
     return {
-      valor_inicial: valor, montante_bruto: montante,
-      renda_bruta: rendaBruta, ir: rendaBruta * aliq,
-      renda_liquida: rendaLiq, montante_liquido: valor + rendaLiq,
+      valor_inicial:     valor,
+      montante_bruto:    montante,
+      renda_bruta:       rendaBruta,
+      ir:                rendaBruta * aliq,
+      renda_liquida:     rendaLiq,
+      montante_liquido:  valor + rendaLiq,
       rentabilidade_pct: (rendaLiq / valor) * 100,
     };
   },
@@ -578,7 +641,7 @@ const MercadoAPI = {
   // ────────────────────────────────────────────
   R$(valor) {
     if (typeof valor !== 'number' || isNaN(valor)) return 'R$ 0,00';
-    return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(valor);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   },
 
   pct(valor, casas = 2) {
@@ -588,9 +651,9 @@ const MercadoAPI = {
 
   bigNum(valor) {
     if (!valor || isNaN(valor)) return 'R$ —';
-    if (valor >= 1e12) return `R$ ${(valor/1e12).toFixed(2)}T`;
-    if (valor >= 1e9)  return `R$ ${(valor/1e9).toFixed(2)}B`;
-    if (valor >= 1e6)  return `R$ ${(valor/1e6).toFixed(2)}M`;
+    if (valor >= 1e12) return `R$ ${(valor / 1e12).toFixed(2)}T`;
+    if (valor >= 1e9)  return `R$ ${(valor / 1e9).toFixed(2)}B`;
+    if (valor >= 1e6)  return `R$ ${(valor / 1e6).toFixed(2)}M`;
     return this.R$(valor);
   },
 
@@ -603,5 +666,9 @@ const MercadoAPI = {
     if (Date.now() - c.ts > this._cacheTTL) { delete this._cache[key]; return null; }
     return c.data;
   },
+
   _toCache(key, data) { this._cache[key] = { data, ts: Date.now() }; },
+
+  // Limpa todo o cache manualmente (útil após execução de ordem)
+  limparCache() { this._cache = {}; this._usdCache = null; },
 };
