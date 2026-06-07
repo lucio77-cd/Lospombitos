@@ -257,7 +257,7 @@
 
   const CAPITAL = 500000;
   let db, meuUID;
-  let posicoes = [], cotacoes = {}, periodoAtual = '1mo';
+  let posicoes = [], cotacoes = {}, cotacoesFallback = new Set(), periodoAtual = '1mo';
 
   // ── Valores lidos do Firestore — fonte única de verdade ──
   // Mesma lógica do perfil.html para garantir consistência
@@ -306,16 +306,46 @@
         .map(p => p.ticker);
 
       if (tickers.length) {
+        // Passo 1: busca em lote
         try {
           const dados = await MercadoAPI.buscarMultiplos(tickers);
           dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
-        } catch (e) { console.warn('Cotações carteira:', e); }
+        } catch (e) { console.warn('Cotações lote:', e); }
+
+        // Passo 2: retry individual para qualquer ticker que não veio
+        // Crítico: sem isso USIM5, CSNA3 etc ficam sem cotação real
+        const faltam = tickers.filter(t => !cotacoes[t]);
+        if (faltam.length) {
+          console.warn('[Carteira] Retry individual para:', faltam);
+          await Promise.allSettled(faltam.map(async ticker => {
+            try {
+              const d = await MercadoAPI.buscarAtivo(ticker);
+              if (d?.preco > 0) {
+                cotacoes[ticker] = d.preco;
+                console.log(`[Carteira] ${ticker} via individual: R$${d.preco}`);
+              } else {
+                // Último recurso: fallback estático do mercado-api
+                const fb = MercadoAPI._PRECOS_FALLBACK?.[ticker];
+                if (fb) {
+                  cotacoes[ticker] = fb;
+                  cotacoesFallback.add(ticker); // marca como fallback estático
+                  console.warn(`[Carteira] ${ticker} usando fallback estático: R$${fb}`);
+                }
+                // Se nem o fallback existe: deixa undefined → mostra aviso na UI
+              }
+            } catch (e) {
+              console.warn(`[Carteira] ${ticker} sem cotação:`, e.message);
+            }
+          }));
+        }
+
+        console.log('[Carteira] Cotações finais:', cotacoes);
       }
 
-      // ── Patrimônio: usa Firestore como base ──
-      // Se tiver cotações novas, recalcula o valor atual dos ativos
-      // mas mantém saldoDisp do Firestore (contabiliza vendas corretamente)
+      // ── Patrimônio: saldoDisp do Firestore + valor atual real dos ativos ──
+      // Só conta ativos que têm cotação real; para os sem cotação usa PM (melhor estimativa)
       const valorAtualAtivos = posicoes.reduce((acc, p) => {
+        // Prefere cotação real; se não tem, usa PM como estimativa conservadora
         const pa = cotacoes[p.ticker] || p.preco_medio || 0;
         return acc + (p.quantidade || 0) * pa;
       }, 0);
@@ -379,15 +409,23 @@
 
     list.innerHTML = '';
     posicoes.forEach(pos => {
-      const precoAtual = cotacoes[pos.ticker] || pos.preco_medio || 0;
+      const cotacao    = cotacoes[pos.ticker]; // undefined = sem cotação real
+      const temCotacao = cotacao > 0;
+      const isFallback = cotacoesFallback.has(pos.ticker);
+
+      // precoAtual: usa cotação real se disponível, senão PM (mas avisa na UI)
+      const precoAtual = temCotacao ? cotacao : (pos.preco_medio || 0);
       const pm         = pos.preco_medio || 0;
       const qtd        = pos.quantidade  || 0;
       const valorAtual = qtd * precoAtual;
       const valorPago  = qtd * pm;
-      const resultado  = valorAtual - valorPago;
-      const rentab     = valorPago > 0 ? (resultado / valorPago) * 100 : 0;
-      const isPos      = resultado >= 0;
-      const unit       = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
+
+      // Resultado só é confiável se tiver cotação real
+      // Se não tem cotação, mostra 0 (nem positivo nem negativo enganoso)
+      const resultado = temCotacao ? valorAtual - valorPago : 0;
+      const rentab    = temCotacao && valorPago > 0 ? (resultado / valorPago) * 100 : 0;
+      const isPos     = resultado >= 0;
+      const unit      = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
 
       const dataFmt = pos.data_compra
         ? new Date(pos.data_compra).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
@@ -395,6 +433,31 @@
       const atualizadoFmt = pos.ultima_atualizacao
         ? new Date(pos.ultima_atualizacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
         : dataFmt;
+
+      // Bloco do preço atual com estado visual claro
+      const precoAtualHtml = temCotacao
+        ? `<span class="pos-stat-val">${R$(precoAtual)}${isFallback ? ' <span style="font-size:8px;color:var(--muted)">~est.</span>' : ''}</span>`
+        : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">cotação indisponível</span>`;
+
+      const valorHojeHtml = temCotacao
+        ? `<span class="pos-stat-val">${R$(valorAtual)}</span>`
+        : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">—</span>`;
+
+      // Bloco resultado: só mostra se tiver cotação real
+      const resultadoHtml = temCotacao
+        ? `<div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
+            <div class="pr-left">
+              <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
+              <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${R$(resultado)}</p>
+            </div>
+            <div class="pr-right">
+              <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
+              <p class="pr-desde">desde ${dataFmt}</p>
+            </div>
+          </div>`
+        : `<div style="background:var(--shore);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">
+            ⚡ Cotação de mercado indisponível agora — resultado não calculado
+          </div>`;
 
       const card = document.createElement('div');
       card.className = 'pos-card';
@@ -405,28 +468,21 @@
             <span class="pos-tipo">${(pos.tipo || 'acoes').toUpperCase()}</span>
           </div>
           <div class="pos-right">
-            <p class="pos-valor">${R$(valorAtual)}</p>
-            <p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)} no período</p>
+            <p class="pos-valor">${temCotacao ? R$(valorAtual) : R$(valorPago)}</p>
+            <p class="pos-rentab ${isPos ? 'pos' : 'neg'}" style="${!temCotacao ? 'color:var(--muted);font-size:9px' : ''}">
+              ${temCotacao ? pct(rentab) + ' no período' : 'valor de compra · cotação indisponível'}
+            </p>
           </div>
         </div>
 
-        <div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
-          <div class="pr-left">
-            <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
-            <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${R$(resultado)}</p>
-          </div>
-          <div class="pr-right">
-            <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
-            <p class="pr-desde">desde ${dataFmt}</p>
-          </div>
-        </div>
+        ${resultadoHtml}
 
         <div class="pos-grid">
           <div class="pos-stat"><span class="pos-stat-lbl">QUANTIDADE</span><span class="pos-stat-val">${qtd} ${unit}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">PREÇO MÉDIO</span><span class="pos-stat-val">${R$(pm)}</span></div>
-          <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span><span class="pos-stat-val">${R$(precoAtual)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span>${precoAtualHtml}</div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
-          <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span><span class="pos-stat-val">${R$(valorAtual)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span>${valorHojeHtml}</div>
           <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${atualizadoFmt}</span></div>
         </div>
 
