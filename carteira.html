@@ -46,8 +46,7 @@
 
     .resultado-banner{
       border-radius:16px;padding:16px 18px;margin-bottom:14px;
-      display:flex;align-items:center;justify-content:space-between;
-      animation:fadeUp .35s ease;
+      display:flex;align-items:center;justify-content:space-between;animation:fadeUp .35s ease
     }
     .resultado-banner.pos{background:linear-gradient(135deg,#d4f5e2,#b8f0d0);border:1.5px solid #1a8a4a30}
     .resultado-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc2b8);border:1.5px solid #cc220030}
@@ -66,11 +65,7 @@
     .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
     .chart-title{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--ink)}
     .chart-periods{display:flex;gap:4px}
-    .period-btn{
-      font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;
-      border-radius:20px;border:1.5px solid var(--shore);background:none;
-      color:var(--muted);cursor:pointer;transition:all .2s
-    }
+    .period-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--shore);background:none;color:var(--muted);cursor:pointer;transition:all .2s}
     .period-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
     .chart-wrap{position:relative;height:140px;margin-bottom:12px}
     canvas#perf-chart{width:100%;height:140px}
@@ -82,33 +77,20 @@
     .chart-note{font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.5px}
 
     .tabs{display:flex;gap:8px;margin-bottom:14px}
-    .tab-btn{
-      flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;
-      border-radius:20px;border:1.5px solid var(--shore);background:var(--card);
-      color:var(--muted);cursor:pointer;transition:all .2s
-    }
+    .tab-btn{flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;border:1.5px solid var(--shore);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s}
     .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
 
-    .pos-card{
-      background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);
-      padding:16px;margin-bottom:10px;animation:fadeUp .3s ease;transition:border-color .2s
-    }
+    .pos-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;animation:fadeUp .3s ease;transition:border-color .2s}
     .pos-card:hover{border-color:var(--foam)}
     .pos-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
     .pos-left .pos-ticker{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--wave)}
-    .pos-left .pos-tipo{
-      font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);
-      color:var(--wave);border-radius:20px;padding:2px 8px;display:inline-block;margin-top:3px
-    }
+    .pos-left .pos-tipo{font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:2px 8px;display:inline-block;margin-top:3px}
     .pos-right{text-align:right}
     .pos-valor{font-family:var(--display);font-size:20px;letter-spacing:1px;color:var(--ink)}
     .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:2px}
     .pos-rentab.pos{color:var(--green)}.pos-rentab.neg{color:var(--red)}
 
-    .pos-resultado{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:12px 14px;border-radius:12px;margin-bottom:10px
-    }
+    .pos-resultado{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;margin-bottom:10px}
     .pos-resultado.pos{background:linear-gradient(135deg,#d4f5e2,#c8f0da);border:1px solid #1a8a4a20}
     .pos-resultado.neg{background:linear-gradient(135deg,#ffd5ce,#ffc8bf);border:1px solid #cc220020}
     .pr-left .pr-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;margin-bottom:4px}
@@ -120,10 +102,7 @@
     .pr-pct.pos{color:var(--green)}.pr-pct.neg{color:var(--red)}
     .pr-desde{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px}
 
-    .pos-grid{
-      display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
-      padding-top:10px;border-top:1px solid var(--shore);margin-bottom:10px
-    }
+    .pos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--shore);margin-bottom:10px}
     .pos-stat{display:flex;flex-direction:column;gap:2px}
     .pos-stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
     .pos-stat-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
@@ -151,11 +130,7 @@
     .empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1px}
     .empty-ico{font-size:38px;margin-bottom:12px;display:block}
 
-    .nav{
-      position:fixed;bottom:0;left:0;right:0;height:64px;
-      background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-      border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100
-    }
+    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
     .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
     .ni:hover{background:var(--shore)}
     .ni-ico{font-size:20px;line-height:1}
@@ -191,7 +166,6 @@
       <p class="rb-pct pos" id="rb-pct">···</p>
     </div>
 
-    <!-- Gráfico do PATRIMÔNIO TOTAL da carteira -->
     <div class="chart-card" id="chart-card" style="display:none">
       <div class="chart-header">
         <p class="chart-title">📊 CARTEIRA</p>
@@ -207,7 +181,7 @@
         <div class="cs-item"><p class="cs-label">MÁXIMO</p><p class="cs-val" id="cs-max">···</p></div>
         <div class="cs-item"><p class="cs-label">VARIAÇÃO</p><p class="cs-val" id="cs-var">···</p></div>
       </div>
-      <p class="chart-note">patrimônio reconstruído a partir das ordens executadas</p>
+      <p class="chart-note">evolução do patrimônio total</p>
     </div>
 
     <div class="tabs">
@@ -252,16 +226,27 @@
   let posicoes = [], cotacoes = {}, todasOrdens = [];
   let periodoGraficoDias = 30;
 
-  // ── Formatadores ──
-  function fmtData(valor) {
-    if (!valor) return '—';
-    let d;
-    if (valor?.toDate)    d = valor.toDate();
-    else if (valor?.seconds) d = new Date(valor.seconds * 1000);
-    else d = new Date(valor);
-    if (isNaN(d.getTime())) return '—';
+  // ─────────────────────────────────────────────
+  //  PARSER DE DATA UNIVERSAL
+  //  Suporta: Firestore Timestamp, {seconds}, string ISO, Date
+  // ─────────────────────────────────────────────
+  function parseData(v) {
+    if (!v) return null;
+    if (typeof v.toDate === 'function') return v.toDate();       // Firestore Timestamp
+    if (typeof v.seconds === 'number')  return new Date(v.seconds * 1000); // {seconds, nanoseconds}
+    if (typeof v === 'string')          return new Date(v);      // "2026-06-04T12:21:46Z"
+    if (v instanceof Date)              return v;
+    return null;
+  }
+
+  function fmtData(v) {
+    const d = parseData(v);
+    if (!d || isNaN(d.getTime())) return '—';
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
+
+  // Chave YYYY-MM-DD de uma data
+  function toKey(d) { return d.toISOString().slice(0, 10); }
 
   const R$  = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
@@ -278,27 +263,13 @@
     meuUID = user.uid;
     db     = window.db || firebase.firestore();
 
-    // Injeta fallback Firestore no mercado-api v3
+    // Fallback Firestore para cotações — NÃO usa preco da ordem (seria o PM)
+    // Usa preco_medio da posição no doc carteiras, que é a melhor estimativa
+    // sem chamar a brapi. Isso evita que cotação = PM e resultado = 0.
     MercadoAPI.onPrecioFallback = async (ticker) => {
-      try {
-        const snap = await db.collection('ordens')
-          .where('uid', '==', meuUID)
-          .where('ticker', '==', ticker)
-          .orderBy('data', 'desc').limit(1).get();
-        if (!snap.empty) {
-          const p = snap.docs[0].data().preco;
-          if (p > 0) return p;
-        }
-      } catch (_) {
-        try {
-          const snap2 = await db.collection('ordens')
-            .where('uid', '==', meuUID).where('ticker', '==', ticker).limit(5).get();
-          if (!snap2.empty) {
-            const arr = snap2.docs.map(d => d.data()).sort((a,b) => (b.data?.seconds||0)-(a.data?.seconds||0));
-            if (arr[0]?.preco > 0) return arr[0].preco;
-          }
-        } catch (_) {}
-      }
+      // Retorna null propositalmente — se a brapi falhou, mostramos
+      // "cotação indisponível" em vez de enganar com o PM como preço atual
+      console.warn(`[Fallback] ${ticker}: brapi falhou, sem cotação real disponível`);
       return null;
     };
 
@@ -307,43 +278,59 @@
 
   async function carregar() {
     try {
+      // Carrega dados em paralelo
       const [uS, cS, ordSnap] = await Promise.all([
         db.collection('usuarios').doc(meuUID).get(),
         db.collection('carteiras').doc(meuUID).get(),
-        // Busca todas as ordens para reconstruir o patrimônio corretamente
         db.collection('ordens').where('uid', '==', meuUID).get()
-          .catch(() => db.collection('ordens').where('uid', '==', meuUID).limit(200).get())
+          .catch(async () => {
+            // fallback se índice não existe
+            return db.collection('ordens').where('uid', '==', meuUID).limit(200).get();
+          })
       ]);
 
       const u = uS.data() || {};
       const c = cS.exists ? cS.data() : {};
 
       posicoes    = c.posicoes || [];
-      todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (a.data?.seconds || 0) - (b.data?.seconds || 0));
+      todasOrdens = ordSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(o => parseData(o.data) !== null)            // descarta ordens sem data válida
+        .sort((a, b) => parseData(a.data) - parseData(b.data)); // ordena asc por data
 
-      // ════════════════════════════════════════════════════════
-      //  RECALCULO DO SALDO DISPONÍVEL A PARTIR DAS ORDENS
-      //  Isso evita o problema de saldo inflado/corrompido no
-      //  Firestore. A fonte de verdade são as ordens executadas.
-      // ════════════════════════════════════════════════════════
-      let saldoRecalculado = CAPITAL;
+      console.log(`[Carteira] ${todasOrdens.length} ordens carregadas`);
+      todasOrdens.forEach(o => console.log(`  ${o.lado} ${o.ticker} ${o.quantidade}×R$${o.preco} = R$${o.total} @ ${fmtData(o.data)}`));
+
+      // ─────────────────────────────────────────────
+      //  SALDO DISPONÍVEL — recalculado a partir das
+      //  ordens executadas (fonte de verdade absoluta)
+      // ─────────────────────────────────────────────
+      let saldoRecalc = CAPITAL;
       for (const o of todasOrdens) {
-        const total = o.total || (o.preco * o.quantidade) || 0;
-        if (o.lado === 'compra') saldoRecalculado -= total;
-        if (o.lado === 'venda')  saldoRecalculado += total;
+        // total pode estar salvo ou pode precisar ser calculado
+        const total = o.total > 0
+          ? o.total
+          : (o.preco || 0) * (o.quantidade || 0);
+        if (o.lado === 'compra') saldoRecalc -= total;
+        if (o.lado === 'venda')  saldoRecalc += total;
       }
 
-      // Usa o recalculado. Se divergir muito do Firestore, loga para debug.
       const saldoFirestore = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
-      const divergencia    = Math.abs(saldoRecalculado - saldoFirestore);
-      if (divergencia > 1) {
-        console.warn(`[Carteira] Divergência de saldo: Firestore R$${saldoFirestore.toFixed(2)} vs Recalculado R$${saldoRecalculado.toFixed(2)} (diff: R$${divergencia.toFixed(2)})`);
+      const diff = Math.abs(saldoRecalc - saldoFirestore);
+      if (diff > 0.5) {
+        console.warn(`[Saldo] Divergência: Firestore R$${saldoFirestore.toFixed(2)} | Recalculado R$${saldoRecalc.toFixed(2)} | Diff R$${diff.toFixed(2)}`);
       }
-      // Usa o recalculado como fonte de verdade
-      const saldoDisp = Math.max(0, saldoRecalculado);
 
-      // Busca cotações atuais
+      const saldoDisp = Math.max(0, saldoRecalc);
+
+      // ─────────────────────────────────────────────
+      //  VALOR PAGO POR ATIVO — calculado a partir
+      //  do preco_medio × quantidade do Firestore
+      //  (mais preciso que recalcular por ordens)
+      // ─────────────────────────────────────────────
+      // posicoes já tem preco_medio e quantidade corretos
+
+      // Cotações de mercado
       const tickers = posicoes
         .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
         .map(p => p.ticker);
@@ -352,45 +339,53 @@
         try {
           const dados = await MercadoAPI.buscarMultiplos(tickers);
           dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
-        } catch (e) { console.warn('Cotações lote:', e); }
+        } catch (e) { console.warn('buscarMultiplos:', e); }
 
+        // Retry individual para os que não vieram
         const faltam = tickers.filter(t => !cotacoes[t]);
         if (faltam.length) {
           await Promise.allSettled(faltam.map(async ticker => {
             try {
               const d = await MercadoAPI.buscarAtivo(ticker);
               if (d?.preco > 0) cotacoes[ticker] = d.preco;
-            } catch (e) { console.warn(`${ticker}:`, e.message); }
+            } catch (_) {}
           }));
         }
       }
 
+      console.log('[Cotações]', cotacoes);
+
       // Valor de mercado atual dos ativos
+      // Para ativos sem cotação: usa preco_medio como estimativa (sem enganar)
       const valorAtualAtivos = posicoes.reduce((acc, p) => {
-        const pa = cotacoes[p.ticker] || p.preco_medio || 0;
-        return acc + (p.quantidade || 0) * pa;
+        const preco = cotacoes[p.ticker] || p.preco_medio || 0;
+        return acc + (p.quantidade || 0) * preco;
       }, 0);
 
-      // Patrimônio = saldo recalculado + valor atual dos ativos
+      // Valor total investido (custo de aquisição) — sempre calculado pelo PM × qtd
+      const totalInvestido = posicoes.reduce((acc, p) => {
+        return acc + (p.quantidade || 0) * (p.preco_medio || 0);
+      }, 0);
+
       const patrimonioDisplay = saldoDisp + valorAtualAtivos;
       const resultado         = patrimonioDisplay - CAPITAL;
       const rentab            = (resultado / CAPITAL) * 100;
       const isPos             = resultado >= 0;
 
-      // Header
+      // Renderiza header
       document.getElementById('pat-total').textContent = R$(patrimonioDisplay);
       document.getElementById('pat-disp').textContent  = R$(saldoDisp);
+      // INVESTIDO = valor de mercado dos ativos (o que valem hoje)
       document.getElementById('pat-inv').textContent   = R$(valorAtualAtivos);
 
       const rentEl = document.getElementById('pat-rentab');
       rentEl.textContent = pct(rentab) + ' desde o início';
       rentEl.className   = 'pat-rentab ' + (isPos ? 'pos' : 'neg');
 
-      // Banner
+      // Banner resultado
       const banner = document.getElementById('resultado-banner');
       banner.className     = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
       banner.style.display = 'flex';
-
       document.getElementById('rb-label').textContent = isPos ? '📈 GANHO TOTAL' : '📉 PERDA TOTAL';
       document.getElementById('rb-label').className   = 'rb-label ' + (isPos ? 'pos' : 'neg');
       document.getElementById('rb-valor').textContent = (isPos ? '+' : '') + R$(resultado);
@@ -399,144 +394,134 @@
       document.getElementById('rb-pct').className     = 'rb-pct ' + (isPos ? 'pos' : 'neg');
 
       renderPosicoes();
-      renderGraficoCarteira(periodoGraficoDias);
-      carregarHistorico();
+      renderGrafico(periodoGraficoDias);
+      renderHistorico();
 
     } catch (e) {
-      console.error('Carteira:', e);
+      console.error('carregar:', e);
       document.getElementById('pos-loading').innerHTML =
         `<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">${e.message}</span></div>`;
     }
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  GRÁFICO DO PATRIMÔNIO TOTAL DA CARTEIRA
+  // ─────────────────────────────────────────────
+  //  GRÁFICO DO PATRIMÔNIO TOTAL
   //
-  //  Algoritmo:
-  //  1. Pega todas as ordens executadas, ordenadas por data
-  //  2. Para cada dia do período, reconstrói qual seria o
-  //     saldo disponível e quais posições existiam naquele dia
-  //  3. Usa o preço médio de compra como proxy do preço histórico
-  //     (cotação histórica por dia exigiria 5 chamadas de API)
-  //  4. Patrimônio(dia) = saldo_disponivel_no_dia + soma(qtd × pm)
-  //
-  //  Isso dá uma curva real baseada em quando as ordens ocorreram,
-  //  não no preço histórico de mercado de cada ativo.
-  // ════════════════════════════════════════════════════════════
-  function renderGraficoCarteira(dias) {
+  //  Reconstrói dia a dia usando as ordens reais.
+  //  Campo "data" nas ordens: Firestore Timestamp
+  //  ou string ISO — parseData() lida com ambos.
+  // ─────────────────────────────────────────────
+  function renderGrafico(dias) {
     if (!todasOrdens.length) return;
 
-    const hoje   = new Date();
-    const inicio = new Date(hoje);
-    inicio.setDate(inicio.getDate() - dias);
+    const hoje    = new Date();
+    const hojeKey = toKey(hoje);
 
-    // Reconstrói o estado da carteira dia a dia
-    // Para cada ponto no tempo, calcula o patrimônio
-    const pontos = [];
-
-    // Agrupa ordens por dia (chave: 'YYYY-MM-DD')
+    // Monta mapa de ordens por dia
     const ordemPorDia = {};
     for (const o of todasOrdens) {
-      let d;
-      if (o.data?.toDate) d = o.data.toDate();
-      else if (o.data?.seconds) d = new Date(o.data.seconds * 1000);
-      else if (o.data) d = new Date(o.data);
-      else continue;
-
-      const key = d.toISOString().slice(0, 10);
-      if (!ordemPorDia[key]) ordemPorDia[key] = [];
-      ordemPorDia[key].push(o);
+      const d = parseData(o.data);
+      if (!d) continue;
+      const k = toKey(d);
+      if (!ordemPorDia[k]) ordemPorDia[k] = [];
+      ordemPorDia[k].push(o);
     }
 
-    // Reconstrói saldo e posições acumulando todas as ordens ATÉ cada dia
-    // Passo 1: determina o estado no início do período
-    let saldoCorrente = CAPITAL;
-    const qtdPorTicker = {}; // { PETR4: { qtd, pm } }
+    // Estado inicial = início do período
+    const dataInicio = new Date(hoje);
+    dataInicio.setDate(dataInicio.getDate() - dias);
 
-    // Processa todas as ordens antes do início do período
+    // Calcula o estado da carteira exatamente no início do período
+    // aplicando todas as ordens que ocorreram ANTES do início
+    let saldo = CAPITAL;
+    const qtds = {}; // { ticker: { qtd, pm } }
+
     for (const o of todasOrdens) {
-      let d;
-      if (o.data?.toDate) d = o.data.toDate();
-      else if (o.data?.seconds) d = new Date(o.data.seconds * 1000);
-      else continue;
-
-      if (d > inicio) break; // parou no início do período
-      const total = o.total || (o.preco * o.quantidade) || 0;
+      const d = parseData(o.data);
+      if (!d || d > dataInicio) break; // ordens estão ordenadas asc
+      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
       if (o.lado === 'compra') {
-        saldoCorrente -= total;
-        if (!qtdPorTicker[o.ticker]) qtdPorTicker[o.ticker] = { qtd: 0, pm: 0 };
-        const antes = qtdPorTicker[o.ticker];
+        saldo -= total;
+        if (!qtds[o.ticker]) qtds[o.ticker] = { qtd: 0, pm: 0 };
+        const antes   = qtds[o.ticker];
         const novaQtd = antes.qtd + (o.quantidade || 0);
-        const novoPM  = novaQtd > 0 ? (antes.qtd * antes.pm + (o.quantidade || 0) * (o.preco || 0)) / novaQtd : 0;
-        qtdPorTicker[o.ticker] = { qtd: novaQtd, pm: novoPM };
+        qtds[o.ticker] = {
+          qtd: novaQtd,
+          pm:  novaQtd > 0 ? (antes.qtd * antes.pm + (o.quantidade || 0) * (o.preco || 0)) / novaQtd : 0
+        };
       } else if (o.lado === 'venda') {
-        saldoCorrente += total;
-        if (qtdPorTicker[o.ticker]) {
-          qtdPorTicker[o.ticker].qtd = Math.max(0, qtdPorTicker[o.ticker].qtd - (o.quantidade || 0));
-        }
+        saldo += total;
+        if (qtds[o.ticker]) qtds[o.ticker].qtd = Math.max(0, qtds[o.ticker].qtd - (o.quantidade || 0));
       }
     }
 
-    // Passo 2: percorre os dias do período gerando pontos
-    const diasKeys = [];
+    // Gera lista de dias úteis no período
+    const pontos = [];
+    let saldoCorrendo = saldo;
+    const qtdCorrendo = JSON.parse(JSON.stringify(qtds));
+
     for (let i = 0; i <= dias; i++) {
-      const d = new Date(inicio);
+      const d = new Date(dataInicio);
       d.setDate(d.getDate() + i);
       if (d > hoje) break;
-      if (d.getDay() === 0 || d.getDay() === 6) continue; // pula fim de semana
-      diasKeys.push(d.toISOString().slice(0, 10));
-    }
+      if (d.getDay() === 0 || d.getDay() === 6) continue; // sem fds
 
-    let saldoDia = saldoCorrente;
-    const qtdDia = JSON.parse(JSON.stringify(qtdPorTicker));
+      const k = toKey(d);
 
-    for (const key of diasKeys) {
       // Aplica ordens deste dia
-      if (ordemPorDia[key]) {
-        for (const o of ordemPorDia[key]) {
-          const total = o.total || (o.preco * o.quantidade) || 0;
+      if (ordemPorDia[k]) {
+        for (const o of ordemPorDia[k]) {
+          const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
           if (o.lado === 'compra') {
-            saldoDia -= total;
-            if (!qtdDia[o.ticker]) qtdDia[o.ticker] = { qtd: 0, pm: 0 };
-            const antes = qtdDia[o.ticker];
+            saldoCorrendo -= total;
+            if (!qtdCorrendo[o.ticker]) qtdCorrendo[o.ticker] = { qtd: 0, pm: 0 };
+            const antes   = qtdCorrendo[o.ticker];
             const novaQtd = antes.qtd + (o.quantidade || 0);
-            const novoPM  = novaQtd > 0
-              ? (antes.qtd * antes.pm + (o.quantidade || 0) * (o.preco || 0)) / novaQtd
-              : 0;
-            qtdDia[o.ticker] = { qtd: novaQtd, pm: novoPM };
+            qtdCorrendo[o.ticker] = {
+              qtd: novaQtd,
+              pm:  novaQtd > 0 ? (antes.qtd * antes.pm + (o.quantidade || 0) * (o.preco || 0)) / novaQtd : 0
+            };
           } else if (o.lado === 'venda') {
-            saldoDia += total;
-            if (qtdDia[o.ticker]) {
-              qtdDia[o.ticker].qtd = Math.max(0, qtdDia[o.ticker].qtd - (o.quantidade || 0));
+            saldoCorrendo += total;
+            if (qtdCorrendo[o.ticker]) {
+              qtdCorrendo[o.ticker].qtd = Math.max(0, qtdCorrendo[o.ticker].qtd - (o.quantidade || 0));
             }
           }
         }
       }
 
-      // Para o dia de hoje, usa cotação real de mercado; para dias anteriores, usa PM
-      const isHoje = key === hoje.toISOString().slice(0, 10);
-      const valorAtivos = Object.entries(qtdDia).reduce((acc, [ticker, { qtd, pm }]) => {
-        const preco = isHoje ? (cotacoes[ticker] || pm) : pm;
+      // Calcula patrimônio neste dia
+      // Para hoje: usa cotação real. Para dias anteriores: usa PM (melhor proxy disponível)
+      const ehHoje = k === hojeKey;
+      const valorAtivos = Object.entries(qtdCorrendo).reduce((acc, [ticker, { qtd, pm }]) => {
+        const preco = ehHoje && cotacoes[ticker] ? cotacoes[ticker] : pm;
         return acc + qtd * preco;
       }, 0);
 
-      const patrimonio = Math.max(0, saldoDia) + valorAtivos;
-      const [, mm, dd] = key.split('-');
-      pontos.push({ label: `${dd}/${mm}`, valor: patrimonio });
+      const patrimonio = Math.max(0, saldoCorrendo) + valorAtivos;
+      const [, mm, dd] = k.split('-');
+      pontos.push({ label: `${dd}/${mm}`, valor: patrimonio, key: k });
+    }
+
+    console.log(`[Gráfico] ${pontos.length} pontos gerados para ${dias} dias`);
+    if (pontos.length > 0) {
+      console.log(`  Primeiro: ${pontos[0].key} R$${pontos[0].valor.toFixed(0)}`);
+      console.log(`  Último:   ${pontos[pontos.length-1].key} R$${pontos[pontos.length-1].valor.toFixed(0)}`);
     }
 
     if (pontos.length < 2) {
-      // Sem dados suficientes: mostra só ponto atual
+      // Período anterior às primeiras ordens — não tem o que mostrar
       document.getElementById('chart-card').style.display = 'none';
       return;
     }
 
-    // Stats
     const valores = pontos.map(p => p.valor);
     const min     = Math.min(...valores);
     const max     = Math.max(...valores);
-    const varPct  = pontos[0].valor > 0 ? ((pontos[pontos.length-1].valor - pontos[0].valor) / pontos[0].valor) * 100 : 0;
-    const isPos   = varPct >= 0;
+    const varPct  = pontos[0].valor > 0
+      ? ((valores[valores.length-1] - pontos[0].valor) / pontos[0].valor) * 100
+      : 0;
+    const isPos = varPct >= 0;
 
     document.getElementById('cs-min').textContent = R$(min);
     document.getElementById('cs-max').textContent = R$(max);
@@ -559,39 +544,39 @@
     canvas.style.height = '140px';
     ctx.scale(dpr, dpr);
 
-    const W   = rect.width, H = 140;
+    const W = rect.width, H = 140;
     const pad = { t: 10, r: 8, b: 28, l: 60 };
     const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
     const minP = Math.min(...valores) * 0.998;
     const maxP = Math.max(...valores) * 1.002;
     const range = maxP - minP || 1;
-    const xOf  = i => pad.l + (i / (valores.length - 1)) * cw;
-    const yOf  = v => pad.t + ch - ((v - minP) / range) * ch;
+    const xOf = i => pad.l + (i / (valores.length - 1)) * cw;
+    const yOf = v => pad.t + ch - ((v - minP) / range) * ch;
 
     ctx.clearRect(0, 0, W, H);
 
-    // Linha de capital inicial (R$500K)
+    // Linha de referência R$500K
     if (CAPITAL >= minP && CAPITAL <= maxP) {
       const yK = yOf(CAPITAL);
       ctx.save(); ctx.setLineDash([4, 4]);
       ctx.strokeStyle = '#8a8278'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(pad.l, yK); ctx.lineTo(W - pad.r, yK); ctx.stroke();
-      ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'left';
+      ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'left';
       ctx.fillText('500K', pad.l + 2, yK - 3);
       ctx.restore();
     }
 
-    // Grid
+    // Grid horizontal (3 linhas)
     ctx.strokeStyle = '#e2d9cd'; ctx.lineWidth = 1;
     [0, 0.5, 1].forEach(f => {
       const y = pad.t + f * ch;
       ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
       const v = maxP - f * range;
-      ctx.fillStyle = '#8a8278'; ctx.font = '9px DM Mono, monospace'; ctx.textAlign = 'right';
+      ctx.fillStyle = '#8a8278'; ctx.font = '9px DM Mono,monospace'; ctx.textAlign = 'right';
       ctx.fillText('R$' + (v / 1000).toFixed(0) + 'K', pad.l - 4, y + 3);
     });
 
-    // Área
+    // Área gradiente
     const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
     grad.addColorStop(0, isPos ? 'rgba(26,138,74,.25)' : 'rgba(204,34,0,.25)');
     grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
@@ -602,7 +587,7 @@
     ctx.lineTo(xOf(0), pad.t + ch);
     ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
 
-    // Linha
+    // Linha principal
     ctx.beginPath();
     ctx.strokeStyle = isPos ? '#1a8a4a' : '#cc2200';
     ctx.lineWidth = 2; ctx.lineJoin = 'round';
@@ -616,8 +601,8 @@
     ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200'; ctx.fill();
     ctx.strokeStyle = '#faf8f5'; ctx.lineWidth = 2; ctx.stroke();
 
-    // Labels X — mostra ~3 datas
-    ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'center';
+    // Labels X
+    ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
     [0, Math.floor(valores.length / 2), valores.length - 1].forEach(i => {
       if (labels[i]) ctx.fillText(labels[i], xOf(i), H - 6);
     });
@@ -627,16 +612,18 @@
     document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
     periodoGraficoDias = dias;
-    renderGraficoCarteira(dias);
+    renderGrafico(dias);
   }
 
-  // ── POSIÇÕES ──
+  // ─────────────────────────────────────────────
+  //  POSIÇÕES
+  // ─────────────────────────────────────────────
   function renderPosicoes() {
     document.getElementById('pos-loading').style.display = 'none';
     const list = document.getElementById('pos-list');
 
     if (!posicoes.length) {
-      list.innerHTML = '<div class="empty"><span class="empty-ico">📭</span>Nenhuma posição ainda.<br><span style="opacity:.6;display:block;margin-top:4px">Comece investindo!</span></div>';
+      list.innerHTML = '<div class="empty"><span class="empty-ico">📭</span>Nenhuma posição ainda.</div>';
       return;
     }
 
@@ -644,41 +631,59 @@
     posicoes.forEach(pos => {
       const cotacao    = cotacoes[pos.ticker];
       const temCotacao = cotacao > 0;
-      const precoAtual = temCotacao ? cotacao : (pos.preco_medio || 0);
+
+      const precoAtual = temCotacao ? cotacao : null;
       const pm         = pos.preco_medio || 0;
       const qtd        = pos.quantidade  || 0;
-      const valorAtual = qtd * precoAtual;
+      // Valor pago = preco_medio × quantidade (dado confiável do Firestore)
       const valorPago  = qtd * pm;
-      const resultado  = temCotacao ? valorAtual - valorPago : 0;
-      const rentab     = temCotacao && valorPago > 0 ? (resultado / valorPago) * 100 : 0;
-      const isPos      = resultado >= 0;
+      // Valor hoje = cotação real × qtd (só se tiver cotação)
+      const valorAtual = precoAtual ? qtd * precoAtual : null;
+      // Resultado = só calcula com cotação real
+      const resultado  = valorAtual !== null ? valorAtual - valorPago : null;
+      const rentab     = resultado !== null && valorPago > 0 ? (resultado / valorPago) * 100 : null;
+      const isPos      = resultado !== null ? resultado >= 0 : null;
       const unit       = pos.tipo === 'tesouro' ? 'títulos' : pos.tipo === 'cripto' ? 'unidades' : 'cotas';
       const tipo       = pos.tipo || 'acoes';
-      const dataFmt    = fmtData(pos.data_compra);
-      const updFmt     = pos.ultima_atualizacao ? fmtData(pos.ultima_atualizacao) : dataFmt;
+      const dataFmt    = fmtData(pos.data_compra || pos.ultima_atualizacao);
 
-      const precoAtualHtml = temCotacao
-        ? `<span class="pos-stat-val">${R$(precoAtual)}</span>`
-        : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">indisponível</span>`;
-
-      const valorHojeHtml = temCotacao
-        ? `<span class="pos-stat-val">${R$(valorAtual)}</span>`
-        : `<span class="pos-stat-val" style="color:var(--muted);font-size:10px">—</span>`;
-
-      const resultadoHtml = temCotacao
-        ? `<div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
+      // Card de resultado — só renderiza se tiver cotação real E resultado ≠ 0
+      let resultadoHtml;
+      if (resultado !== null) {
+        resultadoHtml = `
+          <div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
             <div class="pr-left">
               <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
-              <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${R$(resultado)}</p>
+              <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${resultado >= 0 ? '+' : ''}${R$(resultado)}</p>
             </div>
             <div class="pr-right">
               <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
               <p class="pr-desde">desde ${dataFmt}</p>
             </div>
-          </div>`
-        : `<div style="background:var(--shore);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">
-            ⚡ Cotação indisponível — resultado não calculado
           </div>`;
+      } else {
+        resultadoHtml = `
+          <div style="background:var(--shore);border-radius:10px;padding:10px 14px;margin-bottom:10px;
+               font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">
+            ⚡ Cotação de mercado indisponível agora
+          </div>`;
+      }
+
+      const precoAtualHtml = temCotacao
+        ? `<span class="pos-stat-val">${R$(precoAtual)}</span>`
+        : `<span class="pos-stat-val" style="color:var(--muted);font-size:9px">indisponível</span>`;
+
+      const valorHojeHtml = valorAtual !== null
+        ? `<span class="pos-stat-val">${R$(valorAtual)}</span>`
+        : `<span class="pos-stat-val" style="color:var(--muted);font-size:9px">—</span>`;
+
+      // Header direito: usa valor de mercado se disponível, senão valor pago
+      const headerValor  = valorAtual !== null ? R$(valorAtual) : R$(valorPago);
+      const headerRentab = rentab !== null
+        ? `<p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)} no período</p>`
+        : `<p class="pos-rentab" style="color:var(--muted);font-size:9px">cotação indisponível</p>`;
+
+      const precoParaOrdem = precoAtual || pm;
 
       const card = document.createElement('div');
       card.className = 'pos-card';
@@ -689,10 +694,8 @@
             <span class="pos-tipo">${tipo.toUpperCase()}</span>
           </div>
           <div class="pos-right">
-            <p class="pos-valor">${temCotacao ? R$(valorAtual) : R$(valorPago)}</p>
-            <p class="pos-rentab ${isPos ? 'pos' : 'neg'}" style="${!temCotacao ? 'color:var(--muted);font-size:9px' : ''}">
-              ${temCotacao ? pct(rentab) + ' no período' : 'valor de compra · cotação indisponível'}
-            </p>
+            <p class="pos-valor">${headerValor}</p>
+            ${headerRentab}
           </div>
         </div>
         ${resultadoHtml}
@@ -702,60 +705,54 @@
           <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span>${precoAtualHtml}</div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span>${valorHojeHtml}</div>
-          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${updFmt}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${dataFmt}</span></div>
         </div>
         <div class="pos-actions">
           <button class="btn-rel"  onclick="location.href='relatorio.html?ticker=${pos.ticker}&tipo=${tipo}'">📊 RELATÓRIO</button>
-          <button class="btn-buy"  onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${tipo}&preco=${precoAtual}&lado=compra'">+ COMPRAR</button>
-          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${tipo}&preco=${precoAtual}&lado=venda'">VENDER</button>
+          <button class="btn-buy"  onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${tipo}&preco=${precoParaOrdem}&lado=compra'">+ COMPRAR</button>
+          <button class="btn-sell" onclick="location.href='ordem.html?ticker=${pos.ticker}&tipo=${tipo}&preco=${precoParaOrdem}&lado=venda'">VENDER</button>
         </div>`;
       list.appendChild(card);
     });
   }
 
-  // ── HISTÓRICO ──
-  async function carregarHistorico() {
-    const loading = document.getElementById('hist-loading');
-    const list    = document.getElementById('hist-list');
+  // ─────────────────────────────────────────────
+  //  HISTÓRICO
+  // ─────────────────────────────────────────────
+  function renderHistorico() {
+    document.getElementById('hist-loading').style.display = 'none';
+    const list = document.getElementById('hist-list');
 
-    const renderOrdens = ordens => {
-      loading.style.display = 'none';
-      if (!ordens.length) {
-        list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
-        return;
-      }
-      list.innerHTML = '';
-      [...ordens].reverse().forEach(o => {
-        const isC  = o.lado === 'compra';
-        const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
-        const data = fmtData(o.data);
-        const card = document.createElement('div');
-        card.className = 'hist-card';
-        card.innerHTML = `
-          <div class="hist-row">
-            <div class="hist-left">
-              <span class="hist-pill ${isC ? 'c' : 'v'}">${isC ? 'COMPRA' : 'VENDA'}</span>
-              <div>
-                <p class="hist-ticker">${o.ticker}</p>
-                <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco || 0)}/un</p>
-              </div>
-            </div>
-            <div>
-              <p class="hist-total" style="color:${isC ? 'var(--red)' : 'var(--green)'}">${isC ? '-' : '+'} ${R$(o.total || 0)}</p>
-              <p class="hist-data">${data}</p>
-            </div>
-          </div>`;
-        list.appendChild(card);
-      });
-    };
-
-    // todasOrdens já foi carregada no carregar() — reusa
-    if (todasOrdens.length) {
-      renderOrdens(todasOrdens);
-    } else {
-      loading.style.display = 'none';
+    if (!todasOrdens.length) {
       list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
+      return;
     }
+
+    list.innerHTML = '';
+    // Mostra em ordem decrescente (mais recente primeiro)
+    [...todasOrdens].reverse().forEach(o => {
+      const isC  = o.lado === 'compra';
+      const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
+      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+
+      const card = document.createElement('div');
+      card.className = 'hist-card';
+      card.innerHTML = `
+        <div class="hist-row">
+          <div class="hist-left">
+            <span class="hist-pill ${isC ? 'c' : 'v'}">${isC ? 'COMPRA' : 'VENDA'}</span>
+            <div>
+              <p class="hist-ticker">${o.ticker}</p>
+              <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco || 0)}/un</p>
+            </div>
+          </div>
+          <div>
+            <p class="hist-total" style="color:${isC ? 'var(--red)' : 'var(--green)'}">${isC ? '-' : '+'} ${R$(total)}</p>
+            <p class="hist-data">${fmtData(o.data)}</p>
+          </div>
+        </div>`;
+      list.appendChild(card);
+    });
   }
   </script>
 </body>
