@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Correção de Dados | Los Pombitos Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0d0d0d; --sand: #f0ebe3; --shore: #e2d9cd; --wave: #1a4fff;
+      --foam: #c8d8ff; --muted: #8a8278; --card: #faf8f5;
+      --green: #1a8a4a; --red: #cc2200; --yellow: #f5b800;
+      --radius: 14px; --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif; --display: 'Bebas Neue', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--sand); color: var(--ink); min-height: 100dvh; padding: 0 0 40px; }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: .4;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+    .hdr {
+      background: #0d0d0d; color: white; padding: 0 20px; height: 58px;
+      display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--red);
+    }
+    .hdr-title { font-family: var(--display); font-size: 20px; letter-spacing: 3px; flex: 1; }
+    .hdr-badge {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      background: var(--red); color: white; border-radius: 20px; padding: 4px 10px;
+    }
+    .container { max-width: 680px; margin: 0 auto; padding: 20px 16px; }
+    .warn-banner {
+      background: #fff3cd; border: 2px solid var(--yellow); border-radius: var(--radius);
+      padding: 16px 18px; margin-bottom: 20px;
+    }
+    .warn-banner strong { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; display: block; margin-bottom: 4px; color: #7a5f00; }
+    .warn-banner p { font-size: 12px; color: #7a5f00; line-height: 1.6; }
+    .section { margin-bottom: 20px; }
+    .section-title {
+      font-family: var(--display); font-size: 18px; letter-spacing: 2px;
+      color: var(--ink); margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--shore); display: flex; align-items: center; gap: 10px;
+    }
+    .badge {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      border-radius: 20px; padding: 3px 10px;
+    }
+    .badge.critico { background: #ffd5ce; color: var(--red); }
+    .badge.medio   { background: #fff3cd; color: #7a5f00; }
+    .badge.menor   { background: var(--foam); color: var(--wave); }
+    .fix-card {
+      background: var(--card); border: 1.5px solid var(--shore);
+      border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px;
+    }
+    .fix-card.done  { border-color: var(--green); background: #f0fdf4; }
+    .fix-card.error { border-color: var(--red);   background: #fff5f5; }
+    .fix-card.skip  { border-color: var(--shore); background: var(--sand); opacity: .7; }
+    .fix-title { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; margin-bottom: 6px; color: var(--ink); }
+    .fix-desc  { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+    .fix-detail {
+      font-family: var(--mono); font-size: 10px; background: var(--sand);
+      border: 1px solid var(--shore); border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 12px; line-height: 1.8; color: var(--ink);
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .fix-status {
+      font-family: var(--mono); font-size: 10px; letter-spacing: .5px;
+      padding: 6px 12px; border-radius: 8px; display: none; margin-bottom: 10px;
+    }
+    .fix-status.show { display: block; }
+    .fix-status.ok   { background: #d4f5e2; color: var(--green); }
+    .fix-status.err  { background: #ffd5ce; color: var(--red); }
+    .fix-status.info { background: var(--foam); color: var(--wave); }
+    .fix-log {
+      font-family: var(--mono); font-size: 9px; color: var(--muted);
+      max-height: 120px; overflow-y: auto; line-height: 2;
+      display: none; padding: 8px; background: var(--sand);
+      border: 1px dashed var(--shore); border-radius: 8px; margin-bottom: 10px;
+    }
+    .fix-log.show { display: block; }
+    .btn {
+      height: 40px; border: none; border-radius: 20px; font-family: var(--mono);
+      font-size: 11px; font-weight: 500; letter-spacing: 1.5px; cursor: pointer;
+      transition: all .2s; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-fix  { background: var(--wave); color: white; }
+    .btn-fix:hover { background: #0033cc; }
+    .btn-fix:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-skip { background: none; color: var(--muted); border: 1.5px solid var(--shore); }
+    .btn-row  { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-all  {
+      width: 100%; height: 54px; background: var(--red); color: white;
+      border: none; border-radius: 25px; font-family: var(--mono); font-size: 13px;
+      font-weight: 500; letter-spacing: 2px; cursor: pointer; transition: all .2s; margin-bottom: 20px;
+    }
+    .btn-all:hover { background: #a01a00; }
+    .btn-all:disabled { opacity: .5; cursor: not-allowed; }
+    .summary {
+      background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius);
+      padding: 18px; display: none;
+    }
+    .summary.show { display: block; }
+    .summary-title { font-family: var(--display); font-size: 20px; letter-spacing: 2px; margin-bottom: 12px; }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--shore);
+      font-family: var(--mono); font-size: 11px;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .ok-val  { color: var(--green); font-weight: 500; }
+    .err-val { color: var(--red);   font-weight: 500; }
+    .skip-val{ color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div class="hdr-title">⚙️ ADMIN — CORREÇÃO DE DADOS</div>
+    <span class="hdr-badge">LOS POMBITOS</span>
+  </header>
+
+  <div class="container">
+    <div class="warn-banner">
+      <strong>⚠️ ATENÇÃO — OPERAÇÃO IRREVERSÍVEL</strong>
+      <p>Esta página modifica diretamente o Firestore. As correções foram mapeadas manualmente com base na análise dos dados. Execute apenas uma vez. Mantenha o console do browser aberto para acompanhar os logs.</p>
+    </div>
+
+    <button class="btn-all" id="btn-all" onclick="executarTudo()">🔧 EXECUTAR TODAS AS CORREÇÕES</button>
+
+    <!-- ── SEÇÃO 1: CRÍTICO ── -->
+    <div class="section">
+      <div class="section-title">
+        ERROS CRÍTICOS <span class="badge critico">CRÍTICO</span>
+      </div>
+
+      <!-- FIX 1: Deletar ordem fantasma PRIO3 preco=0 -->
+      <div class="fix-card" id="card-1">
+        <div class="fix-title">FIX 1 — Deletar ordem fantasma PRIO3 (preco=0, total=0)</div>
+        <div class="fix-desc">
+          Ordem de 1 jun 2026 com 389 cotas de PRIO3 foi salva com preço e total zero. 
+          Corrompeu a posição e o gráfico. Será deletada da coleção <code>ordens</code>.
+        </div>
+        <div class="fix-detail">Coleção: ordens
+Doc ID: o9XRcJzZ9qu8S2MMldGJ
+ticker: PRIO3 | lado: compra | quantidade: 389
+preco: 0 | total: 0 | status: executada
+data: 1 jun 2026 às 11:53:56</div>
+        <div class="fix-status" id="st-1"></div>
+        <div class="fix-log"   id="log-1"></div>
+        <div class="btn-row">
+          <button class="btn btn-fix" id="btn-1" onclick="fix1()">🗑️ DELETAR ORDEM</button>
+          <button class="btn btn-skip" onclick="skipFix(1)">PULAR</button>
+        </div>
+      </div>
+
+      <!-- FIX 2: Corrigir posição PRIO3 na carteira -->
+      <div class="fix-card" id="card-2">
+        <div class="fix-title">FIX 2 — Corrigir posição PRIO3 na carteira (788 → 399 cotas)</div>
+        <div class="fix-desc">
+          A posição PRIO3 na carteira está com 788 cotas e preco_medio distorcido 
+          por causa da ordem fantasma. Será corrigida para 399 cotas a R$62.59 
+          (única ordem válida confirmada no Firestore).
+        </div>
+        <div class="fix-detail">Coleção: carteiras | Doc: 5ifdQ4Dm6STwSnoxmV0FVJ40bME2
+posicoes[0]:
+  ANTES → quantidade: 788 | preco_medio: 62.7035...
+  DEPOIS → quantidade: 399 | preco_medio: 62.59</div>
+        <div class="fix-status" id="st-2"></div>
+        <div class="fix-log"   id="log-2"></div>
+        <div class="btn-row">
+          <button class="btn btn-fix" id="btn-2" onclick="fix2()">✏️ CORRIGIR POSIÇÃO</button>
+          <button class="btn btn-skip" onclick="skipFix(2)">PULAR</button>
+        </div>
+      </div>
+
+      <!-- FIX 3: Recalcular saldo e patrimônio -->
+      <div class="fix-card" id="card-3">
+        <div class="fix-title">FIX 3 — Recalcular saldo disponível e patrimônio da carteira</div>
+        <div class="fix-desc">
+          Após corrigir PRIO3, o saldo e o patrimônio gravados no Firestore 
+          precisam ser recalculados do zero com base nas ordens válidas restantes.
+          Capital inicial: R$500.000.
+        </div>
+        <div class="fix-detail">Ordens válidas (após FIX 1):
+  PRIO3  compra 399 × 62.59  = R$  24.973,41
+  PETR4  compra 1212 × 41.25 = R$  49.995,00
+  VALE3  compra 489  × 81.79 = R$  39.995,31
+  BBAS3  compra 1536 × 19.53 = R$  29.998,08
+  USIM5  compra 2617 × 11.46 = R$  29.990,82
+  WEGE3  compra 2310 × 43.28 = R$  99.976,80  (8 jun, executada)
+  ITUB4  compra 5148 × 38.85 = R$ 199.999,80  (8 jun, executada)
+Total compras: R$ 474.929,22
+Saldo recalculado: R$ 25.070,78</div>
+        <div class="fix-status" id="st-3"></div>
+        <div class="fix-log"   id="log-3"></div>
+        <div class="btn-row">
+          <button class="btn btn-fix" id="btn-3" onclick="fix3()">🔢 RECALCULAR</button>
+          <button class="btn btn-skip" onclick="skipFix(3)">PULAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEÇÃO 2: MÉDIO ── -->
+    <div class="section">
+      <div class="section-title">
+        ERROS MÉDIOS <span class="badge medio">MÉDIO</span>
+      </div>
+
+      <!-- FIX 4: Deletar posts do feed com preco=0 -->
+      <div class="fix-card" id="card-4">
+        <div class="fix-title">FIX 4 — Remover posts do feed com cotação zero (PRIO3)</div>
+        <div class="fix-desc">
+          As ordens com preco=0 geraram posts no feed. Serão removidos todos os posts 
+          do uid do usuário para o ticker PRIO3 que tenham preco=0 ou total=0.
+        </div>
+        <div class="fix-detail">Coleção: posts
+Query: uid == "5ifdQ4Dm6STwSnoxmV0FVJ40bME2" AND ticker == "PRIO3"
+Filtro: preco == 0 OR total == 0
+Ação: deletar documentos encontrados</div>
+        <div class="fix-status" id="st-4"></div>
+        <div class="fix-log"   id="log-4"></div>
+        <div class="btn-row">
+          <button class="btn btn-fix" id="btn-4" onclick="fix4()">🗑️ LIMPAR FEED</button>
+          <button class="btn btn-skip" onclick="skipFix(4)">PULAR</button>
+        </div>
+      </div>
+
+      <!-- FIX 5: Renomear window.storage no firebase.js (instrução manual) -->
+      <div class="fix-card" id="card-5">
+        <div class="fix-title">FIX 5 — Colisão window.storage (instrução de código)</div>
+        <div class="fix-desc">
+          O firebase.js usa <code>window.storage = firebase.storage()</code> que 
+          colide com a API de storage de Artifacts. Este fix não pode ser feito via 
+          browser — é uma alteração no arquivo <code>firebase.js</code>.
+        </div>
+        <div class="fix-detail">No arquivo firebase.js, linha:
+  ANTES:  window.storage = firebase.storage();
+  DEPOIS: window.firebaseStorage = firebase.storage();
+
+Também atualizar qualquer referência a window.storage 
+(storage de arquivo) nos outros .js do projeto.</div>
+        <div class="fix-status" id="st-5"></div>
+        <div class="btn-row">
+          <button class="btn btn-skip" onclick="markManual(5)">✅ JÁ CORRIGI MANUALMENTE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEÇÃO 3: MENOR ── -->
+    <div class="section">
+      <div class="section-title">
+        ERROS MENORES <span class="badge menor">MENOR</span>
+      </div>
+
+      <!-- FIX 6: Deletar índice órfão leiloes -->
+      <div class="fix-card" id="card-6">
+        <div class="fix-title">FIX 6 — Índice órfão "leiloes" (instrução manual)</div>
+        <div class="fix-desc">
+          Existe um índice composto na coleção <code>leiloes</code> que não existe 
+          no código. Deve ser deletado manualmente no console do Firebase.
+        </div>
+        <div class="fix-detail">Firebase Console → Firestore → Índices → Manual
+Encontre o índice da coleção "leiloes" (ID: ClCAgOjXh4EK)
+Clique nos três pontos → Excluir índice</div>
+        <div class="fix-status" id="st-6"></div>
+        <div class="btn-row">
+          <button class="btn btn-skip" onclick="markManual(6)">✅ JÁ DELETEI</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESUMO FINAL ── -->
+    <div class="summary" id="summary">
+      <div class="summary-title">📋 RESUMO DAS CORREÇÕES</div>
+      <div class="summary-row"><span>FIX 1 — Ordem fantasma PRIO3</span>     <span id="res-1" class="skip-val">—</span></div>
+      <div class="summary-row"><span>FIX 2 — Posição PRIO3 na carteira</span> <span id="res-2" class="skip-val">—</span></div>
+      <div class="summary-row"><span>FIX 3 — Saldo e patrimônio</span>        <span id="res-3" class="skip-val">—</span></div>
+      <div class="summary-row"><span>FIX 4 — Posts do feed zerados</span>     <span id="res-4" class="skip-val">—</span></div>
+      <div class="summary-row"><span>FIX 5 — window.storage (manual)</span>   <span id="res-5" class="skip-val">—</span></div>
+      <div class="summary-row"><span>FIX 6 — Índice leiloes (manual)</span>   <span id="res-6" class="skip-val">—</span></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script>
+  'use strict';
+
+  // UID extraído das imagens do Firestore
+  const UID         = '5ifdQ4Dm6STwSnoxmV0FVJ40bME2';
+  // Doc ID da ordem fantasma (visto na imagem 11)
+  const ORDEM_ZERO  = 'o9XRcJzZ9qu8S2MMldGJ';
+  const CAPITAL     = 500000;
+
+  // Ordens válidas mapeadas manualmente das imagens
+  // (usadas para recalcular saldo no FIX 3)
+  const ORDENS_VALIDAS = [
+    { ticker: 'PRIO3', lado: 'compra', quantidade: 399,  preco: 62.59,  total: 24973.41  },
+    { ticker: 'PETR4', lado: 'compra', quantidade: 1212, preco: 41.25,  total: 49995     },
+    { ticker: 'VALE3', lado: 'compra', quantidade: 489,  preco: 81.79,  total: 39995.31  },
+    { ticker: 'BBAS3', lado: 'compra', quantidade: 1536, preco: 19.53,  total: 29998.08  },
+    { ticker: 'USIM5', lado: 'compra', quantidade: 2617, preco: 11.46,  total: 29990.82  },
+    { ticker: 'WEGE3', lado: 'compra', quantidade: 2310, preco: 43.28,  total: 99976.8   },
+    { ticker: 'ITUB4', lado: 'compra', quantidade: 5148, preco: 38.85,  total: 199999.8  },
+  ];
+
+  const db = window.db || firebase.firestore();
+
+  // ─── Helpers de UI ───
+  function setStatus(n, tipo, msg) {
+    const el = document.getElementById(`st-${n}`);
+    el.textContent = msg;
+    el.className = `fix-status show ${tipo}`;
+  }
+
+  function addLog(n, msg) {
+    const el = document.getElementById(`log-${n}`);
+    if (!el) return;
+    el.classList.add('show');
+    el.textContent += msg + '\n';
+  }
+
+  function setCardState(n, state) {
+    const card = document.getElementById(`card-${n}`);
+    card.className = `fix-card ${state}`;
+    const btn = document.getElementById(`btn-${n}`);
+    if (btn) btn.disabled = true;
+  }
+
+  function updateSummary(n, text, type) {
+    const el = document.getElementById(`res-${n}`);
+    el.textContent = text;
+    el.className = type === 'ok' ? 'ok-val' : type === 'err' ? 'err-val' : 'skip-val';
+    document.getElementById('summary').classList.add('show');
+  }
+
+  function skipFix(n) {
+    setStatus(n, 'info', 'ℹ️ Pulado pelo usuário.');
+    setCardState(n, 'skip');
+    updateSummary(n, 'PULADO', 'skip');
+  }
+
+  function markManual(n) {
+    setStatus(n, 'ok', '✅ Marcado como corrigido manualmente.');
+    setCardState(n, 'done');
+    updateSummary(n, 'MANUAL ✓', 'ok');
+  }
+
+  // ─── FIX 1: Deletar ordem fantasma PRIO3 preco=0 ───
+  async function fix1() {
+    const btn = document.getElementById('btn-1');
+    btn.disabled = true; btn.textContent = 'DELETANDO...';
+    setStatus(1, 'info', '⏳ Buscando documento...');
+    addLog(1, `Tentando deletar ordens/${ORDEM_ZERO}`);
+
+    try {
+      // Verifica primeiro
+      const snap = await db.collection('ordens').doc(ORDEM_ZERO).get();
+      if (!snap.exists) {
+        setStatus(1, 'info', 'ℹ️ Documento não encontrado — pode já ter sido deletado.');
+        addLog(1, 'Doc não existe. Verificando por query...');
+
+        // Busca por query (preco=0, ticker=PRIO3)
+        const q = await db.collection('ordens')
+          .where('uid', '==', UID)
+          .where('ticker', '==', 'PRIO3')
+          .where('preco', '==', 0)
+          .get();
+
+        if (q.empty) {
+          setStatus(1, 'ok', '✅ Nenhuma ordem com preco=0 encontrada. Já foi corrigido!');
+          setCardState(1, 'done');
+          updateSummary(1, 'JÁ OK ✓', 'ok');
+          return;
+        }
+
+        for (const d of q.docs) {
+          addLog(1, `Deletando por query: ${d.id}`);
+          await d.ref.delete();
+          addLog(1, `✓ Deletado: ${d.id}`);
+        }
+      } else {
+        const data = snap.data();
+        addLog(1, `Doc encontrado: ticker=${data.ticker} preco=${data.preco} total=${data.total}`);
+        if (data.preco !== 0 && data.total !== 0) {
+          setStatus(1, 'err', '⛔ Documento existe mas preco≠0. Abortando por segurança.');
+          addLog(1, `ABORTADO: preco=${data.preco} total=${data.total} — não é a ordem fantasma.`);
+          setCardState(1, 'error');
+          updateSummary(1, 'ABORTADO', 'err');
+          btn.disabled = false; btn.textContent = '🗑️ DELETAR ORDEM';
+          return;
+        }
+        await db.collection('ordens').doc(ORDEM_ZERO).delete();
+        addLog(1, `✓ Deletado com sucesso: ${ORDEM_ZERO}`);
+      }
+
+      setStatus(1, 'ok', '✅ Ordem fantasma deletada com sucesso!');
+      setCardState(1, 'done');
+      updateSummary(1, 'FEITO ✓', 'ok');
+
+    } catch (e) {
+      setStatus(1, 'err', `❌ Erro: ${e.message}`);
+      addLog(1, `ERRO: ${e.message}`);
+      setCardState(1, 'error');
+      updateSummary(1, 'ERRO', 'err');
+      btn.disabled = false; btn.textContent = '🗑️ DELETAR ORDEM';
+    }
+  }
+
+  // ─── FIX 2: Corrigir posição PRIO3 na carteira ───
+  async function fix2() {
+    const btn = document.getElementById('btn-2');
+    btn.disabled = true; btn.textContent = 'CORRIGINDO...';
+    setStatus(2, 'info', '⏳ Lendo carteira...');
+
+    try {
+      const ref  = db.collection('carteiras').doc(UID);
+      const snap = await ref.get();
+
+      if (!snap.exists) {
+        setStatus(2, 'err', '❌ Documento da carteira não encontrado.');
+        setCardState(2, 'error');
+        updateSummary(2, 'ERRO', 'err');
+        btn.disabled = false; btn.textContent = '✏️ CORRIGIR POSIÇÃO';
+        return;
+      }
+
+      const data    = snap.data();
+      const posicoes = [...(data.posicoes || [])];
+      const idx     = posicoes.findIndex(p => p.ticker === 'PRIO3');
+
+      addLog(2, `Posições encontradas: ${posicoes.length}`);
+
+      if (idx < 0) {
+        setStatus(2, 'info', 'ℹ️ PRIO3 não encontrado nas posições. Pode já estar correto.');
+        setCardState(2, 'done');
+        updateSummary(2, 'JÁ OK ✓', 'ok');
+        return;
+      }
+
+      const antes = posicoes[idx];
+      addLog(2, `PRIO3 antes: qtd=${antes.quantidade} pm=${antes.preco_medio}`);
+
+      // Corrige para 399 cotas a 62.59
+      posicoes[idx] = {
+        ...antes,
+        quantidade:          399,
+        preco_medio:         62.59,
+        ultima_atualizacao:  new Date().toISOString(),
+      };
+
+      addLog(2, `PRIO3 depois: qtd=399 pm=62.59`);
+
+      await ref.update({ posicoes });
+
+      setStatus(2, 'ok', '✅ Posição PRIO3 corrigida: 399 cotas a R$62,59.');
+      setCardState(2, 'done');
+      updateSummary(2, 'FEITO ✓', 'ok');
+
+    } catch (e) {
+      setStatus(2, 'err', `❌ Erro: ${e.message}`);
+      addLog(2, `ERRO: ${e.message}`);
+      setCardState(2, 'error');
+      updateSummary(2, 'ERRO', 'err');
+      btn.disabled = false; btn.textContent = '✏️ CORRIGIR POSIÇÃO';
+    }
+  }
+
+  // ─── FIX 3: Recalcular saldo e patrimônio ───
+  async function fix3() {
+    const btn = document.getElementById('btn-3');
+    btn.disabled = true; btn.textContent = 'CALCULANDO...';
+    setStatus(3, 'info', '⏳ Recalculando...');
+
+    try {
+      // Recalcula saldo do zero
+      let saldo = CAPITAL;
+      for (const o of ORDENS_VALIDAS) {
+        if (o.lado === 'compra') saldo -= o.total;
+        if (o.lado === 'venda')  saldo += o.total;
+        addLog(3, `${o.lado.padEnd(6)} ${o.ticker.padEnd(6)} ${o.quantidade}×${o.preco} = ${o.total.toFixed(2)} → saldo: ${saldo.toFixed(2)}`);
+      }
+
+      // Valor investido (soma qtd × pm das posições mapeadas)
+      const posMap = {
+        PRIO3: { quantidade: 399,  preco_medio: 62.59  },
+        PETR4: { quantidade: 1212, preco_medio: 41.25  },
+        VALE3: { quantidade: 489,  preco_medio: 81.79  },
+        BBAS3: { quantidade: 1536, preco_medio: 19.53  },
+        USIM5: { quantidade: 2617, preco_medio: 11.46  },
+        WEGE3: { quantidade: 2310, preco_medio: 43.28  },
+        ITUB4: { quantidade: 5148, preco_medio: 38.85  },
+      };
+
+      let investido = 0;
+      for (const [t, p] of Object.entries(posMap)) {
+        investido += p.quantidade * p.preco_medio;
+        addLog(3, `${t}: ${p.quantidade} × ${p.preco_medio} = ${(p.quantidade * p.preco_medio).toFixed(2)}`);
+      }
+
+      const patrimonio = saldo + investido;
+      addLog(3, `\nSaldo: ${saldo.toFixed(2)}`);
+      addLog(3, `Investido: ${investido.toFixed(2)}`);
+      addLog(3, `Patrimônio: ${patrimonio.toFixed(2)}`);
+
+      const ref = db.collection('carteiras').doc(UID);
+      await ref.update({
+        saldo_disponivel:    parseFloat(saldo.toFixed(2)),
+        saldo_investido:     parseFloat(investido.toFixed(2)),
+        patrimonio_total:    parseFloat(patrimonio.toFixed(2)),
+        ultima_atualizacao:  firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Atualiza usuário também
+      await db.collection('usuarios').doc(UID).update({
+        saldo_disponivel: parseFloat(saldo.toFixed(2)),
+        patrimonio_total: parseFloat(patrimonio.toFixed(2)),
+      });
+
+      const R$ = v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      setStatus(3, 'ok', `✅ Recalculado! Saldo: ${R$(saldo)} | Patrimônio: ${R$(patrimonio)}`);
+      setCardState(3, 'done');
+      updateSummary(3, 'FEITO ✓', 'ok');
+
+    } catch (e) {
+      setStatus(3, 'err', `❌ Erro: ${e.message}`);
+      addLog(3, `ERRO: ${e.message}`);
+      setCardState(3, 'error');
+      updateSummary(3, 'ERRO', 'err');
+      btn.disabled = false; btn.textContent = '🔢 RECALCULAR';
+    }
+  }
+
+  // ─── FIX 4: Deletar posts com preco=0 ───
+  async function fix4() {
+    const btn = document.getElementById('btn-4');
+    btn.disabled = true; btn.textContent = 'BUSCANDO POSTS...';
+    setStatus(4, 'info', '⏳ Buscando posts com preco=0...');
+
+    try {
+      const q = await db.collection('posts')
+        .where('uid', '==', UID)
+        .where('ticker', '==', 'PRIO3')
+        .get();
+
+      addLog(4, `Posts de PRIO3 encontrados: ${q.size}`);
+
+      const paraDeletetar = [];
+      for (const d of q.docs) {
+        const data = d.data();
+        addLog(4, `Doc ${d.id}: preco=${data.preco} total=${data.total}`);
+        if (!data.preco || data.preco === 0 || !data.total || data.total === 0) {
+          paraDeletetar.push(d.ref);
+          addLog(4, `  → marcado para deleção`);
+        }
+      }
+
+      if (!paraDeletetar.length) {
+        setStatus(4, 'ok', '✅ Nenhum post com preco=0 encontrado. Já está limpo!');
+        setCardState(4, 'done');
+        updateSummary(4, 'JÁ OK ✓', 'ok');
+        return;
+      }
+
+      for (const ref of paraDeletetar) {
+        await ref.delete();
+        addLog(4, `✓ Deletado: ${ref.id}`);
+      }
+
+      setStatus(4, 'ok', `✅ ${paraDeletetar.length} post(s) removido(s) do feed.`);
+      setCardState(4, 'done');
+      updateSummary(4, `FEITO (${paraDeletetar.length}x) ✓`, 'ok');
+
+    } catch (e) {
+      setStatus(4, 'err', `❌ Erro: ${e.message}`);
+      addLog(4, `ERRO: ${e.message}`);
+      setCardState(4, 'error');
+      updateSummary(4, 'ERRO', 'err');
+      btn.disabled = false; btn.textContent = '🗑️ LIMPAR FEED';
+    }
+  }
+
+  // ─── Executar tudo em sequência ───
+  async function executarTudo() {
+    const btn = document.getElementById('btn-all');
+    btn.disabled = true; btn.textContent = '⏳ EXECUTANDO...';
+
+    // Aguarda 400ms entre cada fix para o Firestore processar
+    await fix1(); await delay(400);
+    await fix2(); await delay(400);
+    await fix3(); await delay(400);
+    await fix4();
+
+    btn.textContent = '✅ TUDO EXECUTADO — VERIFIQUE OS RESULTADOS ACIMA';
+    document.getElementById('summary').classList.add('show');
+  }
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  </script>
+</body>
+</html>
+
