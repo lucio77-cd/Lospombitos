@@ -96,7 +96,6 @@
     .hist-info{font-size:10px;color:var(--muted);margin-top:2px}
     .hist-total{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right}
     .hist-data{font-size:9px;color:var(--muted);text-align:right;margin-top:2px}
-    .hist-warn{font-family:var(--mono);font-size:8px;color:var(--muted);background:var(--shore);border-radius:4px;padding:1px 5px;margin-left:4px}
     .skel{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px}
     .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
     .empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1px}
@@ -152,7 +151,7 @@
         <div class="cs-item"><p class="cs-label">MÁXIMO</p><p class="cs-val" id="cs-max">···</p></div>
         <div class="cs-item"><p class="cs-label">VARIAÇÃO</p><p class="cs-val" id="cs-var">···</p></div>
       </div>
-      <p class="chart-note">evolução do patrimônio total</p>
+      <p class="chart-note" id="chart-note">evolução do patrimônio total</p>
     </div>
 
     <div class="tabs">
@@ -197,9 +196,6 @@
   let posicoes = [], cotacoes = {}, ordensValidas = [];
   let periodoGraficoDias = 30;
 
-  // ─────────────────────────────────────────────
-  //  parseData: suporta Firestore Timestamp, {seconds}, string ISO, Date
-  // ─────────────────────────────────────────────
   function parseData(v) {
     if (!v) return null;
     if (typeof v.toDate === 'function') return v.toDate();
@@ -231,7 +227,7 @@
     if (!user) { location.href = 'invite.html'; return; }
     meuUID = user.uid;
     db     = window.db || firebase.firestore();
-    MercadoAPI.onPrecioFallback = async () => null; // sem fallback PM
+    MercadoAPI.onPrecioFallback = async () => null;
     await carregar();
   });
 
@@ -247,9 +243,7 @@
       const u = uS.data() || {};
       const c = cS.exists ? cS.data() : {};
 
-      // ── Deduplicação de posições (Bug USIM5 duplicado) ──
-      // O array posicoes no Firestore pode ter duplicatas do mesmo ticker.
-      // Mesclamos pelo PM ponderado.
+      // ── Deduplicação de posições ──
       const posicoesRaw = c.posicoes || [];
       const posMap = {};
       for (const p of posicoesRaw) {
@@ -257,66 +251,57 @@
         if (!posMap[t]) {
           posMap[t] = { ...p };
         } else {
-          // Mescla: PM ponderado, soma quantidades
-          const qtdAntes  = posMap[t].quantidade || 0;
-          const pmAntes   = posMap[t].preco_medio || 0;
-          const qtdNova   = p.quantidade || 0;
-          const pmNovo    = p.preco_medio || 0;
-          const qtdTotal  = qtdAntes + qtdNova;
-          posMap[t].quantidade  = qtdTotal;
-          posMap[t].preco_medio = qtdTotal > 0
-            ? (qtdAntes * pmAntes + qtdNova * pmNovo) / qtdTotal
-            : 0;
-          // Mantém a data mais antiga
-          const dAntes = parseData(posMap[t].data_compra);
-          const dNova  = parseData(p.data_compra);
-          if (dNova && dAntes && dNova < dAntes) posMap[t].data_compra = p.data_compra;
-          console.warn(`[Posições] Duplicata mesclada: ${t} (${qtdAntes}+${qtdNova}=${qtdTotal} cotas)`);
+          const qa = posMap[t].quantidade || 0, pa = posMap[t].preco_medio || 0;
+          const qn = p.quantidade || 0,          pn = p.preco_medio || 0;
+          const qt = qa + qn;
+          posMap[t].quantidade  = qt;
+          posMap[t].preco_medio = qt > 0 ? (qa * pa + qn * pn) / qt : 0;
+          const dA = parseData(posMap[t].data_compra), dN = parseData(p.data_compra);
+          if (dN && dA && dN < dA) posMap[t].data_compra = p.data_compra;
+          console.warn(`[Posições] Duplicata mesclada: ${t} (${qa}+${qn}=${qt})`);
         }
       }
       posicoes = Object.values(posMap);
 
-      // ── Filtra ordens válidas ──
-      // FIX Bug 1: descarta ordens com preco=0 ou total=0 (dirty orders)
-      // FIX Bug 3: aceita status "agendada" e "executada"
+      // ── Filtra e ordena ordens válidas ──
+      // FIX: ordena por data ANTES de qualquer processamento
+      // Isso elimina o bug do break prematuro no loop anterior
       const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      
+
       ordensValidas = todasOrdens
         .filter(o => {
           const d = parseData(o.data);
-          if (!d || isNaN(d.getTime())) return false; // sem data válida
+          if (!d || isNaN(d.getTime())) return false;
           const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
           if (total <= 0) {
-            console.warn(`[Ordens] Descartada ordem sujo: ${o.ticker} preco=${o.preco} total=${o.total}`);
-            return false; // dirty order — preco/total zero
+            console.warn(`[Ordens] Descartada: ${o.ticker} preco=${o.preco} total=${o.total}`);
+            return false;
           }
           if (!o.lado) return false;
-          // Aceita qualquer status exceto cancelada
           if (o.status === 'cancelada') return false;
           return true;
         })
+        // FIX CRÍTICO: garante ordenação cronológica independente da ordem do Firestore
         .sort((a, b) => parseData(a.data) - parseData(b.data));
 
-      console.log(`[Ordens] ${todasOrdens.length} total, ${ordensValidas.length} válidas`);
+      console.log(`[Ordens] ${todasOrdens.length} total → ${ordensValidas.length} válidas (ordenadas por data)`);
       ordensValidas.forEach(o => {
-        const total = o.total > 0 ? o.total : o.preco * o.quantidade;
-        console.log(`  ${o.lado.padEnd(6)} ${o.ticker.padEnd(6)} ${o.quantidade}×R$${o.preco} = R$${total.toFixed(2)} @ ${fmtData(o.data)} [${o.status}]`);
+        const t = o.total > 0 ? o.total : o.preco * o.quantidade;
+        console.log(`  ${o.lado.padEnd(6)} ${o.ticker.padEnd(6)} ${o.quantidade}×${o.preco} = ${t?.toFixed(2)} @ ${fmtData(o.data)}`);
       });
 
-      // ── Saldo recalculado a partir das ordens válidas ──
+      // ── Saldo recalculado (todas as ordens válidas) ──
       let saldoRecalc = CAPITAL;
       for (const o of ordensValidas) {
         const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
         if (o.lado === 'compra') saldoRecalc -= total;
         if (o.lado === 'venda')  saldoRecalc += total;
       }
-
-      const saldoFirestore = c.saldo_disponivel ?? u.saldo_disponivel ?? CAPITAL;
-      console.log(`[Saldo] Recalculado: R$${saldoRecalc.toFixed(2)} | Firestore: R$${saldoFirestore.toFixed(2)} | Diff: R$${Math.abs(saldoRecalc-saldoFirestore).toFixed(2)}`);
+      console.log(`[Saldo] Recalculado: R$${saldoRecalc.toFixed(2)} | Firestore: R$${(c.saldo_disponivel ?? CAPITAL).toFixed(2)}`);
 
       const saldoDisp = Math.max(0, saldoRecalc);
 
-      // ── Cotações de mercado ──
+      // ── Cotações ──
       const tickers = posicoes
         .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
         .map(p => p.ticker);
@@ -337,15 +322,9 @@
           }));
         }
       }
-
       console.log('[Cotações]', cotacoes);
 
-      // ── Cálculo do patrimônio ──
-      // Valor investido = PM × qtd (custo de aquisição real, do Firestore)
-      const totalInvestido = posicoes.reduce((acc, p) =>
-        acc + (p.quantidade || 0) * (p.preco_medio || 0), 0);
-
-      // Valor de mercado = cotação real × qtd (ou PM como fallback display)
+      // ── Patrimônio ──
       const valorMercado = posicoes.reduce((acc, p) => {
         const preco = cotacoes[p.ticker] || p.preco_medio || 0;
         return acc + (p.quantidade || 0) * preco;
@@ -385,10 +364,17 @@
     }
   }
 
-  // ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────
   //  GRÁFICO DO PATRIMÔNIO TOTAL
-  //  Usa ordensValidas (sem dirty orders, com status agendada/executada)
-  // ─────────────────────────────────────────────
+  //
+  //  FIX 1: o loop de "ordens anteriores ao período" usava
+  //  break — mas Firestore não garante ordem. Agora usa
+  //  filter() antes, que é independente de ordenação.
+  //
+  //  FIX 2: variação calculada a partir do dia da primeira
+  //  ordem, não do início do período (evita linha plana
+  //  quando todas as compras foram no mesmo dia).
+  // ─────────────────────────────────────────────────────
   function renderGrafico(dias) {
     if (!ordensValidas.length) {
       document.getElementById('chart-card').style.display = 'none';
@@ -396,9 +382,14 @@
     }
 
     const hoje    = new Date();
+    hoje.setHours(23, 59, 59, 999);
     const hojeKey = toKey(hoje);
 
-    // Mapa ordens por dia (key YYYY-MM-DD)
+    const dataInicio = new Date(hoje);
+    dataInicio.setDate(dataInicio.getDate() - dias);
+    dataInicio.setHours(0, 0, 0, 0);
+
+    // Mapa de ordens por dia
     const ordemPorDia = {};
     for (const o of ordensValidas) {
       const k = toKey(parseData(o.data));
@@ -406,20 +397,12 @@
       ordemPorDia[k].push(o);
     }
 
-    // Data de início do período
-    const dataInicio = new Date(hoje);
-    dataInicio.setDate(dataInicio.getDate() - dias);
-    dataInicio.setHours(0, 0, 0, 0);
-
-    // Estado da carteira no início do período
-    // (aplica todas as ordens ANTERIORES ao início)
+    // FIX 1: usa filter() em vez de break
+    // Aplica todas as ordens ANTERIORES ao início do período
     let saldo = CAPITAL;
-    const qtds = {}; // { ticker: { qtd, pm } }
-
-    for (const o of ordensValidas) {
-      const d = parseData(o.data);
-      // Compara: se a ordem é ANTES do início do período, aplica
-      if (d >= dataInicio) break;
+    const qtds = {};
+    const ordensAntes = ordensValidas.filter(o => parseData(o.data) < dataInicio);
+    for (const o of ordensAntes) {
       const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
       if (o.lado === 'compra') {
         saldo -= total;
@@ -433,7 +416,7 @@
       }
     }
 
-    // Percorre dias úteis do período
+    // Gera pontos dia a dia
     let saldoCorrendo = saldo;
     const qtdCorrendo = JSON.parse(JSON.stringify(qtds));
     const pontos = [];
@@ -446,7 +429,6 @@
 
       const k = toKey(d);
 
-      // Aplica ordens deste dia
       if (ordemPorDia[k]) {
         for (const o of ordemPorDia[k]) {
           const total = o.total > 0 ? o.total : (o.preco||0) * (o.quantidade||0);
@@ -455,7 +437,7 @@
             if (!qtdCorrendo[o.ticker]) qtdCorrendo[o.ticker] = { qtd: 0, pm: 0 };
             const prev = qtdCorrendo[o.ticker];
             const nq   = prev.qtd + (o.quantidade||0);
-            qtdCorrendo[o.ticker] = { qtd: nq, pm: nq > 0 ? (prev.qtd * prev.pm + (o.quantidade||0) * (o.preco||0)) / nq : 0 };
+            qtdCorrendo[o.ticker] = { qtd: nq, pm: nq > 0 ? (prev.qtd*prev.pm + (o.quantidade||0)*(o.preco||0))/nq : 0 };
           } else if (o.lado === 'venda') {
             saldoCorrendo += total;
             if (qtdCorrendo[o.ticker]) qtdCorrendo[o.ticker].qtd = Math.max(0, qtdCorrendo[o.ticker].qtd - (o.quantidade||0));
@@ -463,19 +445,16 @@
         }
       }
 
-      // Patrimônio deste dia
       const ehHoje = k === hojeKey;
       const valorAtivos = Object.entries(qtdCorrendo).reduce((acc, [ticker, { qtd, pm }]) => {
         const preco = ehHoje && cotacoes[ticker] ? cotacoes[ticker] : pm;
         return acc + qtd * preco;
       }, 0);
 
-      const patrimonio = Math.max(0, saldoCorrendo) + valorAtivos;
-      const [, mm, dd] = k.split('-');
-      pontos.push({ label: `${dd}/${mm}`, valor: patrimonio });
+      pontos.push({ label: `${k.slice(8)}/${k.slice(5,7)}`, valor: Math.max(0, saldoCorrendo) + valorAtivos, key: k });
     }
 
-    console.log(`[Gráfico] ${pontos.length} pontos — primeiro: ${pontos[0]?.label} R$${pontos[0]?.valor?.toFixed(0)} | último: ${pontos[pontos.length-1]?.label} R$${pontos[pontos.length-1]?.valor?.toFixed(0)}`);
+    console.log(`[Gráfico] ${pontos.length} pontos | ${pontos[0]?.key} R$${pontos[0]?.valor?.toFixed(0)} → ${pontos[pontos.length-1]?.key} R$${pontos[pontos.length-1]?.valor?.toFixed(0)}`);
 
     if (pontos.length < 2) {
       document.getElementById('chart-card').style.display = 'none';
@@ -483,22 +462,37 @@
     }
 
     const valores = pontos.map(p => p.valor);
-    const min     = Math.min(...valores);
-    const max     = Math.max(...valores);
-    const varPct  = pontos[0].valor > 0 ? ((valores[valores.length-1] - pontos[0].valor) / pontos[0].valor) * 100 : 0;
-    const isPos   = varPct >= 0;
 
-    document.getElementById('cs-min').textContent = R$(min);
-    document.getElementById('cs-max').textContent = R$(max);
+    // FIX 2: variação a partir do dia das PRIMEIRAS ORDENS dentro do período,
+    // não do primeiro dia do período (que seria sempre R$500K e daria linha plana)
+    const primeiraOrdemNoPeriodo = ordensValidas.find(o => parseData(o.data) >= dataInicio);
+    let idxBase = 0;
+    if (primeiraOrdemNoPeriodo) {
+      const keyBase = toKey(parseData(primeiraOrdemNoPeriodo.data));
+      const idx = pontos.findIndex(p => p.key === keyBase);
+      if (idx > 0) idxBase = idx; // ponto ANTES da primeira ordem
+    }
+
+    const valorBase = pontos[idxBase]?.valor || valores[0];
+    const valorFim  = valores[valores.length - 1];
+    const varPct    = valorBase > 0 ? ((valorFim - valorBase) / valorBase) * 100 : 0;
+    const isPos     = varPct >= 0;
+
+    document.getElementById('cs-min').textContent = R$(Math.min(...valores));
+    document.getElementById('cs-max').textContent = R$(Math.max(...valores));
     const csVar = document.getElementById('cs-var');
     csVar.textContent = pct(varPct);
     csVar.className   = 'cs-val ' + (isPos ? 'pos' : 'neg');
-    document.getElementById('chart-card').style.display = 'block';
 
-    desenharGrafico(pontos.map(p => p.label), valores, isPos);
+    // Nota dinâmica indicando a base da variação
+    document.getElementById('chart-note').textContent =
+      `variação desde ${pontos[idxBase]?.label || '—'} · patrimônio total`;
+
+    document.getElementById('chart-card').style.display = 'block';
+    desenharGrafico(pontos.map(p => p.label), valores, isPos, idxBase);
   }
 
-  function desenharGrafico(labels, valores, isPos) {
+  function desenharGrafico(labels, valores, isPos, idxBase) {
     const canvas = document.getElementById('perf-chart');
     const ctx    = canvas.getContext('2d');
     const dpr    = window.devicePixelRatio || 1;
@@ -508,54 +502,71 @@
     canvas.style.width  = rect.width + 'px';
     canvas.style.height = '140px';
     ctx.scale(dpr, dpr);
+
     const W = rect.width, H = 140;
     const pad = { t: 10, r: 8, b: 28, l: 60 };
-    const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
     const minP = Math.min(...valores) * 0.998, maxP = Math.max(...valores) * 1.002;
     const range = maxP - minP || 1;
     const xOf = i => pad.l + (i / (valores.length - 1)) * cw;
     const yOf = v => pad.t + ch - ((v - minP) / range) * ch;
+
     ctx.clearRect(0, 0, W, H);
+
     // Linha R$500K
     if (CAPITAL >= minP && CAPITAL <= maxP) {
       const yK = yOf(CAPITAL);
-      ctx.save(); ctx.setLineDash([4,4]);
+      ctx.save(); ctx.setLineDash([4, 4]);
       ctx.strokeStyle = '#8a8278'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pad.l, yK); ctx.lineTo(W-pad.r, yK); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad.l, yK); ctx.lineTo(W - pad.r, yK); ctx.stroke();
       ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'left';
-      ctx.fillText('500K', pad.l+2, yK-3); ctx.restore();
+      ctx.fillText('500K', pad.l + 2, yK - 3); ctx.restore();
     }
+
+    // Marcador vertical do dia das primeiras ordens
+    if (idxBase > 0 && idxBase < valores.length) {
+      const xB = xOf(idxBase);
+      ctx.save(); ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = 'rgba(138,130,120,.4)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(xB, pad.t); ctx.lineTo(xB, pad.t + ch); ctx.stroke();
+      ctx.restore();
+    }
+
     // Grid
     ctx.strokeStyle = '#e2d9cd'; ctx.lineWidth = 1;
     [0, 0.5, 1].forEach(f => {
       const y = pad.t + f * ch;
-      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
       ctx.fillStyle = '#8a8278'; ctx.font = '9px DM Mono,monospace'; ctx.textAlign = 'right';
-      ctx.fillText('R$' + ((maxP - f*range)/1000).toFixed(0) + 'K', pad.l-4, y+3);
+      ctx.fillText('R$' + ((maxP - f * range) / 1000).toFixed(0) + 'K', pad.l - 4, y + 3);
     });
-    // Área
-    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t+ch);
+
+    // Área — verde ou vermelho baseado no segmento pós-primeira-ordem
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
     grad.addColorStop(0, isPos ? 'rgba(26,138,74,.25)' : 'rgba(204,34,0,.25)');
     grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
     ctx.beginPath(); ctx.moveTo(xOf(0), yOf(valores[0]));
-    valores.forEach((v,i) => { if (i>0) ctx.lineTo(xOf(i), yOf(v)); });
-    ctx.lineTo(xOf(valores.length-1), pad.t+ch); ctx.lineTo(xOf(0), pad.t+ch);
+    valores.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
+    ctx.lineTo(xOf(valores.length - 1), pad.t + ch); ctx.lineTo(xOf(0), pad.t + ch);
     ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
     // Linha
     ctx.beginPath(); ctx.strokeStyle = isPos ? '#1a8a4a' : '#cc2200';
     ctx.lineWidth = 2; ctx.lineJoin = 'round';
     ctx.moveTo(xOf(0), yOf(valores[0]));
-    valores.forEach((v,i) => { if (i>0) ctx.lineTo(xOf(i), yOf(v)); });
+    valores.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
     ctx.stroke();
+
     // Ponto final
-    const lx = xOf(valores.length-1), ly = yOf(valores[valores.length-1]);
-    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI*2);
+    const lx = xOf(valores.length - 1), ly = yOf(valores[valores.length - 1]);
+    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2);
     ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200'; ctx.fill();
     ctx.strokeStyle = '#faf8f5'; ctx.lineWidth = 2; ctx.stroke();
+
     // Labels X
     ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
-    [0, Math.floor(valores.length/2), valores.length-1].forEach(i => {
-      if (labels[i]) ctx.fillText(labels[i], xOf(i), H-6);
+    [0, Math.floor(valores.length / 2), valores.length - 1].forEach(i => {
+      if (labels[i]) ctx.fillText(labels[i], xOf(i), H - 6);
     });
   }
 
@@ -584,7 +595,6 @@
       const temCotacao = cotacao > 0;
       const pm         = pos.preco_medio || 0;
       const qtd        = pos.quantidade  || 0;
-      // Valor pago = PM × qtd (dados do Firestore, confiáveis)
       const valorPago  = qtd * pm;
       const valorAtual = temCotacao ? qtd * cotacao : null;
       const resultado  = valorAtual !== null ? valorAtual - valorPago : null;
@@ -594,10 +604,8 @@
       const tipo       = pos.tipo || 'acoes';
       const dataFmt    = fmtData(pos.data_compra || pos.ultima_atualizacao);
 
-      let resultadoHtml;
-      if (resultado !== null) {
-        resultadoHtml = `
-          <div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
+      const resultadoHtml = resultado !== null
+        ? `<div class="pos-resultado ${isPos ? 'pos' : 'neg'}">
             <div class="pr-left">
               <p class="pr-label ${isPos ? 'pos' : 'neg'}">${isPos ? '📈 GANHO DESDE A COMPRA' : '📉 PERDA DESDE A COMPRA'}</p>
               <p class="pr-valor ${isPos ? 'pos' : 'neg'}">${resultado >= 0 ? '+' : ''}${R$(resultado)}</p>
@@ -606,14 +614,11 @@
               <p class="pr-pct ${isPos ? 'pos' : 'neg'}">${pct(rentab)}</p>
               <p class="pr-desde">desde ${dataFmt}</p>
             </div>
-          </div>`;
-      } else {
-        resultadoHtml = `
-          <div style="background:var(--shore);border-radius:10px;padding:10px 14px;margin-bottom:10px;
+          </div>`
+        : `<div style="background:var(--shore);border-radius:10px;padding:10px 14px;margin-bottom:10px;
                font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">
             ⚡ Cotação indisponível agora
           </div>`;
-      }
 
       const precoAtualHtml = temCotacao
         ? `<span class="pos-stat-val">${R$(cotacao)}</span>`
@@ -622,11 +627,6 @@
       const valorHojeHtml = valorAtual !== null
         ? `<span class="pos-stat-val">${R$(valorAtual)}</span>`
         : `<span class="pos-stat-val" style="color:var(--muted);font-size:9px">—</span>`;
-
-      const headerValor  = valorAtual !== null ? R$(valorAtual) : R$(valorPago);
-      const headerRentab = rentab !== null
-        ? `<p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)} no período</p>`
-        : `<p class="pos-rentab" style="color:var(--muted);font-size:9px">cotação indisponível</p>`;
 
       const precoParaOrdem = cotacao || pm;
 
@@ -639,8 +639,10 @@
             <span class="pos-tipo">${tipo.toUpperCase()}</span>
           </div>
           <div class="pos-right">
-            <p class="pos-valor">${headerValor}</p>
-            ${headerRentab}
+            <p class="pos-valor">${valorAtual !== null ? R$(valorAtual) : R$(valorPago)}</p>
+            ${rentab !== null
+              ? `<p class="pos-rentab ${isPos ? 'pos' : 'neg'}">${pct(rentab)} no período</p>`
+              : `<p class="pos-rentab" style="color:var(--muted);font-size:9px">cotação indisponível</p>`}
           </div>
         </div>
         ${resultadoHtml}
@@ -668,19 +670,16 @@
     document.getElementById('hist-loading').style.display = 'none';
     const list = document.getElementById('hist-list');
 
-    // Mostra TODAS as ordens (incluindo dirty) para auditoria, mais recente primeiro
-    const todasParaHistorico = ordensValidas.slice().reverse();
-
-    if (!todasParaHistorico.length) {
+    if (!ordensValidas.length) {
       list.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>Nenhuma ordem ainda.</div>';
       return;
     }
 
     list.innerHTML = '';
-    todasParaHistorico.forEach(o => {
+    [...ordensValidas].reverse().forEach(o => {
       const isC  = o.lado === 'compra';
       const unit = o.tipo === 'tesouro' ? 'títulos' : o.tipo === 'cripto' ? 'und' : 'cotas';
-      const total = o.total > 0 ? o.total : (o.preco||0) * (o.quantidade||0);
+      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
 
       const card = document.createElement('div');
       card.className = 'hist-card';
@@ -690,7 +689,7 @@
             <span class="hist-pill ${isC ? 'c' : 'v'}">${isC ? 'COMPRA' : 'VENDA'}</span>
             <div>
               <p class="hist-ticker">${o.ticker}</p>
-              <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco||0)}/un</p>
+              <p class="hist-info">${o.quantidade} ${unit} · ${R$(o.preco || 0)}/un</p>
             </div>
           </div>
           <div>
@@ -703,4 +702,4 @@
   }
   </script>
 </body>
-</html>
+  </html>
