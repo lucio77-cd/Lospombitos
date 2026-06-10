@@ -22,6 +22,8 @@
     .container{padding:16px 14px;max-width:640px;margin:0 auto}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* ── Patrimônio card ── */
     .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);padding:22px;border-radius:20px;color:white;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
     .pat-card::before{content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:70px;color:rgba(255,255,255,.05);pointer-events:none;letter-spacing:-2px}
     .pat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;opacity:.7;margin-bottom:4px}
@@ -31,6 +33,8 @@
     .pat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
     .pat-item .pat-label{margin-bottom:2px}
     .pat-item-val{font-family:var(--mono);font-size:11px;font-weight:500}
+
+    /* ── Resultado banner ── */
     .resultado-banner{border-radius:16px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;animation:fadeUp .35s ease}
     .resultado-banner.pos{background:linear-gradient(135deg,#d4f5e2,#b8f0d0);border:1.5px solid #1a8a4a30}
     .resultado-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc2b8);border:1.5px solid #cc220030}
@@ -41,20 +45,24 @@
     .rb-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
     .rb-pct{font-family:var(--display);font-size:26px;letter-spacing:1px}
     .rb-pct.pos{color:var(--green)}.rb-pct.neg{color:var(--red)}
-    .chart-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:14px;animation:fadeUp .35s ease}
-    .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-    .chart-title{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--ink)}
-    .chart-periods{display:flex;gap:4px}
-    .period-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--shore);background:none;color:var(--muted);cursor:pointer;transition:all .2s}
-    .period-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
-    .chart-wrap{position:relative;height:140px;margin-bottom:12px}
-    canvas#perf-chart{width:100%;height:140px}
-    .chart-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-    .cs-item{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
-    .cs-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px}
-    .cs-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
-    .cs-val.pos{color:var(--green)}.cs-val.neg{color:var(--red)}
-    .chart-note{font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.5px}
+
+    /* ── Charts ── */
+    .charts-row{display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px;align-items:start}
+    .chart-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;animation:fadeUp .35s ease}
+    .chart-card.donut-card{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .chart-title{font-family:var(--display);font-size:13px;letter-spacing:2px;color:var(--ink);margin-bottom:10px}
+    .chart-legend{display:flex;flex-direction:column;gap:5px;width:100%}
+    .leg-item{display:flex;align-items:center;gap:6px}
+    .leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+    .leg-label{font-family:var(--mono);font-size:8px;color:var(--muted);flex:1}
+    .leg-pct{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--ink)}
+
+    /* barras legenda */
+    .bar-legend{display:flex;gap:14px;margin-top:8px}
+    .bar-leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;color:var(--muted)}
+    .bar-leg-dot{width:10px;height:8px;border-radius:2px}
+
+    /* ── Tabs e posições ── */
     .tabs{display:flex;gap:8px;margin-bottom:14px}
     .tab-btn{flex:1;height:36px;font-family:var(--mono);font-size:9px;letter-spacing:1px;border-radius:20px;border:1.5px solid var(--shore);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s}
     .tab-btn.on{background:var(--wave);color:white;border-color:var(--wave)}
@@ -83,7 +91,7 @@
     .pos-stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
     .pos-stat-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
     .pos-actions{display:flex;gap:6px}
-    .btn-rel{flex:1;height:34px;background:var(--wave);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+    .btn-rel{flex:1;height:34px;background:var(--wave);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer}
     .btn-buy{flex:1;height:34px;background:var(--green);color:white;border:none;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer}
     .btn-sell{flex:1;height:34px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s}
     .btn-sell:hover{background:var(--red);color:white}
@@ -116,6 +124,7 @@
   </header>
 
   <div class="container">
+    <!-- Patrimônio -->
     <div class="pat-card">
       <p class="pat-label">PATRIMÔNIO TOTAL</p>
       <p class="pat-valor" id="pat-total">R$ ···</p>
@@ -127,6 +136,7 @@
       </div>
     </div>
 
+    <!-- Resultado -->
     <div class="resultado-banner pos" id="resultado-banner" style="display:none">
       <div class="rb-left">
         <p class="rb-label pos" id="rb-label">📈 GANHO TOTAL</p>
@@ -136,27 +146,32 @@
       <p class="rb-pct pos" id="rb-pct">···</p>
     </div>
 
-    <div class="chart-card" id="chart-card" style="display:none">
-      <div class="chart-header">
-        <p class="chart-title">📊 CARTEIRA</p>
-        <div class="chart-periods">
-          <button class="period-btn on" onclick="mudarPeriodo(30,this)">1M</button>
-          <button class="period-btn" onclick="mudarPeriodo(90,this)">3M</button>
-          <button class="period-btn" onclick="mudarPeriodo(180,this)">6M</button>
+    <!-- ── Gráficos lado a lado ── -->
+    <div class="charts-row" id="charts-row" style="display:none">
+
+      <!-- Barras: desempenho por ativo -->
+      <div class="chart-card" id="chart-barras">
+        <p class="chart-title">📊 DESEMPENHO</p>
+        <canvas id="perf-chart"></canvas>
+        <div class="bar-legend">
+          <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#c8d8ff"></div>CUSTO</div>
+          <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#1a8a4a"></div>HOJE</div>
         </div>
       </div>
-      <div class="chart-wrap"><canvas id="perf-chart"></canvas></div>
-      <div class="chart-stats">
-        <div class="cs-item"><p class="cs-label">MÍNIMO</p><p class="cs-val" id="cs-min">···</p></div>
-        <div class="cs-item"><p class="cs-label">MÁXIMO</p><p class="cs-val" id="cs-max">···</p></div>
-        <div class="cs-item"><p class="cs-label">VARIAÇÃO</p><p class="cs-val" id="cs-var">···</p></div>
+
+      <!-- Donut: alocação -->
+      <div class="chart-card donut-card" id="chart-donut">
+        <p class="chart-title">🥧 ALOCAÇÃO</p>
+        <canvas id="alloc-chart"></canvas>
+        <div class="chart-legend" id="donut-legend"></div>
       </div>
-      <p class="chart-note" id="chart-note">evolução do patrimônio total</p>
+
     </div>
 
+    <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn on" id="tab-pos" onclick="showTab('posicoes')">POSIÇÕES</button>
-      <button class="tab-btn" id="tab-hist" onclick="showTab('historico')">HISTÓRICO</button>
+      <button class="tab-btn on" id="tab-pos"  onclick="showTab('posicoes')">POSIÇÕES</button>
+      <button class="tab-btn"    id="tab-hist" onclick="showTab('historico')">HISTÓRICO</button>
     </div>
 
     <div id="sec-posicoes">
@@ -194,7 +209,9 @@
   const CAPITAL = 500000;
   let db, meuUID;
   let posicoes = [], cotacoes = {}, ordensValidas = [];
-  let periodoGraficoDias = 30;
+  let saldoDispGlobal = 0;
+
+  const CORES_DONUT = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#8a8278','#c8d8ff','#ff5533','#0033cc'];
 
   function parseData(v) {
     if (!v) return null;
@@ -211,9 +228,7 @@
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  function toKey(d) { return d.toISOString().slice(0, 10); }
-
-  const R$  = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const R$ = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
 
   function showTab(t) {
@@ -226,7 +241,7 @@
   firebase.auth().onAuthStateChanged(async user => {
     if (!user) { location.href = 'invite.html'; return; }
     meuUID = user.uid;
-    db     = window.db || firebase.firestore();
+    db = window.db || firebase.firestore();
     MercadoAPI.onPrecioFallback = async () => null;
     await carregar();
   });
@@ -243,65 +258,44 @@
       const u = uS.data() || {};
       const c = cS.exists ? cS.data() : {};
 
-      // ── Deduplicação de posições ──
-      const posicoesRaw = c.posicoes || [];
+      // Deduplicação de posições
       const posMap = {};
-      for (const p of posicoesRaw) {
+      for (const p of (c.posicoes || [])) {
         const t = p.ticker;
-        if (!posMap[t]) {
-          posMap[t] = { ...p };
-        } else {
+        if (!posMap[t]) { posMap[t] = { ...p }; }
+        else {
           const qa = posMap[t].quantidade || 0, pa = posMap[t].preco_medio || 0;
-          const qn = p.quantidade || 0,          pn = p.preco_medio || 0;
+          const qn = p.quantidade || 0, pn = p.preco_medio || 0;
           const qt = qa + qn;
           posMap[t].quantidade  = qt;
           posMap[t].preco_medio = qt > 0 ? (qa * pa + qn * pn) / qt : 0;
-          const dA = parseData(posMap[t].data_compra), dN = parseData(p.data_compra);
-          if (dN && dA && dN < dA) posMap[t].data_compra = p.data_compra;
-          console.warn(`[Posições] Duplicata mesclada: ${t} (${qa}+${qn}=${qt})`);
         }
       }
       posicoes = Object.values(posMap);
 
-      // ── Filtra e ordena ordens válidas ──
-      // FIX: ordena por data ANTES de qualquer processamento
-      // Isso elimina o bug do break prematuro no loop anterior
+      // Ordens válidas
       const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
       ordensValidas = todasOrdens
         .filter(o => {
           const d = parseData(o.data);
           if (!d || isNaN(d.getTime())) return false;
           const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-          if (total <= 0) {
-            console.warn(`[Ordens] Descartada: ${o.ticker} preco=${o.preco} total=${o.total}`);
-            return false;
-          }
-          if (!o.lado) return false;
-          if (o.status === 'cancelada') return false;
+          if (total <= 0) return false;
+          if (!o.lado || o.status === 'cancelada') return false;
           return true;
         })
-        // FIX CRÍTICO: garante ordenação cronológica independente da ordem do Firestore
         .sort((a, b) => parseData(a.data) - parseData(b.data));
 
-      console.log(`[Ordens] ${todasOrdens.length} total → ${ordensValidas.length} válidas (ordenadas por data)`);
-      ordensValidas.forEach(o => {
-        const t = o.total > 0 ? o.total : o.preco * o.quantidade;
-        console.log(`  ${o.lado.padEnd(6)} ${o.ticker.padEnd(6)} ${o.quantidade}×${o.preco} = ${t?.toFixed(2)} @ ${fmtData(o.data)}`);
-      });
-
-      // ── Saldo recalculado (todas as ordens válidas) ──
+      // Saldo recalculado
       let saldoRecalc = CAPITAL;
       for (const o of ordensValidas) {
         const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
         if (o.lado === 'compra') saldoRecalc -= total;
         if (o.lado === 'venda')  saldoRecalc += total;
       }
-      console.log(`[Saldo] Recalculado: R$${saldoRecalc.toFixed(2)} | Firestore: R$${(c.saldo_disponivel ?? CAPITAL).toFixed(2)}`);
+      saldoDispGlobal = Math.max(0, saldoRecalc);
 
-      const saldoDisp = Math.max(0, saldoRecalc);
-
-      // ── Cotações ──
+      // Cotações
       const tickers = posicoes
         .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
         .map(p => p.ticker);
@@ -322,21 +316,20 @@
           }));
         }
       }
-      console.log('[Cotações]', cotacoes);
 
-      // ── Patrimônio ──
+      // Patrimônio
       const valorMercado = posicoes.reduce((acc, p) => {
         const preco = cotacoes[p.ticker] || p.preco_medio || 0;
         return acc + (p.quantidade || 0) * preco;
       }, 0);
 
-      const patrimonioDisplay = saldoDisp + valorMercado;
-      const resultado         = patrimonioDisplay - CAPITAL;
-      const rentab            = (resultado / CAPITAL) * 100;
-      const isPos             = resultado >= 0;
+      const patrimonioDisplay = saldoDispGlobal + valorMercado;
+      const resultado = patrimonioDisplay - CAPITAL;
+      const rentab    = (resultado / CAPITAL) * 100;
+      const isPos     = resultado >= 0;
 
       document.getElementById('pat-total').textContent = R$(patrimonioDisplay);
-      document.getElementById('pat-disp').textContent  = R$(saldoDisp);
+      document.getElementById('pat-disp').textContent  = R$(saldoDispGlobal);
       document.getElementById('pat-inv').textContent   = R$(valorMercado);
 
       const rentEl = document.getElementById('pat-rentab');
@@ -354,7 +347,7 @@
       document.getElementById('rb-pct').className     = 'rb-pct ' + (isPos ? 'pos' : 'neg');
 
       renderPosicoes();
-      renderGrafico(periodoGraficoDias);
+      renderGraficos();
       renderHistorico();
 
     } catch (e) {
@@ -364,222 +357,191 @@
     }
   }
 
-  // ─────────────────────────────────────────────────────
-  //  GRÁFICO DO PATRIMÔNIO TOTAL
-  //
-  //  FIX 1: o loop de "ordens anteriores ao período" usava
-  //  break — mas Firestore não garante ordem. Agora usa
-  //  filter() antes, que é independente de ordenação.
-  //
-  //  FIX 2: variação calculada a partir do dia da primeira
-  //  ordem, não do início do período (evita linha plana
-  //  quando todas as compras foram no mesmo dia).
-  // ─────────────────────────────────────────────────────
-  function renderGrafico(dias) {
-    if (!ordensValidas.length) {
-      document.getElementById('chart-card').style.display = 'none';
-      return;
-    }
-
-    const hoje    = new Date();
-    hoje.setHours(23, 59, 59, 999);
-    const hojeKey = toKey(hoje);
-
-    const dataInicio = new Date(hoje);
-    dataInicio.setDate(dataInicio.getDate() - dias);
-    dataInicio.setHours(0, 0, 0, 0);
-
-    // Mapa de ordens por dia
-    const ordemPorDia = {};
-    for (const o of ordensValidas) {
-      const k = toKey(parseData(o.data));
-      if (!ordemPorDia[k]) ordemPorDia[k] = [];
-      ordemPorDia[k].push(o);
-    }
-
-    // FIX 1: usa filter() em vez de break
-    // Aplica todas as ordens ANTERIORES ao início do período
-    let saldo = CAPITAL;
-    const qtds = {};
-    const ordensAntes = ordensValidas.filter(o => parseData(o.data) < dataInicio);
-    for (const o of ordensAntes) {
-      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-      if (o.lado === 'compra') {
-        saldo -= total;
-        if (!qtds[o.ticker]) qtds[o.ticker] = { qtd: 0, pm: 0 };
-        const prev = qtds[o.ticker];
-        const nq   = prev.qtd + (o.quantidade || 0);
-        qtds[o.ticker] = { qtd: nq, pm: nq > 0 ? (prev.qtd * prev.pm + (o.quantidade||0) * (o.preco||0)) / nq : 0 };
-      } else if (o.lado === 'venda') {
-        saldo += total;
-        if (qtds[o.ticker]) qtds[o.ticker].qtd = Math.max(0, qtds[o.ticker].qtd - (o.quantidade||0));
-      }
-    }
-
-    // Gera pontos dia a dia
-    let saldoCorrendo = saldo;
-    const qtdCorrendo = JSON.parse(JSON.stringify(qtds));
-    const pontos = [];
-
-    for (let i = 0; i <= dias; i++) {
-      const d = new Date(dataInicio);
-      d.setDate(d.getDate() + i);
-      if (d > hoje) break;
-      if (d.getDay() === 0 || d.getDay() === 6) continue;
-
-      const k = toKey(d);
-
-      if (ordemPorDia[k]) {
-        for (const o of ordemPorDia[k]) {
-          const total = o.total > 0 ? o.total : (o.preco||0) * (o.quantidade||0);
-          if (o.lado === 'compra') {
-            saldoCorrendo -= total;
-            if (!qtdCorrendo[o.ticker]) qtdCorrendo[o.ticker] = { qtd: 0, pm: 0 };
-            const prev = qtdCorrendo[o.ticker];
-            const nq   = prev.qtd + (o.quantidade||0);
-            qtdCorrendo[o.ticker] = { qtd: nq, pm: nq > 0 ? (prev.qtd*prev.pm + (o.quantidade||0)*(o.preco||0))/nq : 0 };
-          } else if (o.lado === 'venda') {
-            saldoCorrendo += total;
-            if (qtdCorrendo[o.ticker]) qtdCorrendo[o.ticker].qtd = Math.max(0, qtdCorrendo[o.ticker].qtd - (o.quantidade||0));
-          }
-        }
-      }
-
-      const ehHoje = k === hojeKey;
-      const valorAtivos = Object.entries(qtdCorrendo).reduce((acc, [ticker, { qtd, pm }]) => {
-        const preco = ehHoje && cotacoes[ticker] ? cotacoes[ticker] : pm;
-        return acc + qtd * preco;
-      }, 0);
-
-      pontos.push({ label: `${k.slice(8)}/${k.slice(5,7)}`, valor: Math.max(0, saldoCorrendo) + valorAtivos, key: k });
-    }
-
-    console.log(`[Gráfico] ${pontos.length} pontos | ${pontos[0]?.key} R$${pontos[0]?.valor?.toFixed(0)} → ${pontos[pontos.length-1]?.key} R$${pontos[pontos.length-1]?.valor?.toFixed(0)}`);
-
-    if (pontos.length < 2) {
-      document.getElementById('chart-card').style.display = 'none';
-      return;
-    }
-
-    const valores = pontos.map(p => p.valor);
-
-    // FIX 2: variação a partir do dia das PRIMEIRAS ORDENS dentro do período,
-    // não do primeiro dia do período (que seria sempre R$500K e daria linha plana)
-    const primeiraOrdemNoPeriodo = ordensValidas.find(o => parseData(o.data) >= dataInicio);
-    let idxBase = 0;
-    if (primeiraOrdemNoPeriodo) {
-      const keyBase = toKey(parseData(primeiraOrdemNoPeriodo.data));
-      const idx = pontos.findIndex(p => p.key === keyBase);
-      if (idx > 0) idxBase = idx - 1; // ponto ANTES da primeira ordem
-    }
-
-    const valorBase = pontos[idxBase]?.valor || valores[0];
-    const valorFim  = valores[valores.length - 1];
-    const varPct    = valorBase > 0 ? ((valorFim - valorBase) / valorBase) * 100 : 0;
-    const isPos     = varPct >= 0;
-
-    document.getElementById('cs-min').textContent = R$(Math.min(...valores));
-    document.getElementById('cs-max').textContent = R$(Math.max(...valores));
-    const csVar = document.getElementById('cs-var');
-    csVar.textContent = pct(varPct);
-    csVar.className   = 'cs-val ' + (isPos ? 'pos' : 'neg');
-
-    // Nota dinâmica indicando a base da variação
-    document.getElementById('chart-note').textContent =
-      `vs ${pontos[idxBase + 1]?.label || pontos[idxBase]?.label || '—'} · patrimônio total`;
-
-    document.getElementById('chart-card').style.display = 'block';
-    desenharGrafico(pontos.map(p => p.label), valores, isPos, idxBase);
+  // ═══════════════════════════════════════
+  //  GRÁFICOS
+  // ═══════════════════════════════════════
+  function renderGraficos() {
+    if (!posicoes.length) return;
+    document.getElementById('charts-row').style.display = 'grid';
+    renderBarras();
+    renderDonut();
   }
 
-  function desenharGrafico(labels, valores, isPos, idxBase) {
+  // ── Barras horizontais: custo vs valor atual ──
+  function renderBarras() {
     const canvas = document.getElementById('perf-chart');
-    const ctx    = canvas.getContext('2d');
-    const dpr    = window.devicePixelRatio || 1;
-    const rect   = canvas.parentElement.getBoundingClientRect();
+    if (!canvas) return;
+
+    const ativos = posicoes.map(p => {
+      const qtd = p.quantidade || 0;
+      const pm  = p.preco_medio || 0;
+      const cot = cotacoes[p.ticker];
+      return {
+        ticker:     p.ticker,
+        custo:      qtd * pm,
+        valorAtual: cot ? qtd * cot : qtd * pm,
+        temCotacao: !!cot,
+      };
+    }).filter(a => a.custo > 0)
+      .sort((a, b) => b.valorAtual - a.valorAtual);
+
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const H_ROW   = 42;
+    const H_TOTAL = ativos.length * H_ROW + 8;
+
     canvas.width  = rect.width * dpr;
-    canvas.height = 140 * dpr;
+    canvas.height = H_TOTAL * dpr;
     canvas.style.width  = rect.width + 'px';
-    canvas.style.height = '140px';
+    canvas.style.height = H_TOTAL + 'px';
     ctx.scale(dpr, dpr);
 
-    const W = rect.width, H = 140;
-    const pad = { t: 10, r: 8, b: 28, l: 60 };
-    const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
-    const minP = Math.min(...valores) * 0.998, maxP = Math.max(...valores) * 1.002;
-    const range = maxP - minP || 1;
-    const xOf = i => pad.l + (i / (valores.length - 1)) * cw;
-    const yOf = v => pad.t + ch - ((v - minP) / range) * ch;
+    const W   = rect.width;
+    const PAD = { l: 56, r: 12, t: 4, b: 4 };
+    const BW  = W - PAD.l - PAD.r;
+    const maxVal = Math.max(...ativos.map(a => Math.max(a.custo, a.valorAtual))) * 1.02;
 
-    ctx.clearRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H_TOTAL);
 
-    // Linha R$500K
-    if (CAPITAL >= minP && CAPITAL <= maxP) {
-      const yK = yOf(CAPITAL);
-      ctx.save(); ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#8a8278'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pad.l, yK); ctx.lineTo(W - pad.r, yK); ctx.stroke();
-      ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'left';
-      ctx.fillText('500K', pad.l + 2, yK - 3); ctx.restore();
-    }
+    ativos.forEach((a, i) => {
+      const y     = PAD.t + i * H_ROW;
+      const bH    = 11;
+      const gap   = 3;
+      const isP   = a.valorAtual >= a.custo;
+      const cor   = a.temCotacao ? (isP ? '#1a8a4a' : '#cc2200') : '#8a8278';
 
-    // Marcador vertical do dia das primeiras ordens
-    if (idxBase > 0 && idxBase < valores.length) {
-      const xB = xOf(idxBase);
-      ctx.save(); ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = 'rgba(138,130,120,.4)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(xB, pad.t); ctx.lineTo(xB, pad.t + ch); ctx.stroke();
-      ctx.restore();
-    }
+      // Ticker
+      ctx.fillStyle = '#1a4fff';
+      ctx.font = '500 9px DM Mono,monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(a.ticker, PAD.l - 6, y + bH + 1);
 
-    // Grid
-    ctx.strokeStyle = '#e2d9cd'; ctx.lineWidth = 1;
-    [0, 0.5, 1].forEach(f => {
-      const y = pad.t + f * ch;
-      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-      ctx.fillStyle = '#8a8278'; ctx.font = '9px DM Mono,monospace'; ctx.textAlign = 'right';
-      ctx.fillText('R$' + ((maxP - f * range) / 1000).toFixed(0) + 'K', pad.l - 4, y + 3);
-    });
+      // Trilho fundo
+      ctx.fillStyle = '#ece7df';
+      ctx.beginPath();
+      ctx.roundRect(PAD.l, y, BW, bH, 3);
+      ctx.fill();
 
-    // Área — verde ou vermelho baseado no segmento pós-primeira-ordem
-    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-    grad.addColorStop(0, isPos ? 'rgba(26,138,74,.25)' : 'rgba(204,34,0,.25)');
-    grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
-    ctx.beginPath(); ctx.moveTo(xOf(0), yOf(valores[0]));
-    valores.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
-    ctx.lineTo(xOf(valores.length - 1), pad.t + ch); ctx.lineTo(xOf(0), pad.t + ch);
-    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+      // Barra custo
+      const wC = (a.custo / maxVal) * BW;
+      ctx.fillStyle = '#c8d8ff';
+      ctx.beginPath();
+      ctx.roundRect(PAD.l, y, wC, bH, 3);
+      ctx.fill();
 
-    // Linha
-    ctx.beginPath(); ctx.strokeStyle = isPos ? '#1a8a4a' : '#cc2200';
-    ctx.lineWidth = 2; ctx.lineJoin = 'round';
-    ctx.moveTo(xOf(0), yOf(valores[0]));
-    valores.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
-    ctx.stroke();
+      // Barra valor atual
+      const wA = (a.valorAtual / maxVal) * BW;
+      ctx.fillStyle = cor;
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.roundRect(PAD.l, y + bH + gap, wA, bH, 3);
+      ctx.fill();
+      ctx.globalAlpha = 1;
 
-    // Ponto final
-    const lx = xOf(valores.length - 1), ly = yOf(valores[valores.length - 1]);
-    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2);
-    ctx.fillStyle = isPos ? '#1a8a4a' : '#cc2200'; ctx.fill();
-    ctx.strokeStyle = '#faf8f5'; ctx.lineWidth = 2; ctx.stroke();
+      // Valor label
+      const vStr = 'R$' + (a.valorAtual / 1000).toFixed(1) + 'K';
+      const lx   = PAD.l + wA + 4;
+      ctx.fillStyle = cor;
+      ctx.font = '9px DM Mono,monospace';
+      ctx.textAlign = 'left';
+      if (lx + 36 < W) ctx.fillText(vStr, lx, y + bH + gap + bH - 1);
 
-    // Labels X
-    ctx.fillStyle = '#8a8278'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
-    [0, Math.floor(valores.length / 2), valores.length - 1].forEach(i => {
-      if (labels[i]) ctx.fillText(labels[i], xOf(i), H - 6);
+      // variação %
+      if (a.temCotacao && a.custo > 0) {
+        const v = ((a.valorAtual - a.custo) / a.custo) * 100;
+        const vt = (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+        ctx.fillStyle = cor;
+        ctx.font = '500 8px DM Mono,monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(vt, W - PAD.r, y + bH + gap + bH - 1);
+      }
+
+      // Separador
+      if (i < ativos.length - 1) {
+        ctx.strokeStyle = '#ece7df';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD.l, y + H_ROW - 1);
+        ctx.lineTo(W - PAD.r, y + H_ROW - 1);
+        ctx.stroke();
+      }
     });
   }
 
-  async function mudarPeriodo(dias, btn) {
-    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    periodoGraficoDias = dias;
-    renderGrafico(dias);
+  // ── Donut: alocação ──
+  function renderDonut() {
+    const canvas = document.getElementById('alloc-chart');
+    if (!canvas) return;
+
+    const fatias = posicoes.map((p, i) => {
+      const qtd = p.quantidade || 0;
+      const pm  = cotacoes[p.ticker] || p.preco_medio || 0;
+      return { label: p.ticker, valor: qtd * pm, cor: CORES_DONUT[i % CORES_DONUT.length] };
+    }).filter(f => f.valor > 0);
+
+    if (saldoDispGlobal > 0) {
+      fatias.push({ label: 'CASH', valor: saldoDispGlobal, cor: '#e2d9cd' });
+    }
+
+    const total = fatias.reduce((a, f) => a + f.valor, 0);
+    if (!total) return;
+
+    const ctx  = canvas.getContext('2d');
+    const dpr  = window.devicePixelRatio || 1;
+    const SIZE = 130;
+    canvas.width  = SIZE * dpr;
+    canvas.height = SIZE * dpr;
+    canvas.style.width  = SIZE + 'px';
+    canvas.style.height = SIZE + 'px';
+    ctx.scale(dpr, dpr);
+
+    const cx = SIZE / 2, cy = SIZE / 2, R = 54, r = 30;
+    let ang = -Math.PI / 2;
+
+    fatias.forEach(f => {
+      const slice = (f.valor / total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R, ang, ang + slice);
+      ctx.closePath();
+      ctx.fillStyle = f.cor;
+      ctx.fill();
+      ctx.strokeStyle = '#faf8f5';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ang += slice;
+    });
+
+    // Buraco
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#faf8f5';
+    ctx.fill();
+
+    // Centro
+    ctx.fillStyle = '#8a8278';
+    ctx.font = '8px DM Mono,monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(fatias.filter(f => f.label !== 'CASH').length + ' ativos', cx, cy + 3);
+
+    // Legenda
+    const leg = document.getElementById('donut-legend');
+    if (leg) {
+      leg.innerHTML = fatias.map(f => {
+        const p = ((f.valor / total) * 100).toFixed(1);
+        return `<div class="leg-item">
+          <div class="leg-dot" style="background:${f.cor}"></div>
+          <span class="leg-label">${f.label}</span>
+          <span class="leg-pct">${p}%</span>
+        </div>`;
+      }).join('');
+    }
   }
 
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════
   //  POSIÇÕES
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════
   function renderPosicoes() {
     document.getElementById('pos-loading').style.display = 'none';
     const list = document.getElementById('pos-list');
@@ -663,9 +625,9 @@
     });
   }
 
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════
   //  HISTÓRICO
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════
   function renderHistorico() {
     document.getElementById('hist-loading').style.display = 'none';
     const list = document.getElementById('hist-list');
