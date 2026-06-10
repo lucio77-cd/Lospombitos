@@ -470,7 +470,7 @@
     if (primeiraOrdemNoPeriodo) {
       const keyBase = toKey(parseData(primeiraOrdemNoPeriodo.data));
       const idx = pontos.findIndex(p => p.key === keyBase);
-      if (idx > 0) idxBase = idx; // ponto ANTES da primeira ordem
+      if (idx > 0) idxBase = idx - 1; // ponto ANTES da primeira ordem
     }
 
     const valorBase = pontos[idxBase]?.valor || valores[0];
@@ -486,7 +486,7 @@
 
     // Nota dinâmica indicando a base da variação
     document.getElementById('chart-note').textContent =
-      `variação desde ${pontos[idxBase]?.label || '—'} · patrimônio total`;
+      `vs ${pontos[idxBase + 1]?.label || pontos[idxBase]?.label || '—'} · patrimônio total`;
 
     document.getElementById('chart-card').style.display = 'block';
     desenharGrafico(pontos.map(p => p.label), valores, isPos, idxBase);
@@ -702,4 +702,4 @@
   }
   </script>
 </body>
-  </html>
+</html>
