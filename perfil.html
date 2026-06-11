@@ -21,7 +21,6 @@
     .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
     .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink)}
     .btn-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
-
     .container{max-width:640px;margin:0 auto;padding:20px 16px}
 
     .hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;animation:fadeUp .3s ease}
@@ -59,14 +58,16 @@
     .perf-chart-wrap{height:90px;position:relative;margin-bottom:10px}
     canvas#perf-chart{width:100%;height:90px}
 
-    .ativo-rows{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--shore)}
-    .ativo-row{display:flex;align-items:center;gap:8px;cursor:pointer}
+    /* ── Barras de ativo — redesenhadas ── */
+    .ativo-rows{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--shore)}
+    .ativo-row{display:flex;align-items:center;gap:8px;cursor:pointer;padding:2px 0}
     .ar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
     .ar-ticker{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--wave);width:52px;flex-shrink:0}
-    .ar-bar-wrap{flex:1;height:4px;background:var(--shore);border-radius:2px;overflow:hidden}
-    .ar-bar{height:100%;border-radius:2px}
-    .ar-val{font-family:var(--mono);font-size:10px;font-weight:500;text-align:right;width:72px;flex-shrink:0}
-    .ar-val.pos{color:var(--green)}.ar-val.neg{color:var(--red)}
+    .ar-bar-track{flex:1;height:5px;background:var(--shore);border-radius:3px;overflow:hidden}
+    .ar-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+    .ar-val{font-family:var(--mono);font-size:10px;font-weight:500;text-align:right;width:76px;flex-shrink:0}
+    .ar-val.pos{color:var(--green)}.ar-val.neg{color:var(--red)}.ar-val.neu{color:var(--muted)}
+    .ar-no-cot{font-family:var(--mono);font-size:8px;color:var(--muted);flex:1;text-align:right}
 
     /* Posts */
     .post-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px;margin-bottom:8px;animation:fadeUp .3s ease}
@@ -77,8 +78,6 @@
     .post-data{font-family:var(--mono);font-size:9px;color:var(--muted)}
     .post-txt{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px}
     .post-likes{font-family:var(--mono);font-size:10px;color:var(--muted)}
-
-    /* Trade posts — mesma estrutura do feed.html */
     .trade-pill{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block;margin-left:auto}
     .trade-pill.c{background:#d4f5e2;color:var(--green)}.trade-pill.v{background:#ffd5ce;color:var(--red)}
     .trade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;background:var(--shore);border-radius:8px;overflow:hidden}
@@ -87,8 +86,6 @@
     .tg-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
     .trade-total-row{background:var(--sand);border-radius:8px;padding:8px 10px;margin-bottom:8px}
     .ticker-big{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave);margin-bottom:8px}
-
-    /* Posts vazios / erro */
     .sk-line{height:11px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
     .empty{text-align:center;padding:28px 20px;color:var(--muted);font-family:var(--mono);font-size:10px}
 
@@ -117,19 +114,10 @@
       </div>
     </div>
 
-    <div class="stats-row" id="stats-row">
-      <div class="stat-box">
-        <p class="stat-val" id="st-pat">···</p>
-        <p class="stat-lbl">PATRIMÔNIO</p>
-      </div>
-      <div class="stat-box">
-        <p class="stat-val" id="st-res">···</p>
-        <p class="stat-lbl">RESULTADO</p>
-      </div>
-      <div class="stat-box">
-        <p class="stat-val" id="st-atv">···</p>
-        <p class="stat-lbl">ATIVOS</p>
-      </div>
+    <div class="stats-row">
+      <div class="stat-box"><p class="stat-val" id="st-pat">···</p><p class="stat-lbl">PATRIMÔNIO</p></div>
+      <div class="stat-box"><p class="stat-val" id="st-res">···</p><p class="stat-lbl">RESULTADO</p></div>
+      <div class="stat-box"><p class="stat-val" id="st-atv">···</p><p class="stat-lbl">ATIVOS</p></div>
     </div>
 
     <p class="secao-lbl">ALOCAÇÃO</p>
@@ -143,7 +131,7 @@
       <div class="perf-top">
         <div>
           <p class="perf-resultado" id="perf-res">···</p>
-          <p class="perf-sub" id="perf-sub">desde o início · capital R$ 500k</p>
+          <p class="perf-sub">desde o início · capital R$ 500k</p>
         </div>
         <p class="perf-pct" id="perf-pct">···</p>
       </div>
@@ -174,35 +162,23 @@
   <script>
   'use strict';
 
-  const CAPITAL = 500000;
-  const CORES   = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
+  const CAPITAL  = 500000;
+  const CORES    = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
   const COR_DISP = '#d4c9b8';
 
-  // ── Formatadores ──
-  // Rk: arredonda para K com 1 casa — ex: R$503k, não R$504k
-  // Usa Math.floor para garantir que 503.808 → 503k (não 504k)
   const Rk = v => {
-    const neg = v < 0;
-    const a   = Math.abs(v);
-    let str;
-    if (a >= 1000) str = Math.floor(a / 1000) + 'k';  // FLOOR, não round
-    else str = a.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    const neg = v < 0, a = Math.abs(v);
+    const str = a >= 1000 ? Math.floor(a / 1000) + 'k' : a.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
     return (neg ? '-' : '') + 'R$ ' + str;
   };
   const RkSigned = v => (v >= 0 ? '+' : '') + Rk(v);
-
   const R$  = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
 
   let db, uid;
   let userData = {}, carteiraData = {};
   let posicoes = [], cotacoes = {};
-
-  // ── FIX 1: saldo e patrimônio VÊM DO FIRESTORE (carteiras doc) ──
-  // Nunca recalcula CAPITAL - totalPago, que ignora vendas.
-  let saldoDisp       = 0;  // direto do Firestore
-  let saldoInvestido  = 0;  // direto do Firestore
-  let patrimonioTotal = 0;  // direto do Firestore
+  let saldoDisp = 0, patrimonioTotal = 0;
 
   firebase.auth().onAuthStateChanged(async user => {
     if (!user) { location.href = 'invite.html'; return; }
@@ -212,21 +188,33 @@
   });
 
   async function carregar() {
-    const [uS, cS] = await Promise.all([
+    const [uS, cS, ordSnap] = await Promise.all([
       db.collection('usuarios').doc(uid).get(),
-      db.collection('carteiras').doc(uid).get()
+      db.collection('carteiras').doc(uid).get(),
+      db.collection('ordens').where('uid', '==', uid).get()
+        .catch(() => db.collection('ordens').where('uid', '==', uid).limit(200).get())
     ]);
 
     userData     = uS.data() || {};
     carteiraData = cS.exists ? cS.data() : {};
     posicoes     = carteiraData.posicoes || [];
 
-    // ── FIX 1: lê valores direto do Firestore ──
-    saldoDisp       = carteiraData.saldo_disponivel ?? userData.saldo_disponivel ?? CAPITAL;
-    saldoInvestido  = carteiraData.saldo_investido  ?? 0;
-    patrimonioTotal = carteiraData.patrimonio_total ?? userData.patrimonio_total ?? saldoDisp;
+    // ── Recalcula saldo pelas ordens válidas (igual ao carteira.html) ──
+    const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const ordensValidas = todasOrdens.filter(o => {
+      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+      return total > 0 && o.lado && o.status !== 'cancelada';
+    });
 
-    // Cotações para ativos que têm preço de mercado
+    let saldoRecalc = CAPITAL;
+    for (const o of ordensValidas) {
+      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+      if (o.lado === 'compra') saldoRecalc -= total;
+      if (o.lado === 'venda')  saldoRecalc += total;
+    }
+    saldoDisp = Math.max(0, saldoRecalc);
+
+    // ── Cotações ──
     const tks = posicoes
       .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
       .map(p => p.ticker);
@@ -236,7 +224,25 @@
         const d = await MercadoAPI.buscarMultiplos(tks);
         d.forEach(x => { if (x.preco > 0) cotacoes[x.ticker] = x.preco; });
       } catch (e) { console.warn('Cotações perfil:', e); }
+
+      // Individual fallback para os que faltaram
+      const faltam = tks.filter(t => !cotacoes[t]);
+      if (faltam.length) {
+        await Promise.allSettled(faltam.map(async ticker => {
+          try {
+            const d = await MercadoAPI.buscarAtivo(ticker);
+            if (d?.preco > 0) cotacoes[ticker] = d.preco;
+          } catch (_) {}
+        }));
+      }
     }
+
+    // Patrimônio com cotações reais
+    const valorAtivos = posicoes.reduce((s, p) => {
+      const pr = cotacoes[p.ticker] || p.preco_medio || 0;
+      return s + (p.quantidade || 0) * pr;
+    }, 0);
+    patrimonioTotal = saldoDisp + valorAtivos;
 
     renderHero();
     renderStats();
@@ -245,7 +251,6 @@
     renderPosts();
   }
 
-  // ── Cor do pombito ──
   function corPombito() {
     const m = {
       'azul':'#1a4fff','azul celeste':'#87ceeb','azul mar':'#006994',
@@ -258,18 +263,6 @@
     return m[(userData.cor || '').toLowerCase().trim()] || '#1a4fff';
   }
 
-  // ── Patrimônio com cotações atuais (para treemap e barras de ativo) ──
-  // Usa saldoDisp do Firestore + valor atual das posições com cotações
-  function calcPatrimonioAtual() {
-    const valorAtualPosicoes = posicoes.reduce((s, p) => {
-      const pa = cotacoes[p.ticker] || p.preco_medio || 0;
-      return s + (p.quantidade || 0) * pa;
-    }, 0);
-    // Patrimônio "visual" para treemap: saldo real + valor atual dos ativos
-    return saldoDisp + valorAtualPosicoes;
-  }
-
-  // ── HERO ──
   function renderHero() {
     const cor = corPombito();
     document.getElementById('avatar-el').style.background = cor;
@@ -284,18 +277,13 @@
     document.getElementById('badge-perfil').textContent = badges[userData.perfil_investidor || 'moderado'];
   }
 
-  // ── STATS ──
-  // FIX 1: usa patrimonioTotal do Firestore — idêntico ao que carteira.html exibe
   function renderStats() {
     const resultado = patrimonioTotal - CAPITAL;
     const isPos     = resultado >= 0;
-
     document.getElementById('st-pat').textContent = Rk(patrimonioTotal);
-
     const resEl = document.getElementById('st-res');
     resEl.textContent = RkSigned(resultado);
     resEl.className   = 'stat-val ' + (isPos ? 'pos' : 'neg');
-
     document.getElementById('st-atv').textContent = posicoes.length;
   }
 
@@ -304,25 +292,22 @@
     if (!posicoes.length && saldoDisp <= 0) return;
     document.getElementById('treemap-card').style.display = 'block';
 
-    const patrimonioVis = calcPatrimonioAtual();
-    if (patrimonioVis <= 0) return;
+    const total = patrimonioTotal;
+    if (total <= 0) return;
 
     const itens = posicoes.map((p, i) => {
       const pa  = cotacoes[p.ticker] || p.preco_medio || 0;
       const val = (p.quantidade || 0) * pa;
-      return { label: p.ticker, val, pct: val / patrimonioVis * 100, cor: CORES[i % CORES.length] };
+      return { label: p.ticker, val, pct: val / total * 100, cor: CORES[i % CORES.length] };
     });
-
-    if (saldoDisp > 0) {
-      itens.push({ label: 'DISPONÍVEL', val: saldoDisp, pct: saldoDisp / patrimonioVis * 100, cor: COR_DISP });
-    }
+    if (saldoDisp > 0) itens.push({ label: 'DISPONÍVEL', val: saldoDisp, pct: saldoDisp / total * 100, cor: COR_DISP });
     itens.sort((a, b) => b.val - a.val);
 
     const canvas = document.getElementById('treemap-canvas');
-    const dpr    = window.devicePixelRatio || 1;
-    const W      = canvas.parentElement.offsetWidth;
-    const H      = Math.round(W * 0.52);
-    canvas.width  = W * dpr; canvas.height = H * dpr;
+    const dpr = window.devicePixelRatio || 1;
+    const W   = canvas.parentElement.offsetWidth;
+    const H   = Math.round(W * 0.52);
+    canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
@@ -349,7 +334,7 @@
     let idx = 0;
     while (idx < itens.length) {
       const side = rw >= rh ? rh : rw;
-      const novo  = [...fila, itens[idx]];
+      const novo = [...fila, itens[idx]];
       if (!fila.length || worst(fila, side) >= worst(novo, side)) {
         fila = novo; idx++;
         if (idx === itens.length) flush();
@@ -360,7 +345,7 @@
       const fp = fila.reduce((s, f) => s + f.pct, 0);
       const hz = rw >= rh;
       const dim = hz ? (fp / total) * rw : (fp / total) * rh;
-      let cur   = hz ? ry : rx;
+      let cur = hz ? ry : rx;
       fila.forEach(it => {
         const sz = (it.pct / fp) * (hz ? rh : rw);
         desenharBloco(ctx, hz ? rx : cur, hz ? cur : ry, hz ? dim : sz, hz ? sz : dim, it);
@@ -390,8 +375,8 @@
     }
   }
 
-  // ── PERFORMANCE ──
-  // FIX 1: resultado usa patrimonioTotal do Firestore — igual à carteira
+  // ── DESEMPENHO ──
+  // FIX: ganho por ativo só usa cotação REAL — se não tem cotação, mostra "—" na barra
   function renderPerf() {
     if (!posicoes.length) return;
     document.getElementById('perf-card').style.display = 'block';
@@ -403,47 +388,77 @@
     const resEl = document.getElementById('perf-res');
     resEl.textContent = (isPos ? '+' : '') + R$(resultado);
     resEl.className   = 'perf-resultado ' + (isPos ? 'pos' : 'neg');
-
     const pctEl = document.getElementById('perf-pct');
     pctEl.textContent = pct(rentab);
     pctEl.className   = 'perf-pct ' + (isPos ? 'pos' : 'neg');
 
-    // Mini barras — ganho/perda por ativo (preço atual vs preço médio)
-    const ativoRows = document.getElementById('ativo-rows');
-    const porAtivo  = posicoes.map((p, i) => {
-      const pa    = cotacoes[p.ticker] || p.preco_medio || 0;
-      const va    = (p.quantidade || 0) * pa;
-      const vp    = (p.quantidade || 0) * (p.preco_medio || 0);
-      const ganho = va - vp;
-      return { ticker: p.ticker, ganho, cor: CORES[i % CORES.length], tipo: p.tipo || 'acoes' };
-    }).sort((a, b) => b.ganho - a.ganho);
+    // ── Barras por ativo: só com cotação real ──
+    const porAtivo = posicoes.map((p, i) => {
+      const cot  = cotacoes[p.ticker]; // undefined se não carregou
+      const pm   = p.preco_medio || 0;
+      const qtd  = p.quantidade  || 0;
+      const vp   = qtd * pm;
+      // ganho só calculado quando tem cotação real
+      const ganho     = cot ? qtd * cot - vp : null;
+      const ganhoAbs  = ganho !== null ? Math.abs(ganho) : 0;
+      return {
+        ticker: p.ticker, ganho, ganhoAbs,
+        cor: CORES[i % CORES.length],
+        tipo: p.tipo || 'acoes',
+        temCotacao: !!cot,
+      };
+    }).sort((a, b) => {
+      // Ordena: com cotação primeiro, depois por ganho decrescente
+      if (a.temCotacao && !b.temCotacao) return -1;
+      if (!a.temCotacao && b.temCotacao) return 1;
+      return (b.ganho || 0) - (a.ganho || 0);
+    });
 
-    const maxAbs = Math.max(...porAtivo.map(p => Math.abs(p.ganho)), 1);
+    // Máximo absoluto só entre os que têm cotação
+    const comCot = porAtivo.filter(p => p.temCotacao);
+    const maxAbs = comCot.length ? Math.max(...comCot.map(p => p.ganhoAbs), 1) : 1;
+
+    const ativoRows = document.getElementById('ativo-rows');
     ativoRows.innerHTML = '';
+
     porAtivo.forEach(p => {
-      const ip   = p.ganho >= 0;
-      const barW = (Math.abs(p.ganho) / maxAbs * 100).toFixed(0);
-      const row  = document.createElement('div'); row.className = 'ativo-row';
+      const row = document.createElement('div');
+      row.className = 'ativo-row';
       row.onclick = () => location.href = `relatorio.html?ticker=${p.ticker}&tipo=${p.tipo}`;
-      row.innerHTML = `
-        <div class="ar-dot" style="background:${p.cor}"></div>
-        <span class="ar-ticker">${p.ticker}</span>
-        <div class="ar-bar-wrap"><div class="ar-bar" style="width:${barW}%;background:${ip ? 'var(--green)' : 'var(--red)'}"></div></div>
-        <span class="ar-val ${ip ? 'pos' : 'neg'}">${ip ? '+' : ''}${Rk(p.ganho)}</span>`;
+
+      if (p.temCotacao && p.ganho !== null) {
+        const ip   = p.ganho >= 0;
+        const barW = (p.ganhoAbs / maxAbs * 100).toFixed(1);
+        row.innerHTML = `
+          <div class="ar-dot" style="background:${p.cor}"></div>
+          <span class="ar-ticker">${p.ticker}</span>
+          <div class="ar-bar-track">
+            <div class="ar-bar-fill" style="width:${barW}%;background:${ip ? 'var(--green)' : 'var(--red)'}"></div>
+          </div>
+          <span class="ar-val ${ip ? 'pos' : 'neg'}">${ip ? '+' : ''}${Rk(p.ganho)}</span>`;
+      } else {
+        // Sem cotação — mostra só o ticker e dash
+        row.innerHTML = `
+          <div class="ar-dot" style="background:${p.cor}"></div>
+          <span class="ar-ticker">${p.ticker}</span>
+          <div class="ar-bar-track"><div class="ar-bar-fill" style="width:0%"></div></div>
+          <span class="ar-val neu">—</span>`;
+      }
+
       ativoRows.appendChild(row);
     });
 
-    if (posicoes[0]) carregarGraficoPerfil(posicoes[0].ticker);
+    // Gráfico de histórico do ativo com maior posição
+    const principal = comCot.length ? comCot[0] : posicoes[0];
+    if (principal) carregarGraficoPerfil(principal.ticker, posicoes.find(p => p.ticker === principal.ticker)?.preco_medio || 0);
   }
 
-  async function carregarGraficoPerfil(ticker) {
+  async function carregarGraficoPerfil(ticker, pm) {
     try {
       const hist = await MercadoAPI.buscarHistorico(ticker, '3mo');
       if (!hist?.historico?.length) return;
-      const precos = hist.historico.map(h => h.preco);
-      const pm     = posicoes[0]?.preco_medio || precos[0];
-      desenharGraficoPerfil(precos, pm);
-    } catch (e) {}
+      desenharGraficoPerfil(hist.historico.map(h => h.preco), pm || hist.historico[0]?.preco);
+    } catch (e) { console.warn('Histórico perfil:', e); }
   }
 
   function desenharGraficoPerfil(precos, pm) {
@@ -458,7 +473,7 @@
 
     const pad = { t: 6, r: 6, b: 6, l: 6 };
     const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
-    const allV = [...precos, pm];
+    const allV = [...precos, pm].filter(Boolean);
     const minV = Math.min(...allV) * 0.997, maxV = Math.max(...allV) * 1.003;
     const rng  = maxV - minV || 1;
     const xOf  = i => pad.l + (i / (precos.length - 1)) * cw;
@@ -468,8 +483,9 @@
 
     const isPos = precos[precos.length - 1] >= precos[0];
     const grad  = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-    grad.addColorStop(0, isPos ? 'rgba(26,138,74,.2)'  : 'rgba(204,34,0,.2)');
+    grad.addColorStop(0, isPos ? 'rgba(26,138,74,.2)' : 'rgba(204,34,0,.2)');
     grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
+
     ctx.beginPath();
     ctx.moveTo(xOf(0), yOf(precos[0]));
     precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
@@ -484,14 +500,15 @@
     precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
     ctx.stroke();
 
-    const yPM = yOf(pm);
-    ctx.save(); ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = '#cc2200'; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = '#cc2200'; ctx.font = '8px DM Mono,monospace';
-    ctx.textAlign = 'left'; ctx.fillText('PM', pad.l + 4, yPM - 3);
+    if (pm && pm >= minV && pm <= maxV) {
+      const yPM = yOf(pm);
+      ctx.save(); ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#cc2200'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#cc2200'; ctx.font = '8px DM Mono,monospace';
+      ctx.textAlign = 'left'; ctx.fillText('PM', pad.l + 4, yPM - 3);
+    }
 
     const lx = xOf(precos.length - 1), ly = yOf(precos[precos.length - 1]);
     ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
@@ -500,8 +517,7 @@
   }
 
   // ── POSTS ──
-  // FIX 2: lê campos diretos do post (ticker, lado, quantidade, preco, total)
-  // porque ordem.html salva assim — sem objeto aninhado p.trade
+  // FIX: posts com preco=0 ou total=0 são PULADOS (não renderizados)
   async function renderPosts() {
     const listEl = document.getElementById('posts-list');
     try {
@@ -513,19 +529,29 @@
           .limit(30)
           .get();
       } catch (e) {
-        // Fallback sem orderBy se índice não existe
         snap = await db.collection('posts').where('uid', '==', uid).limit(30).get();
-      }
-
-      if (snap.empty) {
-        listEl.innerHTML = '<div class="empty">📭 Nenhum post ainda.</div>';
-        return;
       }
 
       const posts = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.data_post?.seconds || b.criadoEm?.seconds || 0)
-                      - (a.data_post?.seconds || a.criadoEm?.seconds || 0));
+        .filter(p => {
+          // FIX: filtra posts de trade inválidos (preco=0 ou total=0)
+          if (p.tipo === 'trade') {
+            const preco = p.preco ?? p.trade?.preco ?? 0;
+            const total = p.total ?? p.trade?.total ?? 0;
+            return preco > 0 && total > 0;
+          }
+          return true; // posts de texto sempre mostram
+        })
+        .sort((a, b) =>
+          (b.data_post?.seconds || b.criadoEm?.seconds || 0) -
+          (a.data_post?.seconds || a.criadoEm?.seconds || 0)
+        );
+
+      if (!posts.length) {
+        listEl.innerHTML = '<div class="empty">📭 Nenhum post ainda.</div>';
+        return;
+      }
 
       listEl.innerHTML = '';
       const avBg = corPombito();
@@ -533,7 +559,6 @@
         || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
 
       posts.forEach(p => {
-        // Timestamp compatível com ambos os campos
         const ts   = p.data_post || p.criadoEm;
         const data = ts?.toDate
           ? ts.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
@@ -544,18 +569,13 @@
         const card = document.createElement('div');
         card.className = 'post-card';
 
-        // ── FIX 2: trade post com estrutura FLAT (como salvo em ordem.html) ──
         if (p.tipo === 'trade') {
-          // Tenta estrutura flat (nova) e aninhada (legado) como fallback
           const ticker = p.ticker   || p.trade?.ticker   || '—';
           const lado   = p.lado     || p.trade?.lado     || 'compra';
           const qtd    = p.quantidade ?? p.trade?.quantidade ?? 0;
           const preco  = p.preco    ?? p.trade?.preco    ?? 0;
           const total  = p.total    ?? p.trade?.total    ?? 0;
-
-          // Posts com preco=0 são inválidos — mostra aviso em vez de esconder
-          const isValido = preco > 0 && total > 0;
-          const isC      = lado === 'compra';
+          const isC    = lado === 'compra';
 
           card.innerHTML = `
             <div class="post-hdr">
@@ -571,22 +591,14 @@
               </span>
             </div>
             <p class="ticker-big">${ticker}</p>
-            ${isValido ? `
-              <div class="trade-grid">
-                <div class="tc"><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${qtd}</p></div>
-                <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toFixed(2)}</p></div>
-                <div class="tc"><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(total)}</p></div>
-              </div>
-            ` : `
-              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px">
-                ⚠️ cotação não disponível no momento da ordem
-              </p>
-            `}
+            <div class="trade-grid">
+              <div class="tc"><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${qtd}</p></div>
+              <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toFixed(2)}</p></div>
+              <div class="tc"><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(total)}</p></div>
+            </div>
             ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${p.texto}</p>` : ''}
             <p class="post-likes">❤️ ${p.likes || 0}</p>`;
-
         } else {
-          // Post de texto normal
           card.innerHTML = `
             <div class="post-hdr">
               <div class="post-av" style="background:${avBg}">
