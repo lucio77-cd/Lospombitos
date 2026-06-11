@@ -168,7 +168,10 @@
 
   const Rk = v => {
     const neg = v < 0, a = Math.abs(v);
-    const str = a >= 1000 ? Math.floor(a / 1000) + 'k' : a.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    let str;
+    if (a >= 10000)     str = Math.floor(a / 1000) + 'k';           // ≥10k → "34k"
+    else if (a >= 1000) str = (a / 1000).toFixed(1) + 'k';          // 1k–9.9k → "2.6k"
+    else                str = a.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     return (neg ? '-' : '') + 'R$ ' + str;
   };
   const RkSigned = v => (v >= 0 ? '+' : '') + Rk(v);
