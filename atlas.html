@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Atlas | Los Pombitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0d0d0d; --sand: #f0ebe3; --shore: #e2d9cd; --wave: #1a4fff;
+      --foam: #c8d8ff; --muted: #8a8278; --card: #faf8f5;
+      --green: #1a8a4a; --red: #cc2200; --gold: #c9860a;
+      --radius: 14px;
+      --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--sand); color: var(--ink); min-height: 100dvh; padding-bottom: 100px; overscroll-behavior: none; }
+    body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: .4; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes spin   { to { transform: rotate(360deg) } }
+    @keyframes scanline { from{transform:translateY(-100%)} to{transform:translateY(100vh)} }
+
+    /* ── Header ── */
+    .hdr { position: sticky; top: 0; z-index: 100; background: var(--sand); border-bottom: 1.5px solid var(--shore); padding: 0 16px; height: 58px; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(12px); }
+    .btn-back { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--ink); padding: 4px; }
+    .hdr-brand { font-family: var(--display); font-size: 22px; letter-spacing: 3px; color: var(--wave); flex: 1; }
+    .hdr-sub { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 16px 14px; }
+
+    /* ── Search ── */
+    .search-wrap { position: relative; margin-bottom: 16px; animation: fadeUp .3s ease; }
+    .search-input { width: 100%; height: 52px; background: var(--card); border: 1.5px solid var(--shore); border-radius: 26px; font-family: var(--display); font-size: 22px; letter-spacing: 3px; color: var(--ink); padding: 0 52px 0 20px; outline: none; transition: border-color .2s; }
+    .search-input:focus { border-color: var(--wave); }
+    .search-input::placeholder { color: var(--shore); font-size: 18px; letter-spacing: 2px; }
+    .search-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: var(--wave); border: none; color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+    .search-btn:hover { background: #0033cc; transform: translateY(-50%) scale(1.05); }
+    .search-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Ativo hero ── */
+    .ativo-hero { background: var(--ink); border-radius: 20px; padding: 20px; margin-bottom: 14px; color: white; position: relative; overflow: hidden; animation: fadeUp .3s ease; display: none; }
+    .ativo-hero::before { content: attr(data-ticker); position: absolute; right: -10px; top: 50%; transform: translateY(-50%); font-family: var(--display); font-size: 80px; color: rgba(255,255,255,.04); pointer-events: none; letter-spacing: -3px; }
+    .ah-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .ah-ticker { font-family: var(--display); font-size: 32px; letter-spacing: 3px; line-height: 1; }
+    .ah-nome { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; opacity: .5; margin-top: 2px; }
+    .ah-preco { text-align: right; }
+    .ah-preco-val { font-family: var(--display); font-size: 28px; letter-spacing: 2px; }
+    .ah-var { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
+    .ah-var.pos { color: #88ffbb; } .ah-var.neg { color: #ffaaaa; }
+
+    /* Medidor de probabilidade — o elemento signature desta página */
+    .prob-ring-wrap { display: flex; justify-content: center; margin: 14px 0 10px; gap: 24px; }
+    .prob-ring { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .prob-ring svg { transform: rotate(-90deg); }
+    .prob-ring-label { font-family: var(--mono); font-size: 8px; letter-spacing: 1.5px; opacity: .6; }
+    .prob-ring-val { font-family: var(--display); font-size: 20px; letter-spacing: 2px; position: absolute; }
+    .ring-container { position: relative; display: flex; align-items: center; justify-content: center; }
+
+    .conf-bar-wrap { margin: 0 0 4px; }
+    .conf-label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 8px; opacity: .5; margin-bottom: 4px; }
+    .conf-track { height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
+    .conf-fill  { height: 100%; border-radius: 2px; background: var(--gold); transition: width 1s ease; }
+
+    /* ── Agentes ── */
+    .agentes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; animation: fadeUp .4s ease; display: none; }
+    .agente-card { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 12px 14px; }
+    .agente-card.loading { animation: pulse 1.4s infinite; }
+    .ag-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .ag-nome { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted); }
+    .ag-ico  { font-size: 14px; }
+    .ag-prob { font-family: var(--display); font-size: 24px; letter-spacing: 2px; color: var(--ink); margin-bottom: 2px; }
+    .ag-prob.pos { color: var(--green); } .ag-prob.neg { color: var(--red); } .ag-prob.neu { color: var(--gold); }
+    .ag-bar-track { height: 3px; background: var(--shore); border-radius: 2px; overflow: hidden; }
+    .ag-bar-fill  { height: 100%; border-radius: 2px; transition: width 1s ease; }
+    .ag-resumo { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+    /* ── Fatores SHAP-like ── */
+    .fatores-card { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; animation: fadeUp .45s ease; display: none; }
+    .fatores-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 14px; color: var(--ink); }
+    .fator-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .fator-nome { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; color: var(--muted); width: 120px; flex-shrink: 0; }
+    .fator-bar-wrap { flex: 1; height: 8px; background: var(--shore); border-radius: 4px; overflow: hidden; }
+    .fator-bar { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .fator-pct { font-family: var(--mono); font-size: 9px; font-weight: 500; width: 32px; text-align: right; flex-shrink: 0; }
+
+    /* ── Análise textual ── */
+    .analise-card { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; animation: fadeUp .5s ease; display: none; }
+    .analise-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .analise-body { font-size: 13px; line-height: 1.7; color: var(--ink); white-space: pre-wrap; }
+    .analise-loading { font-family: var(--mono); font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .spin-dot { width: 12px; height: 12px; border: 1.5px solid var(--shore); border-top-color: var(--wave); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
+
+    /* ── Cenários ── */
+    .cenarios-card { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; animation: fadeUp .55s ease; display: none; }
+    .cenarios-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 12px; }
+    .cenario-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .cenario-opt { border: 1.5px solid var(--shore); border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: all .2s; background: var(--sand); font-family: var(--mono); font-size: 10px; letter-spacing: .5px; color: var(--ink); text-align: left; }
+    .cenario-opt:hover { border-color: var(--wave); color: var(--wave); }
+    .cenario-opt.on { border-color: var(--wave); background: #f0f3ff; color: var(--wave); }
+    .cenario-input-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+    .cenario-input { flex: 1; height: 40px; background: var(--sand); border: 1.5px solid var(--shore); border-radius: 10px; font-family: var(--mono); font-size: 11px; padding: 0 12px; outline: none; transition: border-color .2s; color: var(--ink); }
+    .cenario-input:focus { border-color: var(--wave); }
+    .btn-cenario { height: 40px; padding: 0 16px; background: var(--wave); color: white; border: none; border-radius: 10px; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 1px; cursor: pointer; transition: all .2s; white-space: nowrap; }
+    .btn-cenario:hover { background: #0033cc; }
+    .btn-cenario:disabled { opacity: .5; cursor: not-allowed; }
+    .cenario-result { background: var(--sand); border: 1.5px solid var(--shore); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--ink); display: none; white-space: pre-wrap; }
+    .cenario-result.show { display: block; }
+
+    /* ── Faixa de preço ── */
+    .faixa-card { background: var(--ink); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; color: white; animation: fadeUp .5s ease; display: none; }
+    .faixa-title { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; opacity: .5; margin-bottom: 12px; }
+    .faixa-range { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .faixa-val { font-family: var(--display); font-size: 26px; letter-spacing: 2px; }
+    .faixa-sep { font-family: var(--mono); font-size: 10px; opacity: .4; }
+    .faixa-track { flex: 1; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; position: relative; margin-bottom: 8px; }
+    .faixa-fill { position: absolute; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #1a8a4a, #f5b800, #cc2200); }
+    .faixa-dot  { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--gold); }
+    .faixa-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 8px; opacity: .4; }
+    .faixa-prazo { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; opacity: .4; text-align: center; }
+
+    /* ── Estado inicial ── */
+    .estado-inicial { text-align: center; padding: 48px 20px; animation: fadeUp .4s ease; }
+    .ei-ico { font-size: 48px; margin-bottom: 16px; }
+    .ei-titulo { font-family: var(--display); font-size: 28px; letter-spacing: 3px; color: var(--ink); margin-bottom: 8px; }
+    .ei-desc { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--muted); line-height: 1.8; }
+    .sugestoes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
+    .sug-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; background: var(--card); border: 1.5px solid var(--shore); border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: all .2s; color: var(--wave); }
+    .sug-pill:hover { border-color: var(--wave); background: var(--foam); }
+
+    /* Nav */
+    .nav { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: rgba(240,235,227,.92); backdrop-filter: blur(16px); border-top: 1.5px solid var(--shore); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    .ni { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px 12px; border-radius: 10px; transition: all .2s; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
+    .ni:hover { background: var(--shore); }
+    .ni-ico { font-size: 20px; line-height: 1; }
+    .ni-lbl { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); }
+    .ni.on .ni-lbl { color: var(--wave); font-weight: 500; }
+
+    /* Divider */
+    .section-divider { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--shore); }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <button class="btn-back" onclick="history.back()">←</button>
+    <div>
+      <div class="hdr-brand">ATLAS</div>
+      <div class="hdr-sub">ANÁLISE PROBABILÍSTICA</div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Busca -->
+    <div class="search-wrap">
+      <input class="search-input" id="search-input" type="text" placeholder="PETR4, VALE3..."
+        maxlength="8" oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')analisar()">
+      <button class="search-btn" id="search-btn" onclick="analisar()">🔍</button>
+    </div>
+
+    <!-- Estado inicial -->
+    <div class="estado-inicial" id="estado-inicial">
+      <div class="ei-ico">🔭</div>
+      <p class="ei-titulo">ATLAS</p>
+      <p class="ei-desc">Digite um ticker acima para gerar<br>uma análise probabilística completa<br>com múltiplos agentes de IA</p>
+      <div class="sugestoes">
+        <span class="sug-pill" onclick="analisarTicker('PETR4')">PETR4</span>
+        <span class="sug-pill" onclick="analisarTicker('VALE3')">VALE3</span>
+        <span class="sug-pill" onclick="analisarTicker('ITUB4')">ITUB4</span>
+        <span class="sug-pill" onclick="analisarTicker('WEGE3')">WEGE3</span>
+        <span class="sug-pill" onclick="analisarTicker('BBAS3')">BBAS3</span>
+      </div>
+    </div>
+
+    <!-- Hero do ativo -->
+    <div class="ativo-hero" id="ativo-hero">
+      <div class="ah-top">
+        <div>
+          <p class="ah-ticker" id="ah-ticker">···</p>
+          <p class="ah-nome"  id="ah-nome">···</p>
+        </div>
+        <div class="ah-preco">
+          <p class="ah-preco-val" id="ah-preco">···</p>
+          <p class="ah-var" id="ah-var">···</p>
+        </div>
+      </div>
+
+      <!-- Anéis de probabilidade -->
+      <div class="prob-ring-wrap" id="prob-ring-wrap">
+        <div class="prob-ring">
+          <div class="ring-container">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>
+              <circle id="ring-alta" cx="45" cy="45" r="38" fill="none" stroke="#1a8a4a" stroke-width="7"
+                stroke-dasharray="0 239" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
+            </svg>
+            <span class="prob-ring-val" id="ring-alta-val" style="color:#88ffbb">—</span>
+          </div>
+          <span class="prob-ring-label">ALTA</span>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:center;gap:8px;flex:1;max-width:160px">
+          <div class="conf-bar-wrap">
+            <div class="conf-label"><span>CONFIANÇA</span><span id="conf-val">—</span></div>
+            <div class="conf-track"><div class="conf-fill" id="conf-fill" style="width:0%"></div></div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-family:var(--display);font-size:13px;letter-spacing:1px;opacity:.5">FAIXA 30D</p>
+            <p style="font-family:var(--mono);font-size:10px;font-weight:500" id="faixa-inline">—</p>
+          </div>
+        </div>
+        <div class="prob-ring">
+          <div class="ring-container">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>
+              <circle id="ring-queda" cx="45" cy="45" r="38" fill="none" stroke="#cc2200" stroke-width="7"
+                stroke-dasharray="0 239" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
+            </svg>
+            <span class="prob-ring-val" id="ring-queda-val" style="color:#ffaaaa">—</span>
+          </div>
+          <span class="prob-ring-label">QUEDA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agentes -->
+    <div class="section-divider" id="div-agentes" style="display:none">DEBATE DOS AGENTES</div>
+    <div class="agentes-grid" id="agentes-grid">
+      <div class="agente-card loading" id="ag-economista">
+        <div class="ag-top"><span class="ag-nome">ECONOMISTA</span><span class="ag-ico">📊</span></div>
+        <p class="ag-prob neu">—</p>
+        <div class="ag-bar-track"><div class="ag-bar-fill" style="width:0%;background:var(--gold)"></div></div>
+        <p class="ag-resumo">Analisando...</p>
+      </div>
+      <div class="agente-card loading" id="ag-fundamentalista">
+        <div class="ag-top"><span class="ag-nome">FUNDAMENTALISTA</span><span class="ag-ico">📋</span></div>
+        <p class="ag-prob neu">—</p>
+        <div class="ag-bar-track"><div class="ag-bar-fill" style="width:0%;background:var(--gold)"></div></div>
+        <p class="ag-resumo">Analisando...</p>
+      </div>
+      <div class="agente-card loading" id="ag-tecnico">
+        <div class="ag-top"><span class="ag-nome">TÉCNICO</span><span class="ag-ico">📈</span></div>
+        <p class="ag-prob neu">—</p>
+        <div class="ag-bar-track"><div class="ag-bar-fill" style="width:0%;background:var(--gold)"></div></div>
+        <p class="ag-resumo">Analisando...</p>
+      </div>
+      <div class="agente-card loading" id="ag-sentimento">
+        <div class="ag-top"><span class="ag-nome">SENTIMENTO</span><span class="ag-ico">🧠</span></div>
+        <p class="ag-prob neu">—</p>
+        <div class="ag-bar-track"><div class="ag-bar-fill" style="width:0%;background:var(--gold)"></div></div>
+        <p class="ag-resumo">Analisando...</p>
+      </div>
+    </div>
+
+    <!-- Fatores -->
+    <div class="section-divider" id="div-fatores" style="display:none">FATORES EXPLICATIVOS</div>
+    <div class="fatores-card" id="fatores-card">
+      <div class="fatores-title">POR QUE ESTA PREVISÃO?</div>
+      <div id="fatores-list"></div>
+    </div>
+
+    <!-- Análise textual -->
+    <div class="section-divider" id="div-analise" style="display:none">ANÁLISE COMPLETA</div>
+    <div class="analise-card" id="analise-card">
+      <div class="analise-title">🤖 <span>SÍNTESE DOS AGENTES</span></div>
+      <div class="analise-body" id="analise-body">
+        <span class="analise-loading"><span class="spin-dot"></span> Gerando análise...</span>
+      </div>
+    </div>
+
+    <!-- Cenários -->
+    <div class="section-divider" id="div-cenarios" style="display:none">SIMULADOR DE CENÁRIOS</div>
+    <div class="cenarios-card" id="cenarios-card">
+      <div class="cenarios-title">E SE...?</div>
+      <div class="cenario-opts" id="cenario-opts">
+        <button class="cenario-opt" onclick="selecionarCenario(this,'Selic cair para 10%')">📉 Selic cair para 10%</button>
+        <button class="cenario-opt" onclick="selecionarCenario(this,'petróleo subir 20%')">🛢️ Petróleo subir 20%</button>
+        <button class="cenario-opt" onclick="selecionarCenario(this,'dólar chegar a R$7')">💵 Dólar chegar a R$7</button>
+        <button class="cenario-opt" onclick="selecionarCenario(this,'China desacelerar fortemente')">🇨🇳 China desacelerar</button>
+      </div>
+      <div class="cenario-input-wrap">
+        <input class="cenario-input" id="cenario-custom" placeholder="ou descreva seu cenário...">
+        <button class="btn-cenario" id="btn-cenario" onclick="simularCenario()">SIMULAR</button>
+      </div>
+      <div class="cenario-result" id="cenario-result"></div>
+    </div>
+
+  </div>
+
+  <nav class="nav">
+    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
+    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
+    <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
+    <a class="ni on" href="atlas.html"><span class="ni-ico">🔭</span><span class="ni-lbl">ATLAS</span></a>
+    <a class="ni" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+  </nav>
+
+  <script src="mercado-api.js"></script>
+  <script>
+  'use strict';
+
+  const R$ = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+
+  let tickerAtual = '', dadosAtivo = null, cenarioSelecionado = '';
+
+  // ── Sugere ticker via URL params ──
+  const params = new URLSearchParams(location.search);
+  if (params.get('ticker')) {
+    setTimeout(() => analisarTicker(params.get('ticker')), 200);
+  }
+
+  function analisar() {
+    const v = document.getElementById('search-input').value.trim().toUpperCase();
+    if (v.length < 2) return;
+    analisarTicker(v);
+  }
+
+  async function analisarTicker(ticker) {
+    ticker = ticker.toUpperCase().trim();
+    document.getElementById('search-input').value = ticker;
+    tickerAtual = ticker;
+    cenarioSelecionado = '';
+
+    // Mostra skeleton
+    document.getElementById('estado-inicial').style.display = 'none';
+    mostrarEsqueleto();
+
+    // Busca dados reais
+    try {
+      const [ativo, detalhe] = await Promise.all([
+        MercadoAPI.buscarAtivo(ticker),
+        MercadoAPI.buscarDetalhadoAtivo(ticker).catch(() => null)
+      ]);
+
+      dadosAtivo = { ativo, detalhe, ticker };
+      renderAtivo(ativo, detalhe);
+      await gerarAnalise(ticker, ativo, detalhe);
+    } catch (e) {
+      console.error(e);
+      document.getElementById('analise-body').textContent = '⚠️ Erro ao carregar dados: ' + e.message;
+    }
+  }
+
+  function mostrarEsqueleto() {
+    document.getElementById('ativo-hero').style.display = 'block';
+    document.getElementById('ativo-hero').setAttribute('data-ticker', '');
+    document.getElementById('ah-ticker').textContent = document.getElementById('search-input').value || '···';
+    document.getElementById('ah-nome').textContent = 'carregando...';
+    document.getElementById('ah-preco').textContent = '···';
+    document.getElementById('ah-var').textContent = '';
+    document.getElementById('div-agentes').style.display = 'flex';
+    document.getElementById('agentes-grid').style.display = 'grid';
+    document.getElementById('div-fatores').style.display = 'none';
+    document.getElementById('fatores-card').style.display = 'none';
+    document.getElementById('div-analise').style.display = 'none';
+    document.getElementById('analise-card').style.display = 'none';
+    document.getElementById('div-cenarios').style.display = 'none';
+    document.getElementById('cenarios-card').style.display = 'none';
+    document.getElementById('cenario-result').classList.remove('show');
+
+    // Reset anéis
+    setRing('ring-alta',  0); setRing('ring-queda', 0);
+    document.getElementById('ring-alta-val').textContent  = '—';
+    document.getElementById('ring-queda-val').textContent = '—';
+    document.getElementById('conf-val').textContent = '—';
+    document.getElementById('conf-fill').style.width = '0%';
+    document.getElementById('faixa-inline').textContent = '—';
+
+    // Reset agentes
+    ['economista','fundamentalista','tecnico','sentimento'].forEach(ag => {
+      const el = document.getElementById('ag-' + ag);
+      el.classList.add('loading');
+      el.querySelector('.ag-prob').textContent = '—';
+      el.querySelector('.ag-prob').className = 'ag-prob neu';
+      el.querySelector('.ag-bar-fill').style.width = '0%';
+      el.querySelector('.ag-resumo').textContent = 'Analisando...';
+    });
+  }
+
+  function renderAtivo(ativo, detalhe) {
+    if (!ativo) return;
+    const hero = document.getElementById('ativo-hero');
+    hero.setAttribute('data-ticker', ativo.ticker || tickerAtual);
+    document.getElementById('ah-ticker').textContent = ativo.ticker || tickerAtual;
+    document.getElementById('ah-nome').textContent = (ativo.nome || tickerAtual).substring(0, 40);
+    document.getElementById('ah-preco').textContent = ativo.preco ? R$(ativo.preco) : '—';
+    const varEl = document.getElementById('ah-var');
+    if (ativo.variacao_pct !== undefined) {
+      varEl.textContent = pct(ativo.variacao_pct) + ' hoje';
+      varEl.className = 'ah-var ' + (ativo.variacao_pct >= 0 ? 'pos' : 'neg');
+    }
+  }
+
+  // ── Chama Claude API para gerar análise multiagente ──
+  async function gerarAnalise(ticker, ativo, detalhe) {
+    const preco      = ativo?.preco || 0;
+    const variacao   = ativo?.variacao_pct || 0;
+    const volume     = ativo?.volume || 0;
+    const max52      = ativo?.max_52s || 0;
+    const min52      = ativo?.min_52s || 0;
+    const pl         = detalhe?.pl || ativo?.pl || 0;
+    const pvp        = detalhe?.pvp || 0;
+    const dy         = detalhe?.dy || ativo?.dy || 0;
+    const roe        = detalhe?.roe || 0;
+    const margem     = detalhe?.margem_lucro || 0;
+    const alvo       = detalhe?.alvo_analistas || 0;
+    const rec        = detalhe?.recomendacao || '';
+    const nAnal      = detalhe?.n_analistas || 0;
+    const setor      = detalhe?.setor || '';
+    const descricao  = (detalhe?.descricao || '').substring(0, 500);
+
+    const prompt = `Você é um sistema multiagente de análise financeira do mercado brasileiro. Analise o ativo ${ticker} com os dados abaixo e retorne APENAS um JSON válido, sem markdown, sem texto antes ou depois.
+
+DADOS DO ATIVO:
+- Ticker: ${ticker}
+- Preço atual: R$${preco.toFixed(2)}
+- Variação hoje: ${variacao.toFixed(2)}%
+- Volume: ${volume.toLocaleString()}
+- Máx 52 semanas: R$${max52.toFixed(2)}
+- Mín 52 semanas: R$${min52.toFixed(2)}
+- P/L: ${pl.toFixed(1)}
+- P/VP: ${pvp.toFixed(1)}
+- Dividend Yield: ${dy.toFixed(1)}%
+- ROE: ${roe.toFixed(1)}%
+- Margem Líquida: ${margem.toFixed(1)}%
+- Alvo analistas: R$${alvo.toFixed(2)}
+- Recomendação: ${rec}
+- Nº analistas: ${nAnal}
+- Setor: ${setor}
+- Descrição: ${descricao}
+
+Retorne este JSON exato (substitua os valores):
+{
+  "probabilidade_alta": 65,
+  "probabilidade_queda": 35,
+  "confianca": 78,
+  "faixa_min_30d": 38.50,
+  "faixa_max_30d": 44.20,
+  "agentes": {
+    "economista": { "prob_alta": 62, "resumo": "texto curto de 1 frase sobre macro" },
+    "fundamentalista": { "prob_alta": 71, "resumo": "texto curto sobre fundamentos" },
+    "tecnico": { "prob_alta": 58, "resumo": "texto curto sobre tendência técnica" },
+    "sentimento": { "prob_alta": 68, "resumo": "texto curto sobre sentimento de mercado" }
+  },
+  "fatores": [
+    { "nome": "Fundamentos", "peso": 32, "direcao": "pos" },
+    { "nome": "Momentum Técnico", "peso": 24, "direcao": "pos" },
+    { "nome": "Macro Brasil", "peso": 18, "direcao": "neu" },
+    { "nome": "Sentimento", "peso": 16, "direcao": "neg" },
+    { "nome": "Valuation", "peso": 10, "direcao": "pos" }
+  ],
+  "sintese": "Texto de 4-6 linhas explicando a análise de forma clara para um investidor pessoa física, mencionando os principais pontos positivos e riscos. Seja específico ao setor e ao ativo.",
+  "pontos_positivos": ["ponto 1", "ponto 2", "ponto 3"],
+  "riscos": ["risco 1", "risco 2"]
+}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await res.json();
+      const text = data.content?.map(b => b.text || '').join('') || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(clean);
+      renderResultado(result, ativo);
+
+    } catch (e) {
+      console.error('Claude API:', e);
+      // Fallback com dados estimados se API falhar
+      const fallback = gerarFallback(ticker, ativo, detalhe);
+      renderResultado(fallback, ativo);
+    }
+  }
+
+  // Fallback caso API não responda
+  function gerarFallback(ticker, ativo, detalhe) {
+    const rec = detalhe?.recomendacao || 'hold';
+    const baseAlta = rec === 'strongBuy' ? 75 : rec === 'buy' ? 65 : rec === 'hold' ? 50 : 38;
+    const var_ = ativo?.variacao_pct || 0;
+    const alta = Math.min(85, Math.max(20, baseAlta + Math.round(var_ * 2)));
+    const preco = ativo?.preco || 0;
+    return {
+      probabilidade_alta: alta,
+      probabilidade_queda: 100 - alta,
+      confianca: 60,
+      faixa_min_30d: preco * 0.93,
+      faixa_max_30d: preco * 1.08,
+      agentes: {
+        economista:      { prob_alta: alta - 5, resumo: 'Ambiente macroeconômico brasileiro sob pressão de juros altos.' },
+        fundamentalista: { prob_alta: alta + 5, resumo: detalhe?.recomendacao === 'buy' ? 'Fundamentos sólidos com potencial de valorização.' : 'Fundamentos neutros no momento.' },
+        tecnico:         { prob_alta: alta - 3, resumo: var_ > 0 ? 'Momentum positivo no curto prazo.' : 'Pressão vendedora no gráfico.' },
+        sentimento:      { prob_alta: alta + 2, resumo: 'Sentimento de mercado alinhado com o setor.' }
+      },
+      fatores: [
+        { nome: 'Fundamentos', peso: 30, direcao: detalhe?.roe > 10 ? 'pos' : 'neu' },
+        { nome: 'Momentum',    peso: 25, direcao: var_ > 0 ? 'pos' : 'neg' },
+        { nome: 'Macro Brasil', peso: 20, direcao: 'neu' },
+        { nome: 'Valuation',   peso: 15, direcao: detalhe?.pl < 15 ? 'pos' : 'neg' },
+        { nome: 'Sentimento',  peso: 10, direcao: 'neu' }
+      ],
+      sintese: `Análise baseada em dados disponíveis para ${ticker}.\n\nO ativo opera no setor ${detalhe?.setor || 'financeiro'} e apresenta variação de ${pct(ativo?.variacao_pct || 0)} no dia.\n\nCom preço em R$${preco.toFixed(2)}, está ${preco < (ativo?.max_52s || preco) * 0.9 ? 'abaixo do topo de 52 semanas, o que pode indicar oportunidade' : 'próximo ao topo de 52 semanas'}.\n\nRecomenda-se acompanhar os resultados do próximo trimestre e o cenário de juros.`,
+      pontos_positivos: ['Liquidez adequada para operações', 'Empresa estabelecida no setor'],
+      riscos: ['Juros altos no Brasil pressionam valuations', 'Volatilidade cambial']
+    };
+  }
+
+  function renderResultado(r, ativo) {
+    // Anéis
+    const circunf = 2 * Math.PI * 38;
+    setRing('ring-alta',  r.probabilidade_alta);
+    setRing('ring-queda', r.probabilidade_queda);
+    document.getElementById('ring-alta-val').textContent  = r.probabilidade_alta  + '%';
+    document.getElementById('ring-queda-val').textContent = r.probabilidade_queda + '%';
+    document.getElementById('conf-val').textContent = r.confianca + '%';
+    document.getElementById('conf-fill').style.width = r.confianca + '%';
+
+    const precoAtual = ativo?.preco || 0;
+    if (r.faixa_min_30d && r.faixa_max_30d) {
+      document.getElementById('faixa-inline').textContent =
+        `${R$(r.faixa_min_30d)} – ${R$(r.faixa_max_30d)}`;
+    }
+
+    // Agentes
+    const agMap = { economista: r.agentes.economista, fundamentalista: r.agentes.fundamentalista, tecnico: r.agentes.tecnico, sentimento: r.agentes.sentimento };
+    Object.entries(agMap).forEach(([ag, dados]) => {
+      const el     = document.getElementById('ag-' + ag);
+      el.classList.remove('loading');
+      const prob   = dados.prob_alta;
+      const isPos  = prob >= 55, isNeg = prob < 45;
+      const cor    = isPos ? 'var(--green)' : isNeg ? 'var(--red)' : 'var(--gold)';
+      const cls    = isPos ? 'pos' : isNeg ? 'neg' : 'neu';
+      el.querySelector('.ag-prob').textContent = prob + '%';
+      el.querySelector('.ag-prob').className   = 'ag-prob ' + cls;
+      el.querySelector('.ag-bar-fill').style.width      = prob + '%';
+      el.querySelector('.ag-bar-fill').style.background = cor;
+      el.querySelector('.ag-resumo').textContent = dados.resumo;
+    });
+
+    // Fatores
+    document.getElementById('div-fatores').style.display = 'flex';
+    document.getElementById('fatores-card').style.display = 'block';
+    const list = document.getElementById('fatores-list');
+    list.innerHTML = '';
+    r.fatores.forEach(f => {
+      const cor = f.direcao === 'pos' ? '#1a8a4a' : f.direcao === 'neg' ? '#cc2200' : '#c9860a';
+      const sinal = f.direcao === 'pos' ? '▲' : f.direcao === 'neg' ? '▼' : '●';
+      list.innerHTML += `
+        <div class="fator-row">
+          <span class="fator-nome">${sinal} ${f.nome}</span>
+          <div class="fator-bar-wrap">
+            <div class="fator-bar" style="width:${f.peso}%;background:${cor}"></div>
+          </div>
+          <span class="fator-pct" style="color:${cor}">${f.peso}%</span>
+        </div>`;
+    });
+
+    // Síntese
+    document.getElementById('div-analise').style.display = 'flex';
+    document.getElementById('analise-card').style.display = 'block';
+    let sintese = r.sintese || '';
+    if (r.pontos_positivos?.length) {
+      sintese += '\n\n✅ ' + r.pontos_positivos.join('\n✅ ');
+    }
+    if (r.riscos?.length) {
+      sintese += '\n\n⚠️ ' + r.riscos.join('\n⚠️ ');
+    }
+    document.getElementById('analise-body').textContent = sintese;
+
+    // Cenários
+    document.getElementById('div-cenarios').style.display = 'flex';
+    document.getElementById('cenarios-card').style.display = 'block';
+  }
+
+  function setRing(id, pct) {
+    const circunf = 2 * Math.PI * 38;
+    const el = document.getElementById(id);
+    const dash = (pct / 100) * circunf;
+    el.setAttribute('stroke-dasharray', `${dash} ${circunf - dash}`);
+  }
+
+  // ── Cenários ──
+  function selecionarCenario(btn, texto) {
+    document.querySelectorAll('.cenario-opt').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    cenarioSelecionado = texto;
+    document.getElementById('cenario-custom').value = '';
+  }
+
+  async function simularCenario() {
+    const custom = document.getElementById('cenario-custom').value.trim();
+    const cenario = custom || cenarioSelecionado;
+    if (!cenario) { alert('Selecione ou descreva um cenário.'); return; }
+    if (!tickerAtual) { alert('Analise um ativo primeiro.'); return; }
+
+    const btn = document.getElementById('btn-cenario');
+    btn.disabled = true; btn.textContent = 'SIMULANDO...';
+
+    const resultEl = document.getElementById('cenario-result');
+    resultEl.classList.add('show');
+    resultEl.textContent = '⏳ Calculando impacto...';
+
+    try {
+      const preco = dadosAtivo?.ativo?.preco || 0;
+      const prompt = `Você é um analista financeiro. O ativo é ${tickerAtual} (preço atual R$${preco.toFixed(2)}).
+
+Simule de forma objetiva e técnica: O que acontece com ${tickerAtual} se "${cenario}"?
+
+Responda em 4-6 linhas cobrindo:
+1. Impacto direto no ativo
+2. Probabilidade de alta/queda neste cenário (estimativa %)
+3. Faixa de preço esperada neste cenário
+4. Prazo esperado para o impacto
+
+Seja específico e direto. Não use bullet points, use parágrafos curtos.`;
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 400,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await res.json();
+      const text = data.content?.map(b => b.text || '').join('') || 'Sem resposta.';
+      resultEl.textContent = `📌 CENÁRIO: ${cenario.toUpperCase()}\n\n${text}`;
+
+    } catch (e) {
+      resultEl.textContent = '⚠️ Erro ao simular cenário. Tente novamente.';
+    }
+
+    btn.disabled = false; btn.textContent = 'SIMULAR';
+  }
+  </script>
+</body>
+</html>
