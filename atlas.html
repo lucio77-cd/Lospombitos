@@ -158,8 +158,8 @@
 
     <!-- Busca -->
     <div class="search-wrap">
-      <input class="search-input" id="search-input" type="text" placeholder="PETR4, VALE3..."
-        maxlength="8" oninput="this.value=this.value.toUpperCase()"
+      <input class="search-input" id="search-input" type="text" placeholder="PETR4, BTC, ETH..."
+        maxlength="10" oninput="this.value=this.value.toUpperCase()"
         onkeydown="if(event.key==='Enter')analisar()">
       <button class="search-btn" id="search-btn" onclick="analisar()">🔍</button>
     </div>
@@ -169,12 +169,20 @@
       <div class="ei-ico">🔭</div>
       <p class="ei-titulo">ATLAS</p>
       <p class="ei-desc">Digite um ticker acima para gerar<br>uma análise probabilística completa<br>com múltiplos agentes de IA</p>
-      <div class="sugestoes">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">AÇÕES B3</div>
+      <div class="sugestoes" style="margin-bottom:10px">
         <span class="sug-pill" onclick="analisarTicker('PETR4')">PETR4</span>
         <span class="sug-pill" onclick="analisarTicker('VALE3')">VALE3</span>
         <span class="sug-pill" onclick="analisarTicker('ITUB4')">ITUB4</span>
         <span class="sug-pill" onclick="analisarTicker('WEGE3')">WEGE3</span>
         <span class="sug-pill" onclick="analisarTicker('BBAS3')">BBAS3</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">CRIPTO</div>
+      <div class="sugestoes">
+        <span class="sug-pill" style="border-color:#f7931a;color:#f7931a" onclick="analisarTicker('BTC')">₿ BTC</span>
+        <span class="sug-pill" style="border-color:#627eea;color:#627eea" onclick="analisarTicker('ETH')">Ξ ETH</span>
+        <span class="sug-pill" style="border-color:#9945ff;color:#9945ff" onclick="analisarTicker('SOL')">◎ SOL</span>
+        <span class="sug-pill" style="border-color:#0033ad;color:#0033ad" onclick="analisarTicker('BNB')">⬡ BNB</span>
       </div>
     </div>
 
@@ -321,29 +329,92 @@
     analisarTicker(v);
   }
 
+  // Mapa de cripto: ticker → CoinGecko ID
+  const CRIPTO_MAP = {
+    'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana',
+    'BNB': 'binancecoin', 'ADA': 'cardano', 'DOT': 'polkadot',
+    'AVAX': 'avalanche-2', 'MATIC': 'matic-network', 'LINK': 'chainlink',
+    'XRP': 'ripple', 'DOGE': 'dogecoin', 'SHIB': 'shiba-inu',
+  };
+
+  function ehCripto(ticker) { return !!CRIPTO_MAP[ticker.toUpperCase()]; }
+
+  async function buscarDadosCripto(ticker) {
+    const id = CRIPTO_MAP[ticker.toUpperCase()];
+    if (!id) return null;
+    try {
+      // Taxa USD→BRL
+      let usd2brl = 5.70;
+      try {
+        const fx = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL', { signal: AbortSignal.timeout(4000) });
+        const fxd = await fx.json();
+        usd2brl = parseFloat(fxd.USDBRL?.bid) || 5.70;
+      } catch (_) {}
+
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&community_data=false&developer_data=false`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      const d = await res.json();
+      const md = d.market_data;
+      const precoBRL = md.current_price?.brl || (md.current_price?.usd || 0) * usd2brl;
+      return {
+        ticker:       ticker.toUpperCase(),
+        nome:         d.name,
+        preco:        precoBRL,
+        variacao_pct: md.price_change_percentage_24h || 0,
+        volume:       md.total_volume?.brl || 0,
+        max_52s:      md.ath?.brl || 0,
+        min_52s:      md.atl?.brl || 0,
+        market_cap:   md.market_cap?.brl || 0,
+        rank:         d.market_cap_rank || 0,
+        descricao:    (d.description?.pt || d.description?.en || '').substring(0, 400),
+        // Métricas específicas de cripto
+        max_7d:       (md.high_24h?.brl || 0),
+        min_7d:       (md.low_24h?.brl || 0),
+        var_7d:       md.price_change_percentage_7d || 0,
+        var_30d:      md.price_change_percentage_30d || 0,
+        dominancia:   d.market_cap_rank <= 3 ? 'alta' : d.market_cap_rank <= 10 ? 'média' : 'baixa',
+        _tipo: 'cripto',
+      };
+    } catch (e) {
+      console.error('[Cripto]', e);
+      return null;
+    }
+  }
+
   async function analisarTicker(ticker) {
     ticker = ticker.toUpperCase().trim();
     document.getElementById('search-input').value = ticker;
     tickerAtual = ticker;
     cenarioSelecionado = '';
 
-    // Mostra skeleton
     document.getElementById('estado-inicial').style.display = 'none';
     mostrarEsqueleto();
 
-    // Busca dados reais
     try {
-      const [ativo, detalhe] = await Promise.all([
-        MercadoAPI.buscarAtivo(ticker),
-        MercadoAPI.buscarDetalhadoAtivo(ticker).catch(() => null)
-      ]);
-
-      dadosAtivo = { ativo, detalhe, ticker };
-      renderAtivo(ativo, detalhe);
-      await gerarAnalise(ticker, ativo, detalhe);
+      if (ehCripto(ticker)) {
+        // ── Fluxo CRIPTO ──
+        const cripto = await buscarDadosCripto(ticker);
+        if (!cripto) throw new Error('Cripto não encontrado');
+        dadosAtivo = { ativo: cripto, detalhe: null, ticker, tipo: 'cripto' };
+        renderAtivo(cripto, null);
+        await gerarAnaliseCripto(ticker, cripto);
+      } else {
+        // ── Fluxo AÇÃO B3 ──
+        const [ativo, detalhe] = await Promise.all([
+          MercadoAPI.buscarAtivo(ticker),
+          MercadoAPI.buscarDetalhadoAtivo(ticker).catch(() => null)
+        ]);
+        dadosAtivo = { ativo, detalhe, ticker, tipo: 'acao' };
+        renderAtivo(ativo, detalhe);
+        await gerarAnalise(ticker, ativo, detalhe);
+      }
     } catch (e) {
       console.error(e);
-      document.getElementById('analise-body').textContent = '⚠️ Erro ao carregar dados: ' + e.message;
+      document.getElementById('div-analise').style.display = 'flex';
+      document.getElementById('analise-card').style.display = 'block';
+      document.getElementById('analise-body').textContent = '⚠️ Erro ao carregar: ' + e.message;
     }
   }
 
@@ -415,49 +486,53 @@
     const setor      = detalhe?.setor || '';
     const descricao  = (detalhe?.descricao || '').substring(0, 500);
 
-    const prompt = `Você é um sistema multiagente de análise financeira do mercado brasileiro. Analise o ativo ${ticker} com os dados abaixo e retorne APENAS um JSON válido, sem markdown, sem texto antes ou depois.
+    const posVs52 = max52 > 0 ? ((preco / max52 - 1) * 100).toFixed(1) : '—';
+    const prompt = `Você é um sistema multiagente de análise financeira especializado no mercado brasileiro. Analise especificamente ${ticker} com os dados abaixo e retorne APENAS um JSON válido, sem markdown, sem texto antes ou depois.
 
-DADOS DO ATIVO:
-- Ticker: ${ticker}
-- Preço atual: R$${preco.toFixed(2)}
-- Variação hoje: ${variacao.toFixed(2)}%
+DADOS REAIS DE ${ticker}:
+- Preço: R$${preco.toFixed(2)} (${variacao >= 0 ? '+' : ''}${variacao.toFixed(2)}% hoje)
+- Posição vs máx 52sem: ${posVs52}% abaixo do topo de R$${max52.toFixed(2)}
+- Mín 52sem: R$${min52.toFixed(2)}
 - Volume: ${volume.toLocaleString()}
-- Máx 52 semanas: R$${max52.toFixed(2)}
-- Mín 52 semanas: R$${min52.toFixed(2)}
-- P/L: ${pl.toFixed(1)}
-- P/VP: ${pvp.toFixed(1)}
+- P/L: ${pl > 0 ? pl.toFixed(1) + 'x' : 'negativo'}
+- P/VP: ${pvp > 0 ? pvp.toFixed(1) + 'x' : '—'}
 - Dividend Yield: ${dy.toFixed(1)}%
 - ROE: ${roe.toFixed(1)}%
 - Margem Líquida: ${margem.toFixed(1)}%
-- Alvo analistas: R$${alvo.toFixed(2)}
-- Recomendação: ${rec}
-- Nº analistas: ${nAnal}
-- Setor: ${setor}
-- Descrição: ${descricao}
+- Alvo médio analistas: R$${alvo.toFixed(2)} (${nAnal} analistas, consenso: ${rec || 'sem dados'})
+- Setor: ${setor || 'não informado'}
+- Empresa: ${descricao || 'sem descrição'}
 
-Retorne este JSON exato (substitua os valores):
+CONTEXTO MACRO BRASIL (junho 2026):
+- Selic: 14.75% a.a. (juros altos pressionam múltiplos)
+- IBOV: ~135.000 pts
+- Dólar: ~R$5.70
+
+INSTRUÇÕES: Seja ESPECÍFICO para ${ticker}. Mencione dados concretos (P/L de ${pl.toFixed(0)}x, ROE de ${roe.toFixed(0)}%, alvo de R$${alvo.toFixed(0)}). NÃO use frases genéricas que servem para qualquer ação.
+
+Retorne este JSON (com valores reais calculados, não os exemplos):
 {
   "probabilidade_alta": 65,
   "probabilidade_queda": 35,
   "confianca": 78,
-  "faixa_min_30d": 38.50,
-  "faixa_max_30d": 44.20,
+  "faixa_min_30d": ${(preco * 0.93).toFixed(2)},
+  "faixa_max_30d": ${(preco * 1.08).toFixed(2)},
   "agentes": {
-    "economista": { "prob_alta": 62, "resumo": "texto curto de 1 frase sobre macro" },
-    "fundamentalista": { "prob_alta": 71, "resumo": "texto curto sobre fundamentos" },
-    "tecnico": { "prob_alta": 58, "resumo": "texto curto sobre tendência técnica" },
-    "sentimento": { "prob_alta": 68, "resumo": "texto curto sobre sentimento de mercado" }
+    "economista": { "prob_alta": 62, "resumo": "1 frase específica sobre macro e impacto nos setores de ${setor}" },
+    "fundamentalista": { "prob_alta": 71, "resumo": "1 frase com dados reais: ROE ${roe.toFixed(0)}%, P/L ${pl.toFixed(0)}x, alvo R$${alvo.toFixed(0)}" },
+    "tecnico": { "prob_alta": 58, "resumo": "1 frase sobre posição técnica: ${posVs52}% do topo, suporte/resistência" },
+    "sentimento": { "prob_alta": 68, "resumo": "1 frase sobre consenso de ${nAnal} analistas e momentum" }
   },
   "fatores": [
-    { "nome": "Fundamentos", "peso": 32, "direcao": "pos" },
-    { "nome": "Momentum Técnico", "peso": 24, "direcao": "pos" },
-    { "nome": "Macro Brasil", "peso": 18, "direcao": "neu" },
-    { "nome": "Sentimento", "peso": 16, "direcao": "neg" },
-    { "nome": "Valuation", "peso": 10, "direcao": "pos" }
+    { "nome": "fator específico 1 de ${ticker}", "peso": 32, "direcao": "pos" },
+    { "nome": "fator específico 2", "peso": 24, "direcao": "pos" },
+    { "nome": "fator específico 3", "peso": 18, "direcao": "neu" },
+    { "nome": "fator específico 4", "peso": 16, "direcao": "neg" },
+    { "nome": "fator específico 5", "peso": 10, "direcao": "neg" }
   ],
-  "sintese": "Texto de 4-6 linhas explicando a análise de forma clara para um investidor pessoa física, mencionando os principais pontos positivos e riscos. Seja específico ao setor e ao ativo.",
-  "pontos_positivos": ["ponto 1", "ponto 2", "ponto 3"],
-  "riscos": ["risco 1", "risco 2"]
+  "sintese": "4-6 linhas ESPECÍFICAS sobre ${ticker}: mencione P/L de ${pl.toFixed(0)}x vs setor, ROE de ${roe.toFixed(0)}%, alvo de R$${alvo.toFixed(0)}, posição vs 52 semanas, e riscos específicos do setor ${setor}.",
+  "pontos_positivos": ["ponto específico com dado numérico", "ponto 2", "ponto 3"],
+  "riscos": ["risco específico 1", "risco 2"]
 }`;
 
     try {
@@ -485,6 +560,125 @@ Retorne este JSON exato (substitua os valores):
       // Fallback com dados estimados se API falhar
       const fallback = gerarFallback(ticker, ativo, detalhe);
       renderResultado(fallback, ativo);
+    }
+  }
+
+  // ── Análise CRIPTO via Claude API ──
+  async function gerarAnaliseCripto(ticker, cripto) {
+    const preco    = cripto.preco || 0;
+    const var24h   = cripto.variacao_pct || 0;
+    const var7d    = cripto.var_7d || 0;
+    const var30d   = cripto.var_30d || 0;
+    const mc       = cripto.market_cap || 0;
+    const rank     = cripto.rank || 0;
+    const max52    = cripto.max_52s || 0;
+    const min52    = cripto.min_52s || 0;
+    const posVsAth = max52 > 0 ? ((preco / max52 - 1) * 100).toFixed(1) : '—';
+    const vol      = cripto.volume || 0;
+
+    // Atualiza cenários para cripto
+    document.getElementById('cenario-opts').innerHTML = `
+      <button class="cenario-opt" onclick="selecionarCenario(this,'ETF de Bitcoin aprovado nos EUA')">🇺🇸 ETF Bitcoin aprovado nos EUA</button>
+      <button class="cenario-opt" onclick="selecionarCenario(this,'Fed cortar juros 0.5%')">📉 Fed cortar juros 0.5%</button>
+      <button class="cenario-opt" onclick="selecionarCenario(this,'dólar cair para R$5')">💵 Dólar cair para R$5</button>
+      <button class="cenario-opt" onclick="selecionarCenario(this,'regulação cripto global restritiva')">⚖️ Regulação restritiva global</button>`;
+
+    const prompt = `Você é um analista especializado em criptoativos. Analise ${ticker} (${cripto.nome}) com os dados abaixo e retorne APENAS um JSON válido, sem markdown.
+
+DADOS REAIS DE ${ticker}:
+- Preço atual: R$${preco.toLocaleString('pt-BR', {maximumFractionDigits:2})}
+- Variação 24h: ${var24h >= 0 ? '+' : ''}${var24h.toFixed(2)}%
+- Variação 7d: ${var7d >= 0 ? '+' : ''}${var7d.toFixed(2)}%
+- Variação 30d: ${var30d >= 0 ? '+' : ''}${var30d.toFixed(2)}%
+- Market Cap: R$${(mc/1e9).toFixed(1)}B
+- Rank global: #${rank}
+- Máx histórico (ATH): R$${max52.toLocaleString('pt-BR', {maximumFractionDigits:0})}
+- Distância do ATH: ${posVsAth}%
+- Volume 24h: R$${(vol/1e9).toFixed(1)}B
+- Dominância de mercado: ${cripto.dominancia}
+
+CONTEXTO (junho 2026):
+- Selic Brasil: 14.75% (ativos de risco pressionados)
+- Dólar: ~R$5.70
+- BTC halvening: ocorreu em 2024
+- Mercado cripto em ciclo pós-halvening
+
+INSTRUÇÕES: Seja ESPECÍFICO para ${ticker}. Os agentes para cripto são:
+- Economista: foco em macro global (Fed, dólar, liquidez)
+- On-chain/Fundamentals: métricas de adoção, utilidade da rede, rank #${rank}
+- Técnico: momentum, posição vs ATH (${posVsAth}%), volatilidade
+- Sentimento: fear & greed, dominância, ciclo de mercado
+
+Retorne este JSON:
+{
+  "probabilidade_alta": 60,
+  "probabilidade_queda": 40,
+  "confianca": 55,
+  "faixa_min_30d": ${(preco * 0.85).toFixed(0)},
+  "faixa_max_30d": ${(preco * 1.20).toFixed(0)},
+  "agentes": {
+    "economista": { "prob_alta": 58, "resumo": "1 frase sobre macro global e impacto em cripto" },
+    "fundamentalista": { "prob_alta": 65, "resumo": "1 frase sobre rank #${rank}, adoção e utilidade de ${ticker}" },
+    "tecnico": { "prob_alta": 55, "resumo": "1 frase: ${posVsAth}% do ATH, momentum 7d de ${var7d.toFixed(1)}%" },
+    "sentimento": { "prob_alta": 62, "resumo": "1 frase sobre ciclo pós-halvening e sentimento atual" }
+  },
+  "fatores": [
+    { "nome": "fator on-chain específico", "peso": 28, "direcao": "pos" },
+    { "nome": "Macro global / Fed", "peso": 25, "direcao": "neu" },
+    { "nome": "Momentum técnico", "peso": 22, "direcao": "${var7d >= 0 ? 'pos' : 'neg'}" },
+    { "nome": "Regulação", "peso": 15, "direcao": "neu" },
+    { "nome": "Correlação BTC", "peso": 10, "direcao": "neu" }
+  ],
+  "sintese": "4-5 linhas específicas: mencione o rank #${rank}, distância do ATH (${posVsAth}%), variação 30d de ${var30d.toFixed(1)}%, e o contexto do ciclo cripto atual para ${ticker}.",
+  "pontos_positivos": ["ponto específico com dado", "ponto 2", "ponto 3"],
+  "riscos": ["risco específico de cripto 1", "risco 2"]
+}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'anthropic-dangerous-direct-browser-ipc': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await res.json();
+      const text = data.content?.map(b => b.text || '').join('') || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(clean);
+      renderResultado(result, cripto);
+
+    } catch (e) {
+      console.error('Claude API Cripto:', e);
+      // Fallback cripto
+      const alta = var30d >= 0 ? 62 : 42;
+      renderResultado({
+        probabilidade_alta: alta, probabilidade_queda: 100 - alta,
+        confianca: 50,
+        faixa_min_30d: preco * 0.82, faixa_max_30d: preco * 1.22,
+        agentes: {
+          economista:      { prob_alta: alta - 5, resumo: 'Macro global com Fed mantendo postura restritiva.' },
+          fundamentalista: { prob_alta: alta + 8, resumo: `${ticker} rank #${rank} com adoção crescente.` },
+          tecnico:         { prob_alta: alta - 3, resumo: `${posVsAth}% abaixo do ATH, momentum de ${var7d.toFixed(1)}% em 7d.` },
+          sentimento:      { prob_alta: alta + 2, resumo: 'Ciclo pós-halvening historicamente favorável.' }
+        },
+        fatores: [
+          { nome: 'Adoção on-chain', peso: 28, direcao: 'pos' },
+          { nome: 'Macro / Fed', peso: 25, direcao: 'neu' },
+          { nome: 'Momentum ' + (var7d >= 0 ? '▲' : '▼'), peso: 22, direcao: var7d >= 0 ? 'pos' : 'neg' },
+          { nome: 'Regulação', peso: 15, direcao: 'neu' },
+          { nome: 'Volatilidade', peso: 10, direcao: 'neg' }
+        ],
+        sintese: `${ticker} (${cripto.nome}) está ${posVsAth}% abaixo do ATH com variação de ${var30d.toFixed(1)}% em 30 dias.\n\nRank #${rank} no mercado global com market cap de R$${(mc/1e9).toFixed(0)}B.\n\nO ciclo pós-halvening de 2024 historicamente favorece valorização nos 12-18 meses seguintes.\n\nJuros altos no Brasil e globalmente ainda pressionam ativos de risco.`,
+        pontos_positivos: [`Rank #${rank} com alta liquidez`, 'Ciclo pós-halvening favorável', 'Adoção institucional crescente'],
+        riscos: ['Alta volatilidade intrínseca', 'Risco regulatório global', 'Correlação negativa com Selic alta']
+      }, cripto);
     }
   }
 
