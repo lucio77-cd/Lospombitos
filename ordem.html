@@ -148,7 +148,6 @@
           <p class="ativo-nome" id="a-nome">Carregando...</p>
         </div>
         <div id="preco-wrap">
-          <!-- Substituído por preço real ou loading state -->
           <div class="preco-loading">
             <span class="spin-dot"></span>
             <span>buscando cotação</span>
@@ -227,7 +226,7 @@
         </div>
       </div>
 
-      <!-- Resumo -->
+      <!-- Resumo — único, sem duplicata -->
       <div class="resumo-card">
         <p class="resumo-title">RESUMO DA ORDEM</p>
         <div class="resumo-row"><span class="resumo-lbl">Ativo</span><span class="resumo-val" id="r-ticker">—</span></div>
@@ -287,17 +286,16 @@
 
   // ── Estado ──
   let meuUID, saldoDisp = 0, patrimonioTotal = 0;
-  let precoAtual = 0;       // 0 = ainda não carregou ou falhou
-  let cotacaoCarregada = false; // flag: cotação real foi obtida
+  let precoAtual = 0;
+  let cotacaoCarregada = false;
   let lado = 'compra', tipoOrdem = 'mercado';
   let posicao = null, mercadoStatus = null;
 
   const params  = new URLSearchParams(location.search);
   const TICKER  = decodeURIComponent(params.get('ticker') || '').toUpperCase();
   const TIPO    = params.get('tipo') || 'acoes';
-  const PRECO_P = parseFloat(params.get('preco') || '0'); // preço da URL (nem sempre confiável)
+  const PRECO_P = parseFloat(params.get('preco') || '0');
 
-  // db vem do firebase.js
   const db = window.db;
 
   // ── Helpers ──
@@ -315,13 +313,15 @@
   const unit = () => TIPO === 'tesouro' ? 'títulos' : TIPO === 'cripto' ? 'unidades' : 'cotas';
 
   // ── Mercado status ──
+  // Cripto: mercado sempre aberto (24/7)
   function getMercado() {
+    if (TIPO === 'cripto') return 'aberto';
     const br = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
     const h = br.getHours(), m = br.getMinutes(), d = br.getDay(), t = h * 60 + m;
     return (d > 0 && d < 6 && t >= 9 * 60 + 45 && t < 17 * 60 + 30) ? 'aberto' : 'fechado';
   }
 
-  // ── Atualiza o bloco de preço no card do ativo ──
+  // ── Atualiza bloco de preço ──
   function renderPreco(preco, variacaoPct) {
     const wrap = document.getElementById('preco-wrap');
     if (!preco || preco <= 0) {
@@ -335,22 +335,19 @@
       <p class="ativo-var ${cls}" id="a-var">${chg}</p>`;
   }
 
-  // ── Mostra/esconde warning de cotação e bloqueia botão mercado ──
+  // ── Mostra/esconde warning de cotação ──
   function atualizarEstadoCotacao() {
-    const warn = document.getElementById('cotacao-warn');
+    const warn      = document.getElementById('cotacao-warn');
     const optMercado = document.getElementById('opt-mercado');
 
     if (!cotacaoCarregada) {
       warn.classList.add('show');
-      // Desabilita opção "A Mercado" visualmente
-      optMercado.style.opacity = '0.45';
-      optMercado.style.cursor = 'not-allowed';
-      optMercado.title = 'Cotação não disponível — use ordem Limitada';
-      // Se estava em mercado, força troca para limitada
+      optMercado.style.opacity   = '0.45';
+      optMercado.style.cursor    = 'not-allowed';
+      optMercado.title           = 'Cotação não disponível — use ordem Limitada';
       if (tipoOrdem === 'mercado') {
         tipoOrdem = 'limitada';
         optMercado.classList.remove('on');
-        // Seleciona "Limitada" automaticamente
         const opts = document.querySelectorAll('.tipo-opt');
         opts[1].classList.add('on');
         document.getElementById('price-limit-wrap').classList.add('show');
@@ -359,10 +356,39 @@
     } else {
       warn.classList.remove('show');
       optMercado.style.opacity = '';
-      optMercado.style.cursor = '';
-      optMercado.title = '';
+      optMercado.style.cursor  = '';
+      optMercado.title         = '';
     }
     updateResumo();
+  }
+
+  // ── Busca cotação de acordo com o tipo ──
+  // FIX: cripto usa MercadoAPI.buscarCripto(id) em vez de buscarAtivo()
+  async function buscarCotacao() {
+    if (TIPO === 'cripto') {
+      // TICKER vem como ID do CoinGecko em minúsculas (ex: "bitcoin", "ethereum")
+      const tickerLower = TICKER.toLowerCase();
+      const d = await MercadoAPI.buscarCripto(tickerLower);
+      if (d && d.preco > 0) {
+        return { preco: d.preco, variacao_pct: d.variacao_24h ?? null, nome: d.nome || TICKER };
+      }
+      return null;
+    }
+
+    if (TIPO === 'tesouro') {
+      // Tesouro: preco vem da URL (taxa), não tem cotação de mercado em tempo real
+      if (PRECO_P > 0) {
+        return { preco: PRECO_P, variacao_pct: null, nome: TICKER };
+      }
+      return null;
+    }
+
+    // Ações, FIIs → brapi via MercadoAPI.buscarAtivo
+    const d = await MercadoAPI.buscarAtivo(TICKER);
+    if (d && d.preco > 0) {
+      return { preco: d.preco, variacao_pct: d.variacao_pct ?? null, nome: d.nome || TICKER };
+    }
+    return null;
   }
 
   // ── Init ──
@@ -388,7 +414,6 @@
       // Posição atual
       const posicoes = c.posicoes || [];
       posicao = posicoes.find(p => p.ticker === TICKER) || null;
-      if (posicao) mostrarPosicao();
 
       // Mercado
       mercadoStatus = getMercado();
@@ -400,32 +425,38 @@
         document.getElementById('aviso-fechado').classList.add('show');
       }
 
-      // Header e ticker
-      document.getElementById('hdr-title').textContent = 'ORDEM — ' + TICKER;
-      document.getElementById('a-ticker').textContent = TICKER;
-      document.getElementById('a-nome').textContent = TICKER;
+      // Exibe ticker
+      const displayTicker = TIPO === 'cripto' ? TICKER.toUpperCase() : TICKER;
+      document.getElementById('hdr-title').textContent = 'ORDEM — ' + displayTicker;
+      document.getElementById('a-ticker').textContent  = displayTicker;
+      document.getElementById('a-nome').textContent    = displayTicker;
 
-      // ── Busca cotação real ──
+      // ── Busca cotação real (roteada por tipo) ──
       try {
-        const d = await MercadoAPI.buscarAtivo(TICKER);
+        const d = await buscarCotacao();
         if (d && d.preco > 0) {
-          precoAtual = d.preco;
+          precoAtual       = d.preco;
           cotacaoCarregada = true;
-          document.getElementById('a-nome').textContent = d.nome || TICKER;
-          renderPreco(precoAtual, d.variacao_pct ?? null);
+          document.getElementById('a-nome').textContent = d.nome || displayTicker;
+          renderPreco(precoAtual, d.variacao_pct);
           document.getElementById('price-limit').value = precoAtual.toFixed(2);
         } else {
-          // API retornou mas sem preço válido
-          cotacaoCarregada = false;
-          renderPreco(0, null);
+          // API retornou mas sem preço válido — tenta fallback da URL
+          if (PRECO_P > 0) {
+            precoAtual       = PRECO_P;
+            cotacaoCarregada = true;
+            renderPreco(precoAtual, null);
+            document.getElementById('price-limit').value = precoAtual.toFixed(2);
+          } else {
+            cotacaoCarregada = false;
+            renderPreco(0, null);
+          }
         }
       } catch (e) {
         console.warn('Cotação falhou:', e.message);
-        // Tenta usar preço da URL como fallback APENAS se veio da página de listagem
-        // e for claramente > 0 (não é um placeholder)
         if (PRECO_P > 0) {
-          precoAtual = PRECO_P;
-          cotacaoCarregada = true; // URL price is acceptable
+          precoAtual       = PRECO_P;
+          cotacaoCarregada = true;
           renderPreco(precoAtual, null);
           document.getElementById('price-limit').value = precoAtual.toFixed(2);
         } else {
@@ -433,6 +464,9 @@
           renderPreco(0, null);
         }
       }
+
+      // Mostra posição atual após ter o preço
+      if (posicao) mostrarPosicao();
 
       atualizarEstadoCotacao();
 
@@ -449,12 +483,12 @@
     const va = posicao.quantidade * (precoAtual || posicao.preco_medio);
     const vp = posicao.quantidade * posicao.preco_medio;
     const r  = vp ? ((va - vp) / vp) * 100 : 0;
-    document.getElementById('pos-qtd').textContent = posicao.quantidade + ' ' + unit();
-    document.getElementById('pos-pm').textContent  = R$(posicao.preco_medio || 0);
-    document.getElementById('pos-total').textContent = R$(va);
+    document.getElementById('pos-qtd').textContent    = posicao.quantidade + ' ' + unit();
+    document.getElementById('pos-pm').textContent     = R$(posicao.preco_medio || 0);
+    document.getElementById('pos-total').textContent  = R$(va);
     const rel = document.getElementById('pos-rentab');
-    rel.textContent = pct(r);
-    rel.style.color = r >= 0 ? 'var(--green)' : 'var(--red)';
+    rel.textContent  = pct(r);
+    rel.style.color  = r >= 0 ? 'var(--green)' : 'var(--red)';
   }
 
   // ── Lado (compra / venda) ──
@@ -463,7 +497,7 @@
     document.getElementById('tab-buy').classList.toggle('on', l === 'compra');
     document.getElementById('tab-sell').classList.toggle('on', l === 'venda');
     const btn = document.getElementById('btn-confirm');
-    btn.className = 'btn-confirm ' + (l === 'compra' ? 'buy' : 'sell');
+    btn.className   = 'btn-confirm ' + (l === 'compra' ? 'buy' : 'sell');
     btn.textContent = l === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
     if (l === 'venda' && !posicao) toast('Você não possui este ativo na carteira.');
     updateResumo();
@@ -471,7 +505,6 @@
 
   // ── Tipo de ordem ──
   function setTipo(tipo, el) {
-    // Bloqueia "a mercado" se cotação não carregou
     if (tipo === 'mercado' && !cotacaoCarregada) {
       toast('⚠️ Cotação indisponível. Use ordem Limitada e defina o preço.');
       return;
@@ -481,9 +514,9 @@
     el.classList.add('on');
     const w = document.getElementById('price-limit-wrap');
     const l = document.getElementById('price-limit-label');
-    if (tipo === 'limitada') { w.classList.add('show'); l.textContent = 'PREÇO LIMITE (executa ≤ este valor)'; }
-    else if (tipo === 'stop') { w.classList.add('show'); l.textContent = 'PREÇO STOP (vende abaixo deste valor)'; }
-    else w.classList.remove('show');
+    if (tipo === 'limitada')      { w.classList.add('show'); l.textContent = 'PREÇO LIMITE (executa ≤ este valor)'; }
+    else if (tipo === 'stop')     { w.classList.add('show'); l.textContent = 'PREÇO STOP (vende abaixo deste valor)'; }
+    else                           { w.classList.remove('show'); }
     updateResumo();
   }
 
@@ -493,7 +526,6 @@
     updateResumo();
   }
 
-  // ── Preço efectivo da ordem ──
   function getPrecoEfetivo() {
     if (tipoOrdem === 'mercado') return precoAtual;
     return parseFloat(document.getElementById('price-limit').value) || 0;
@@ -507,7 +539,7 @@
     const u     = unit();
 
     document.getElementById('qtd-unit').textContent = u;
-    document.getElementById('r-ticker').textContent = TICKER;
+    document.getElementById('r-ticker').textContent = TIPO === 'cripto' ? TICKER.toUpperCase() : TICKER;
     document.getElementById('r-lado').textContent   = lado === 'compra' ? 'Compra' : 'Venda';
     document.getElementById('r-qtd').textContent    = qtd + ' ' + u;
     document.getElementById('r-tipo').textContent   = tipoOrdem === 'mercado' ? 'A Mercado' : tipoOrdem === 'limitada' ? 'Limitada' : 'Stop';
@@ -524,7 +556,9 @@
 
     const exec = mercadoStatus === 'aberto' && tipoOrdem === 'mercado'
       ? 'Imediata ao preço atual'
-      : 'Próxima abertura — dia útil';
+      : TIPO === 'cripto'
+        ? 'Imediata (mercado 24h)'
+        : 'Próxima abertura — dia útil';
     document.getElementById('r-exec').textContent = exec;
 
     const btnConfirm = document.getElementById('btn-confirm');
@@ -537,12 +571,11 @@
         el.className   = 'resumo-val ' + (apos < 0 ? 'neg' : '');
         const insuf = total > saldoDisp;
         document.getElementById('saldo-insuf').classList.toggle('show', insuf);
-        // Bloqueia botão se: saldo insuficiente OU preço inválido
         btnConfirm.disabled = insuf || preco <= 0;
       } else {
         document.getElementById('r-apos').textContent = '—';
         document.getElementById('r-apos').className   = 'resumo-val';
-        btnConfirm.disabled = true; // sem preço, sem ordem
+        btnConfirm.disabled = true;
       }
     } else {
       document.getElementById('r-apos').textContent = preco > 0 ? '+' + R$(total) : '—';
@@ -558,24 +591,21 @@
     const total = qtd * preco;
     const u     = unit();
 
-    // Validações finais antes do modal
-    if (preco <= 0) {
-      toast('⚠️ Defina um preço válido antes de confirmar.');
-      return;
-    }
+    if (preco <= 0) { toast('⚠️ Defina um preço válido antes de confirmar.'); return; }
     if (lado === 'compra' && total > saldoDisp) { toast('Saldo insuficiente.'); return; }
     if (lado === 'venda' && !posicao)            { toast('Você não possui este ativo.'); return; }
     if (lado === 'venda' && qtd > (posicao?.quantidade || 0)) { toast('Quantidade maior que sua posição.'); return; }
 
-    document.getElementById('mod-title').textContent = lado === 'compra' ? 'CONFIRMAR COMPRA' : 'CONFIRMAR VENDA';
-    document.getElementById('mod-title').className   = 'modal-title ' + (lado === 'compra' ? 'buy' : 'sell');
-    document.getElementById('mod-ticker').textContent = TICKER;
-    document.getElementById('mod-lado').textContent  = lado === 'compra' ? 'COMPRA' : 'VENDA';
-    document.getElementById('mod-qtd').textContent   = qtd + ' ' + u;
-    document.getElementById('mod-preco').textContent = R$(preco);
-    document.getElementById('mod-exec').textContent  = mercadoStatus === 'aberto' ? 'Imediata' : 'Próximo dia útil';
-    document.getElementById('mod-total').textContent = R$(total);
-    document.getElementById('mod-total').className   = 'modal-row-val big ' + (lado === 'compra' ? 'buy' : 'sell');
+    const displayTicker = TIPO === 'cripto' ? TICKER.toUpperCase() : TICKER;
+    document.getElementById('mod-title').textContent  = lado === 'compra' ? 'CONFIRMAR COMPRA' : 'CONFIRMAR VENDA';
+    document.getElementById('mod-title').className    = 'modal-title ' + (lado === 'compra' ? 'buy' : 'sell');
+    document.getElementById('mod-ticker').textContent = displayTicker;
+    document.getElementById('mod-lado').textContent   = lado === 'compra' ? 'COMPRA' : 'VENDA';
+    document.getElementById('mod-qtd').textContent    = qtd + ' ' + u;
+    document.getElementById('mod-preco').textContent  = R$(preco);
+    document.getElementById('mod-exec').textContent   = mercadoStatus === 'aberto' ? 'Imediata' : 'Próximo dia útil';
+    document.getElementById('mod-total').textContent  = R$(total);
+    document.getElementById('mod-total').className    = 'modal-row-val big ' + (lado === 'compra' ? 'buy' : 'sell');
 
     const ok = document.getElementById('btn-modal-ok');
     ok.className   = 'btn-modal-ok ' + (lado === 'compra' ? 'buy' : 'sell');
@@ -604,6 +634,9 @@
 
     ok.disabled = true; ok.textContent = 'PROCESSANDO...';
 
+    // Ticker a salvar no Firestore: para cripto usa o ID em minúsculas para consistência
+    const tickerSalvo = TICKER;
+
     try {
       await db.runTransaction(async t => {
         const cRef  = db.collection('carteiras').doc(meuUID);
@@ -615,23 +648,23 @@
         if (lado === 'compra') {
           if (total > saldo) throw new Error('Saldo insuficiente.');
           saldo -= total;
-          const idx = posicoes.findIndex(p => p.ticker === TICKER);
+          const idx = posicoes.findIndex(p => p.ticker === tickerSalvo);
           if (idx >= 0) {
             const qtdAnt = posicoes[idx].quantidade;
             const totAnt = qtdAnt * posicoes[idx].preco_medio;
-            posicoes[idx].quantidade += qtd;
-            posicoes[idx].preco_medio = (totAnt + total) / posicoes[idx].quantidade;
+            posicoes[idx].quantidade   += qtd;
+            posicoes[idx].preco_medio   = (totAnt + total) / posicoes[idx].quantidade;
             posicoes[idx].ultima_atualizacao = new Date().toISOString();
           } else {
             posicoes.push({
-              ticker: TICKER, tipo: TIPO, quantidade: qtd,
+              ticker: tickerSalvo, tipo: TIPO, quantidade: qtd,
               preco_medio: preco,
               data_compra: new Date().toISOString(),
               ultima_atualizacao: new Date().toISOString()
             });
           }
         } else {
-          const idx = posicoes.findIndex(p => p.ticker === TICKER);
+          const idx = posicoes.findIndex(p => p.ticker === tickerSalvo);
           if (idx < 0) throw new Error('Ativo não encontrado na carteira.');
           if (posicoes[idx].quantidade < qtd) throw new Error('Quantidade insuficiente.');
           saldo += total;
@@ -639,53 +672,47 @@
           if (posicoes[idx].quantidade === 0) posicoes.splice(idx, 1);
         }
 
-        const investido   = posicoes.reduce((a, p) => a + p.quantidade * p.preco_medio, 0);
-        const patrimonio  = saldo + investido;
+        const investido  = posicoes.reduce((a, p) => a + p.quantidade * p.preco_medio, 0);
+        const patrimonio = saldo + investido;
 
-        // Salva carteira
         t.set(cRef, {
           uid: meuUID, saldo_disponivel: saldo, saldo_investido: investido,
           patrimonio_total: patrimonio, posicoes,
           ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        // Histórico da ordem
         t.set(db.collection('ordens').doc(), {
-          uid: meuUID, ticker: TICKER, tipo: TIPO, lado, quantidade: qtd,
+          uid: meuUID, ticker: tickerSalvo, tipo: TIPO, lado, quantidade: qtd,
           preco, total, tipo_ordem: tipoOrdem,
           status: mercadoStatus === 'aberto' ? 'executada' : 'agendada',
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // ══ Post no feed — só salva se preco e total são válidos ══
-        // (já garantido pelo guard acima, mas verifica de novo por segurança)
+        // Post no feed só se preço e total são válidos
         if (preco > 0 && total > 0) {
           t.set(db.collection('posts').doc(), {
             uid: meuUID, tipo: 'trade', tipo_ativo: TIPO,
-            ticker: TICKER, lado, quantidade: qtd,
-            preco,   // ✅ garantidamente > 0
-            total,   // ✅ garantidamente > 0
-            auto: true,
+            ticker: tickerSalvo, lado, quantidade: qtd,
+            preco, total, auto: true,
             data_post: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
 
-        // Atualiza usuário
         const uRef = db.collection('usuarios').doc(meuUID);
         t.update(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio });
       });
 
       fecharModal();
 
-      // Sucesso
       document.getElementById('form-wrap').style.display = 'none';
       document.getElementById('btn-wrap').style.display  = 'none';
       const s = document.getElementById('sucesso');
       s.classList.add('show');
-      document.getElementById('s-icon').textContent = lado === 'compra' ? '✅' : '💰';
+      document.getElementById('s-icon').textContent  = lado === 'compra' ? '✅' : '💰';
       document.getElementById('s-title').textContent = mercadoStatus === 'aberto' ? 'ORDEM EXECUTADA' : 'ORDEM AGENDADA';
-      document.getElementById('s-desc').textContent =
-        `${lado === 'compra' ? 'Compra' : 'Venda'} de ${qtd} ${unit()} de ${TICKER}\n` +
+      const displayTicker = TIPO === 'cripto' ? TICKER.toUpperCase() : TICKER;
+      document.getElementById('s-desc').textContent  =
+        `${lado === 'compra' ? 'Compra' : 'Venda'} de ${qtd} ${unit()} de ${displayTicker}\n` +
         `a ${R$(preco)} por unidade\n` +
         `Total: ${R$(total)}\n` +
         `${mercadoStatus === 'aberto' ? 'Executada imediatamente ✅' : 'Agendada para o próximo dia útil ⏰'}`;
@@ -693,7 +720,7 @@
     } catch (e) {
       console.error(e);
       toast(e.message || 'Erro ao executar ordem.');
-      ok.disabled = false;
+      ok.disabled    = false;
       ok.textContent = lado === 'compra' ? '✅ CONFIRMAR COMPRA' : '📉 CONFIRMAR VENDA';
     }
   }
