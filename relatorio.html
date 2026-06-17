@@ -198,8 +198,13 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const TICKER = (params.get('ticker') || '').toUpperCase().trim();
-    const TIPO   = params.get('tipo') || 'acoes';
+    // FIX: para cripto, o TICKER na URL é o ID do CoinGecko (ex: "bitcoin"), em minúsculas
+    // Para ações/fiis, é o símbolo B3 em maiúsculas (ex: "PETR4")
+    const TICKER_RAW = (params.get('ticker') || '').trim();
+    const TIPO       = params.get('tipo') || 'acoes';
+    // Display: cripto exibe em maiúsculas, ações já vêm em maiúsculas
+    const TICKER     = TIPO === 'cripto' ? TICKER_RAW.toLowerCase() : TICKER_RAW.toUpperCase();
+    const TICKER_DISPLAY = TICKER_RAW.toUpperCase();
 
     let dadosAtivo = null, dadosDetalhe = null, dadosHist1y = null, dadosHist6m = null;
     let perfilUsuario = 'moderado';
@@ -231,19 +236,26 @@
     function traduzirRec(r) {
       return {buy:'Compra',strongBuy:'Compra Forte',sell:'Venda',strongSell:'Venda Forte',hold:'Neutro'}[r] || r || '—';
     }
+
+    // FIX: para cripto passa o ID do CoinGecko e o preço atual para a ordem
     function irParaOrdem() {
-      if (!TICKER) return;
-      window.location.href = `ordem.html?ticker=${TICKER}&tipo=${TIPO}&preco=${dadosAtivo?.preco||0}`;
+      if (!TICKER_RAW) return;
+      const preco = dadosAtivo?.preco || 0;
+      if (TIPO === 'cripto') {
+        // ticker=bitcoin (ID CoinGecko), tipo=cripto, preco=valor atual
+        window.location.href = `ordem.html?ticker=${encodeURIComponent(TICKER)}&tipo=cripto&preco=${preco}`;
+      } else {
+        window.location.href = `ordem.html?ticker=${encodeURIComponent(TICKER)}&tipo=${TIPO}&preco=${preco}`;
+      }
     }
 
-    // ── EXTRAI MIN/MAX DO HISTÓRICO (fallback quando API não retorna) ──
+    // ── EXTRAI MIN/MAX DO HISTÓRICO ──
     function extrairMinMax(historico) {
       if (!historico?.length) return { min: 0, max: 0 };
       const precos = historico.map(h => h.preco).filter(Boolean);
       return { min: Math.min(...precos), max: Math.max(...precos) };
     }
 
-    // ── EXTRAI VARIAÇÃO DO HISTÓRICO ──
     function extrairVariacao(historico) {
       if (!historico?.length || historico.length < 2) return 0;
       const inicio = historico[0].preco;
@@ -267,7 +279,7 @@
         minhasPosicoes = [];
       }
 
-      if (TICKER) {
+      if (TICKER_RAW) {
         await carregarRelatorio();
       } else {
         await carregarListaCategoria();
@@ -370,33 +382,59 @@
 
     // ══════════════════════════════════════════
     //  RELATÓRIO COMPLETO
+    //  FIX: cripto usa buscarCripto() em vez de buscarAtivo()
     // ══════════════════════════════════════════
     async function carregarRelatorio() {
-      document.getElementById('header-titulo').textContent = TICKER;
+      document.getElementById('header-titulo').textContent = TICKER_DISPLAY;
       document.getElementById('header-tipo').textContent = nomeTipo(TIPO);
       const conteudo = document.getElementById('conteudo');
 
       try {
-        [dadosAtivo, dadosDetalhe, dadosHist1y, dadosHist6m] = await Promise.all([
-          MercadoAPI.buscarAtivo(TICKER),
-          MercadoAPI.buscarDetalhadoAtivo(TICKER),
-          MercadoAPI.buscarHistorico(TICKER, '1y'),
-          MercadoAPI.buscarHistorico(TICKER, '6mo'),
-        ]);
+        if (TIPO === 'cripto') {
+          // ── ROTA CRIPTO: usa CoinGecko via MercadoAPI.buscarCripto ──
+          const cripto = await MercadoAPI.buscarCripto(TICKER); // TICKER = ID ex: "bitcoin"
+          if (!cripto || cripto.preco <= 0) throw new Error('Dados de cripto indisponíveis.');
+
+          dadosAtivo = {
+            preco:        cripto.preco,
+            variacao_pct: cripto.variacao_24h || 0,
+            nome:         cripto.nome || TICKER_DISPLAY,
+          };
+          dadosDetalhe = {
+            market_cap:   cripto.market_cap  || 0,
+            min_52s:      cripto.low_24h     || 0,
+            max_52s:      cripto.high_24h    || 0,
+            setor:        'Criptomoedas',
+            industria:    cripto.simbolo?.toUpperCase() || '',
+          };
+          // Histórico de cripto: tenta buscar se MercadoAPI suportar
+          try {
+            dadosHist1y = await MercadoAPI.buscarHistoricoCripto(TICKER, 365);
+            dadosHist6m = await MercadoAPI.buscarHistoricoCripto(TICKER, 180);
+          } catch(_) {
+            dadosHist1y = null; dadosHist6m = null;
+          }
+
+        } else {
+          // ── ROTA AÇÕES / FIIS / TESOURO: brapi ──
+          [dadosAtivo, dadosDetalhe, dadosHist1y, dadosHist6m] = await Promise.all([
+            MercadoAPI.buscarAtivo(TICKER),
+            MercadoAPI.buscarDetalhadoAtivo(TICKER),
+            MercadoAPI.buscarHistorico(TICKER, '1y'),
+            MercadoAPI.buscarHistorico(TICKER, '6mo'),
+          ]);
+        }
 
         // ── ENRIQUECE COM DADOS DO HISTÓRICO SE API RETORNOU ZEROS ──
         const hist1y = dadosHist1y?.historico || [];
         const hist6m = dadosHist6m?.historico || [];
 
-        // Min/Máx 52 semanas — usa detalhes ou extrai do histórico
         if (!(dadosDetalhe?.min_52s > 0) && hist1y.length) {
           const mm = extrairMinMax(hist1y);
           if (!dadosDetalhe) dadosDetalhe = {};
           dadosDetalhe.min_52s = mm.min;
           dadosDetalhe.max_52s = mm.max;
         }
-
-        // Variação períodos — usa histórico se detalhes não tem
         if (!(dadosHist6m?.variacao_periodo) && hist6m.length) {
           if (!dadosHist6m) dadosHist6m = {};
           dadosHist6m.variacao_periodo = extrairVariacao(hist6m);
@@ -408,14 +446,11 @@
           if (!dadosHist1y) dadosHist1y = {};
           dadosHist1y.variacao_periodo = extrairVariacao(hist1y);
         }
-
-        // Médias móveis — calcula do histórico se API não trouxe
         if (!(dadosDetalhe?.media_50d > 0) && hist1y.length >= 50) {
           const ult50 = hist1y.slice(-50).map(h => h.preco);
           dadosDetalhe.media_50d = ult50.reduce((a,b)=>a+b,0) / ult50.length;
         }
         if (!(dadosDetalhe?.media_200d > 0) && hist1y.length >= 30) {
-          // com 1y talvez não tenhamos 200 dias; usa o que tiver
           const precos = hist1y.map(h => h.preco);
           dadosDetalhe.media_200d = precos.reduce((a,b)=>a+b,0) / precos.length;
         }
@@ -423,8 +458,10 @@
         esconderSkeleton();
         conteudo.innerHTML = '';
 
-        // Banner "minha posição" se tiver o ativo em carteira
-        const posicao = minhasPosicoes.find(p => p.ticker === TICKER);
+        // Banner "minha posição"
+        // FIX: para cripto a chave salva no Firestore é o ID em minúsculas
+        const tickerBusca = TIPO === 'cripto' ? TICKER : TICKER;
+        const posicao = minhasPosicoes.find(p => p.ticker === tickerBusca);
         if (posicao) {
           const precoAtual = dadosAtivo?.preco || posicao.preco_medio || 0;
           const valorAtual = (posicao.quantidade||0) * precoAtual;
@@ -438,7 +475,7 @@
             <div>
               <p class="mpb-label">${isPos?'📈 MINHA POSIÇÃO — GANHO':'📉 MINHA POSIÇÃO — PERDA'}</p>
               <p class="mpb-valor">${isPos?'+':''}${R$(ganho)}</p>
-              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${posicao.quantidade} cotas · PM R$ ${(posicao.preco_medio||0).toFixed(2)}</p>
+              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${posicao.quantidade} ${TIPO==='cripto'?'unidades':'cotas'} · PM R$ ${(posicao.preco_medio||0).toFixed(2)}</p>
             </div>
             <p class="mpb-pct">${pct(ganhoP)}</p>`;
           conteudo.appendChild(banner);
@@ -476,7 +513,7 @@
         conteudo.innerHTML = `
           <div class="relatorio-secao">
             <p style="font-family:var(--mono);font-size:11px;color:var(--muted)">
-              ⚠️ Não foi possível carregar dados de <strong>${TICKER}</strong>.<br><br>
+              ⚠️ Não foi possível carregar dados de <strong>${TICKER_DISPLAY}</strong>.<br><br>
               Possíveis causas:<br>· Ticker incorreto (ex: use PETR4, não PETR)<br>
               · API temporariamente indisponível<br><br>
               <a href="investir.html" style="color:var(--wave)">← Voltar e tentar outro ativo</a>
@@ -499,32 +536,35 @@
       const range52   = max52 - min52 || 1;
       const posRange  = min52 > 0 ? Math.min(100, Math.max(0, ((preco - min52) / range52) * 100)) : 50;
 
-      // var 1 mês — últimos 22 pregões do histórico anual
       const hist1m  = hist1y.slice(-22);
       const var1m   = hist1m.length > 1 ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco) / hist1m[0].preco) * 100 : 0;
       const var1y   = dadosHist1y?.variacao_periodo || 0;
       const var6m   = dadosHist6m?.variacao_periodo || 0;
+
+      // Para cripto, variação do dia
+      const varLabel = TIPO === 'cripto' ? '24H' : 'HOJE';
+      const varVal   = TIPO === 'cripto' ? pct(varpct) + ' 24h' : pct(varpct) + ' hoje';
 
       const el = document.createElement('div');
       el.className = 'ativo-hero';
       el.innerHTML = `
         <div class="ativo-hero-top">
           <div>
-            <p class="ativo-ticker">${TICKER}</p>
+            <p class="ativo-ticker">${TICKER_DISPLAY}</p>
             <p class="ativo-nome">${(dadosAtivo?.nome || dadosDetalhe?.industria || '').substring(0,50)}</p>
           </div>
           <div style="text-align:right">
             <p class="ativo-preco">R$ ${preco.toFixed(2)}</p>
-            <span class="ativo-var ${pos?'pos':'neg'}">${MercadoAPI.pct(varpct)} hoje</span>
+            <span class="ativo-var ${pos?'pos':'neg'}">${varVal}</span>
           </div>
         </div>
 
         ${min52 > 0 ? `
         <div class="range-wrap">
           <div class="range-label-row">
-            <span class="range-label">MÍN 52 SEM</span>
-            <span class="range-label">POSIÇÃO NO ANO</span>
-            <span class="range-label">MÁX 52 SEM</span>
+            <span class="range-label">${TIPO==='cripto'?'MÍN 24H':'MÍN 52 SEM'}</span>
+            <span class="range-label">POSIÇÃO</span>
+            <span class="range-label">${TIPO==='cripto'?'MÁX 24H':'MÁX 52 SEM'}</span>
           </div>
           <div class="range-bar">
             <div class="range-fill" style="width:${posRange}%"></div>
@@ -544,8 +584,8 @@
 
         <div class="stats-grid">
           <div class="stat-bloco">
-            <span class="stat-label">1 MÊS</span>
-            <span class="stat-valor ${var1m>=0?'pos':'neg'}">${pct(var1m)}</span>
+            <span class="stat-label">${TIPO==='cripto'?'24H':'1 MÊS'}</span>
+            <span class="stat-valor ${(TIPO==='cripto'?varpct:var1m)>=0?'pos':'neg'}">${pct(TIPO==='cripto'?varpct:var1m)}</span>
           </div>
           <div class="stat-bloco">
             <span class="stat-label">6 MESES</span>
@@ -557,7 +597,6 @@
           </div>
         </div>`;
 
-      // Desenha mini chart depois de inserir no DOM
       if (hist1y.length > 0) {
         requestAnimationFrame(() => {
           const canvas = el.querySelector('#mini-canvas');
@@ -610,7 +649,6 @@
       precos.forEach((p,i) => { if(i>0) ctx.lineTo(xOf(i), yOf(p)); });
       ctx.stroke();
 
-      // ponto final
       const lx = xOf(precos.length-1);
       const ly = yOf(precos[precos.length-1]);
       ctx.beginPath();
@@ -628,7 +666,6 @@
       const m50   = d.media_50d  || 0;
       const m200  = d.media_200d || 0;
 
-      // vs média 200d
       let vsMedia = '';
       if (m200 > 0) {
         const acima = preco > m200;
@@ -644,12 +681,13 @@
       el.innerHTML = `
         <p class="secao-titulo">📊 HISTÓRICO DE PREÇOS</p>
         ${item('Preço atual', R$(preco))}
-        ${m50  > 0 ? item('Média 50 dias',  R$(m50),  preco>m50?'pos':'neg') : item('Média 50 dias', 'Calculando...', '')}
-        ${m200 > 0 ? item('Média 200 dias', R$(m200), preco>m200?'pos':'neg') : item('Média 200 dias', 'Calculando...', '')}
-        ${vsMedia}
+        ${TIPO !== 'cripto' && m50  > 0 ? item('Média 50 dias',  R$(m50),  preco>m50?'pos':'neg')  : ''}
+        ${TIPO !== 'cripto' && m200 > 0 ? item('Média 200 dias', R$(m200), preco>m200?'pos':'neg') : ''}
+        ${TIPO !== 'cripto' ? vsMedia : ''}
         ${var6m !== 0 ? item('Variação 6 meses', pct(var6m), var6m>=0?'pos':'neg') : item('Variação 6 meses', 'Carregando...', '')}
         ${var1y !== 0 ? item('Variação 1 ano',   pct(var1y), var1y>=0?'pos':'neg') : item('Variação 1 ano',   'Carregando...', '')}
-        ${d.volume_medio > 0 ? item('Volume médio (3m)', Number(d.volume_medio).toLocaleString('pt-BR')) : item('Volume médio (3m)', 'Indisponível', '')}`;
+        ${d.volume_medio > 0 && TIPO !== 'cripto' ? item('Volume médio (3m)', Number(d.volume_medio).toLocaleString('pt-BR')) : ''}
+        ${TIPO === 'cripto' && d.market_cap > 0 ? item('Market Cap', MercadoAPI.bigNum(d.market_cap)) : ''}`;
       return el;
     }
 
@@ -667,7 +705,6 @@
         return el;
       }
 
-      // Monta grade visual de indicadores
       const fundItems = [];
       if (d.market_cap)    fundItems.push({ label:'MARKET CAP', valor: MercadoAPI.bigNum(d.market_cap), sub:'', cls:'' });
       if (d.pl)            fundItems.push({ label:'P/L',         valor: d.pl.toFixed(2), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
@@ -753,7 +790,7 @@
         cdb:    ['Risco de crédito do emissor (FGC até R$ 250k)','Risco de liquidez sem resgate antecipado','Inflação corrói ganhos em prazos longos','IR regressivo impacta curto prazo'],
         lci:    ['Carência mínima obrigatória','Risco de crédito do emissor','Rentabilidade menor que CDB bruto','Poucos produtos disponíveis'],
         tesouro:['Marcação a mercado em prefixados','Risco político/fiscal','Prazo longo pode não adequar ao objetivo','Risco de inflação para Tesouro Selic'],
-        cripto: ['Altíssima volatilidade','Risco regulatório','Risco de custódia nas exchanges','Mercado 24h com variações noturnas'],
+        cripto: ['Altíssima volatilidade — quedas de 50%+ em semanas são comuns','Risco regulatório — governos podem proibir ou restringir','Risco de custódia nas exchanges — sem FGC','Mercado 24h com variações noturnas sem liquidez imediata'],
       };
       const riscos = mapa[TIPO] || mapa.acoes;
       const el = document.createElement('div');
@@ -766,6 +803,7 @@
 
     // ══════════════════════════════════════════
     //  ANÁLISE IA
+    //  FIX: model string correto + header anthropic-dangerous-direct-browser-ipc
     // ══════════════════════════════════════════
     async function gerarAnaliseIA(el) {
       const d     = dadosDetalhe || {};
@@ -775,36 +813,49 @@
       const min52 = d.min_52s || 0;
       const max52 = d.max_52s || 0;
 
+      const nomeTipoStr = nomeTipo(TIPO);
+
       const prompt = `Você é um analista financeiro educacional da plataforma Los Pombitos Investimentos.
-Analise o ativo ${TICKER} e gere um relatório em português brasileiro para um investidor com perfil: ${perfilUsuario}.
+Analise o ativo ${TICKER_DISPLAY} (${nomeTipoStr}) e gere um relatório em português brasileiro para um investidor com perfil: ${perfilUsuario}.
 
 DADOS DISPONÍVEIS:
-- Preço atual: R$ ${preco.toFixed(2)} | Variação hoje: ${pct(dadosAtivo?.variacao_pct||0)}
+- Preço atual: R$ ${preco.toFixed(2)} | Variação: ${pct(dadosAtivo?.variacao_pct||0)}
 - Variação 6 meses: ${pct(var6m)} | Variação 1 ano: ${pct(var1y)}
-- Mín 52 semanas: R$ ${min52.toFixed(2)} | Máx 52 semanas: R$ ${max52.toFixed(2)}
-- Posição na faixa 52s: ${min52>0?((preco-min52)/(max52-min52||1)*100).toFixed(0)+'%':'N/A'}
+- Mín período: R$ ${min52.toFixed(2)} | Máx período: R$ ${max52.toFixed(2)}
+- Posição na faixa: ${min52>0?((preco-min52)/(max52-min52||1)*100).toFixed(0)+'%':'N/A'}
 - Média 50 dias: R$ ${(d.media_50d||0).toFixed(2)} | Média 200 dias: R$ ${(d.media_200d||0).toFixed(2)}
 - P/L: ${d.pl?.toFixed(2)||'N/A'} | P/VP: ${d.pvp?.toFixed(2)||'N/A'}
 - Dividend Yield: ${pct(d.dy||0)} | ROE: ${pct(d.roe||0)}
-- Margem Líquida: ${pct(d.margem_lucro||0)} | Setor: ${d.setor||'N/A'}
+- Margem Líquida: ${pct(d.margem_lucro||0)} | Setor: ${d.setor||nomeTipoStr}
 - Recomendação analistas: ${traduzirRec(d.recomendacao)} | Preço-alvo: R$ ${d.alvo_analistas?.toFixed(2)||'N/A'}
+- Market Cap: ${d.market_cap ? MercadoAPI.bigNum(d.market_cap) : 'N/A'}
 
 Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
 {"resumo":"2-3 frases sobre o ativo e momento atual","positivos":["p1","p2","p3"],"atencao":["a1","a2","a3"],"perfil_ideal":"uma frase","horizonte":"curto/médio/longo prazo","contexto_macro":"uma frase sobre o contexto macroeconômico"}`;
 
       try {
+        // FIX: model string correto + header obrigatório para chamadas browser-side
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'anthropic-dangerous-direct-browser-ipc': 'true',
+          },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-6',   // FIX: era 'claude-sonnet-4-20250514' (inválido)
             max_tokens: 1000,
             messages: [{ role: 'user', content: prompt }]
           })
         });
+
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({error:{message:res.statusText}}));
+          throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        }
+
         const data = await res.json();
-        const texto = data.content?.map(b=>b.type==='text'?b.text:'').join('') || '';
-        const limpo = texto.replace(/```json|```/g,'').trim();
+        const texto = data.content?.map(b => b.type === 'text' ? b.text : '').join('') || '';
+        const limpo = texto.replace(/```json|```/g, '').trim();
         const a = JSON.parse(limpo);
 
         el.innerHTML = `
@@ -824,26 +875,24 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
       } catch(e) {
         console.error('[IA]', e);
         // Fallback com dados reais disponíveis
-        const var1yVal = dadosHist1y?.variacao_periodo || 0;
-        const pl = dadosDetalhe?.pl || 0;
-        const dy = dadosDetalhe?.dy || 0;
-        const var6mVal = dadosHist6m?.variacao_periodo || 0;
-        const min52 = dadosDetalhe?.min_52s || 0;
-        const max52 = dadosDetalhe?.max_52s || 0;
-        const posRange = min52 > 0 ? ((preco-min52)/(max52-min52||1)*100).toFixed(0) : null;
+        const var1yVal  = dadosHist1y?.variacao_periodo || 0;
+        const var6mVal  = dadosHist6m?.variacao_periodo || 0;
+        const pl        = dadosDetalhe?.pl || 0;
+        const dy        = dadosDetalhe?.dy || 0;
+        const posRange  = min52 > 0 ? ((preco-min52)/(max52-min52||1)*100).toFixed(0) : null;
 
         el.innerHTML = `
           <div class="ia-header"><span class="ia-badge">ANÁLISE</span><p class="ia-titulo">DADOS DO ATIVO</p></div>
           <p class="ia-texto">
-            ${TICKER} negocia a R$ ${preco.toFixed(2)}${var1yVal !== 0 ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses` : ''}.
-            ${posRange !== null ? `Está a ${posRange}% da sua faixa de 52 semanas (mín R$ ${min52.toFixed(2)}, máx R$ ${max52.toFixed(2)}).` : ''}
-            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl<15?' indica valuation atrativo':pl>30?' está elevado em relação ao setor':' está em linha com o setor'}.` : ''}
+            ${TICKER_DISPLAY} negocia a R$ ${preco.toFixed(2)}${var1yVal !== 0 ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses` : ''}.
+            ${posRange !== null ? `Está a ${posRange}% da sua faixa de preços recente (mín R$ ${min52.toFixed(2)}, máx R$ ${max52.toFixed(2)}).` : ''}
+            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl<15?' indica valuation atrativo':pl>30?' está elevado':' está em linha com o setor'}.` : ''}
             ${dy > 4 ? `Dividend Yield de ${dy.toFixed(1)}% é um ponto positivo para renda passiva.` : ''}
           </p>
           ${item('Variação 6 meses', pct(var6mVal), var6mVal>=0?'pos':'neg')}
           ${item('Variação 1 ano', pct(var1yVal), var1yVal>=0?'pos':'neg')}
-          ${min52 > 0 ? item('Posição na faixa 52s', posRange + '%') : ''}
-          <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Os dados acima foram calculados diretamente do histórico de preços.</p>`;
+          ${posRange !== null ? item('Posição na faixa', posRange + '%') : ''}
+          <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Os dados acima foram calculados do histórico de preços.</p>`;
       }
     }
 
@@ -883,14 +932,15 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         }).join('');
     }
 
+    // FIX: lista cripto linka com ?ticker=ID&tipo=cripto (ID em minúsculas, ex: "bitcoin")
     function renderizarListaCripto(conteudo, criptos) {
       conteudo.innerHTML = `<p class="info-dica">💡 Clique em uma cripto para ver o relatório completo</p>` +
         criptos.map(c => `
-          <div class="lista-ativo" onclick="location.href='relatorio.html?ticker=${c.id}&tipo=cripto'">
+          <div class="lista-ativo" onclick="location.href='relatorio.html?ticker=${encodeURIComponent(c.id)}&tipo=cripto'">
             <div style="display:flex;align-items:center;gap:10px">
               <img src="${c.imagem}" width="32" height="32" style="border-radius:50%" onerror="this.style.display='none'">
               <div>
-                <p class="lista-ticker" style="font-size:16px">${c.simbolo}</p>
+                <p class="lista-ticker" style="font-size:16px">${(c.simbolo||c.id).toUpperCase()}</p>
                 <p class="lista-nome">${c.nome} · #${c.rank}</p>
               </div>
             </div>
