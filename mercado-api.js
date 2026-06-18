@@ -492,15 +492,18 @@ const MercadoAPI = {
         8000
       );
       const r = {
-        id, nome: data.name,
-        simbolo:       data.symbol?.toUpperCase(),
-        preco_brl:     data.market_data?.current_price?.brl || 0,
-        variacao_24h:  data.market_data?.price_change_percentage_24h || 0,
-        variacao_7d:   data.market_data?.price_change_percentage_7d  || 0,
-        max_historico: data.market_data?.ath?.brl || 0,
-        market_cap:    data.market_data?.market_cap?.brl || 0,
-        rank:          data.market_cap_rank || 0,
-      };
+  id, nome: data.name,
+  simbolo:       data.symbol?.toUpperCase(),
+  preco:         data.market_data?.current_price?.brl || 0,
+  preco_brl:     data.market_data?.current_price?.brl || 0,
+  low_24h:       data.market_data?.low_24h?.brl  || 0,
+  high_24h:      data.market_data?.high_24h?.brl || 0,
+  variacao_24h:  data.market_data?.price_change_percentage_24h || 0,
+  variacao_7d:   data.market_data?.price_change_percentage_7d  || 0,
+  max_historico: data.market_data?.ath?.brl || 0,
+  market_cap:    data.market_data?.market_cap?.brl || 0,
+  rank:          data.market_cap_rank || 0,
+};
       this._toCache(cacheKey, r);
       return r;
     } catch (e) { return null; }
