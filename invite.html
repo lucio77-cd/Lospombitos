@@ -24,7 +24,6 @@
     .ornament-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
     .ornament-diamond{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);flex-shrink:0}
 
-    /* BRASÃO */
     .brasao-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:20px}
     .brasao{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
     .brasao-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--gold);border-right-color:var(--gold-light);border-bottom-color:var(--gold);animation:girar 12s linear infinite;opacity:.5}
@@ -37,7 +36,6 @@
     .pombo-svg{position:relative;z-index:2;filter:drop-shadow(0 0 8px rgba(201,168,76,.4));animation:flutuar 4s ease-in-out infinite}
     @keyframes flutuar{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 
-    /* TÍTULOS */
     .titulo-wrap{text-align:center;margin-bottom:6px}
     .titulo-ordem{font-family:var(--decorative);font-size:11px;letter-spacing:5px;color:var(--gold);opacity:.8;margin-bottom:8px}
     .titulo-principal{font-family:var(--decorative);font-size:30px;font-weight:700;letter-spacing:3px;color:var(--parchment);line-height:1.1;text-shadow:0 0 30px rgba(201,168,76,.3)}
@@ -48,7 +46,6 @@
     .divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.3),transparent)}
     .divider-text{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--gold);opacity:.6}
 
-    /* CARD ÚNICO */
     .tela-card{border:1px solid rgba(201,168,76,.25);border-radius:4px;padding:28px 24px;width:100%;background:rgba(255,255,255,.02);position:relative}
     .tela-card::before,.tela-card::after{content:'';position:absolute;width:14px;height:14px;border-color:var(--gold);border-style:solid;opacity:.4}
     .tela-card::before{top:8px;left:8px;border-width:1px 0 0 1px}
@@ -57,7 +54,6 @@
     .tela-titulo{font-family:var(--display);font-size:18px;letter-spacing:3px;color:var(--gold-light);margin-bottom:8px}
     .tela-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:22px}
 
-    /* BOTÕES */
     .btn-google{width:100%;height:52px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.5);border-radius:3px;color:var(--gold-light);font-family:var(--display);font-size:13px;letter-spacing:3px;display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;margin-bottom:10px}
     .btn-google::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.2),transparent);opacity:0;transition:opacity .25s}
     .btn-google:hover:not(:disabled)::before{opacity:1}
@@ -68,11 +64,6 @@
     .sep-interno{display:flex;align-items:center;gap:8px;margin:4px 0 10px}
     .sep-linha{flex:1;height:1px;background:rgba(201,168,76,.15)}
     .sep-txt{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted)}
-
-    /* Mensagem de usuário existente */
-    .ja-membro{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:10px 0 0;letter-spacing:1px}
-    .ja-membro span{color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-    .ja-membro span:hover{color:var(--gold-light)}
 
     .msg-feedback{display:none;margin-top:14px;padding:10px 16px;border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;line-height:1.6;text-align:center;width:100%}
     .msg-erro{background:rgba(139,26,26,.2);color:#e88;border:1px solid rgba(139,26,26,.4);display:block}
@@ -105,7 +96,6 @@
       <div class="ornament-line"></div>
     </div>
 
-    <!-- BRASÃO -->
     <div class="brasao-wrap">
       <div class="brasao">
         <div class="brasao-ring"></div>
@@ -149,7 +139,6 @@
       </div>
     </div>
 
-    <!-- TÍTULOS -->
     <div class="titulo-wrap">
       <p class="titulo-ordem">A SAGRADA ORDEM DE</p>
       <p class="titulo-principal">LOS <span>POMBITOS</span></p>
@@ -162,7 +151,6 @@
       <div class="divider-line"></div>
     </div>
 
-    <!-- CARD ÚNICO: só Google -->
     <div class="tela-card">
       <p class="tela-titulo">COMECE A INVESTIR</p>
       <p class="tela-desc">
@@ -170,7 +158,6 @@
         Ações · FIIs · Tesouro Direto · Cripto · Renda Fixa
       </p>
 
-      <!-- Criar conta / entrar — mesmo botão, Google decide -->
       <button class="btn-google" id="btn-google" onclick="entrarOuCriar()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
         ENTRAR COM GOOGLE
@@ -212,46 +199,52 @@
     async function entrarOuCriar() {
       const btn = document.getElementById('btn-google');
       btn.disabled = true;
-      btn.innerHTML = '<span style="letter-spacing:2px">CONECTANDO...</span>';
+      btn.innerHTML = '<span style="letter-spacing:2px">REDIRECIONANDO...</span>';
 
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        const result = await firebase.auth().signInWithPopup(provider);
-        const user   = result.user;
-
-        const snap = await db.collection('usuarios').doc(user.uid).get();
-
-        if (snap.exists && snap.data().perfil_completo === true) {
-          // Usuário já tem perfil completo → feed
-          msg('Bem-vindo de volta! Entrando... 🕊️', 'ok');
-          setTimeout(() => window.location.href = 'feed.html', 800);
-        } else if (snap.exists && snap.data().perfil_completo === false) {
-          // Perfil incompleto → continua setup
-          msg('Continuando seu perfil...', 'info');
-          setTimeout(() => window.location.href = 'setup-perfil.html', 800);
-        } else {
-          // Conta nova → cria doc básico e vai para setup
-          await db.collection('usuarios').doc(user.uid).set({
-            uid:             user.uid,
-            email:           user.email,
-            perfil_completo: false,
-            data_adesao:     firebase.firestore.FieldValue.serverTimestamp(),
-          });
-          msg('Conta criada! Vamos configurar seu perfil... 🐦', 'ok');
-          setTimeout(() => window.location.href = 'setup-perfil.html', 900);
-        }
-
+        // Usa redirect em vez de popup — funciona em todos os browsers mobile
+        await firebase.auth().signInWithRedirect(provider);
       } catch(e) {
-        if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
-          msg('Login cancelado. Tente novamente.', 'info');
-        } else {
-          msg('Erro: ' + e.message, 'erro');
-        }
+        msg('Erro ao iniciar login: ' + e.message, 'erro');
         btn.disabled = false;
         btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="18"> ENTRAR COM GOOGLE';
       }
     }
+
+    // Ao voltar do redirect do Google, processa o resultado aqui
+    firebase.auth().getRedirectResult().then(async (result) => {
+      if (!result.user) return; // Nenhum redirect pendente
+
+      const user = result.user;
+      msg('Verificando conta...', 'info');
+
+      const snap = await db.collection('usuarios').doc(user.uid).get();
+
+      if (snap.exists && snap.data().perfil_completo === true) {
+        msg('Bem-vindo de volta! Entrando... 🕊️', 'ok');
+        setTimeout(() => window.location.href = 'feed.html', 800);
+      } else if (snap.exists && snap.data().perfil_completo === false) {
+        msg('Continuando seu perfil...', 'info');
+        setTimeout(() => window.location.href = 'setup-perfil.html', 800);
+      } else {
+        // Conta nova
+        await db.collection('usuarios').doc(user.uid).set({
+          uid:             user.uid,
+          email:           user.email,
+          perfil_completo: false,
+          data_adesao:     firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        msg('Conta criada! Vamos configurar seu perfil... 🐦', 'ok');
+        setTimeout(() => window.location.href = 'setup-perfil.html', 900);
+      }
+
+    }).catch((e) => {
+      if (e.code && e.code !== 'auth/no-current-user') {
+        msg('Erro no login: ' + e.message, 'erro');
+      }
+    });
 
     // Se já logado, redireciona direto
     firebase.auth().onAuthStateChanged(async user => {
