@@ -8,525 +8,265 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
 
   <style>
-    /* ══════════════════════════════════════════
-       DESIGN SYSTEM — Los Pombitos
-       Tema: editorial financeiro underground
-       Paleta: carvão quente + azul elétrico + ouro
-    ══════════════════════════════════════════ */
     :root {
-      --bg:         #0c0c0e;
-      --bg2:        #141418;
-      --bg3:        #1c1c22;
-      --bg4:        #22222a;
-      --line:       #26262e;
-      --line2:      #363640;
-      --txt:        #ede8e0;
-      --txt2:       #9994a0;
-      --txt3:       #56525e;
-      --blue:       #4070ff;
-      --blue-lt:    #6a90ff;
-      --blue-dim:   #18286a;
-      --blue-glow:  rgba(64,112,255,.15);
-      --gold:       #f0c040;
-      --gold-dim:   #38300a;
-      --green:      #20c45a;
-      --green-dim:  #062a14;
-      --red:        #f04040;
-      --red-dim:    #2a0808;
-      --radius:     14px;
-      --radius-sm:  9px;
-      --radius-xs:  6px;
-      --mono:       'DM Mono', monospace;
-      --serif:      'Fraunces', serif;
-      --display:    'Bebas Neue', sans-serif;
-      --sh:         0 2px 20px rgba(0,0,0,.5);
-      --sh-lg:      0 8px 48px rgba(0,0,0,.7);
+      --bg:#0c0c0e; --bg2:#141418; --bg3:#1c1c22; --bg4:#22222a;
+      --line:#26262e; --line2:#363640;
+      --txt:#ede8e0; --txt2:#9994a0; --txt3:#56525e;
+      --blue:#4070ff; --blue-lt:#6a90ff; --blue-dim:#18286a; --blue-glow:rgba(64,112,255,.15);
+      --gold:#f0c040; --gold-dim:#38300a;
+      --green:#20c45a; --green-dim:#062a14;
+      --red:#f04040; --red-dim:#2a0808;
+      --radius:14px; --radius-sm:9px; --radius-xs:6px;
+      --mono:'DM Mono',monospace; --serif:'Fraunces',serif; --display:'Bebas Neue',sans-serif;
+      --sh:0 2px 20px rgba(0,0,0,.5); --sh-lg:0 8px 48px rgba(0,0,0,.7);
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+    body{font-family:var(--mono);background:var(--bg);color:var(--txt);min-height:100dvh;overscroll-behavior:none;padding-bottom:80px}
+    body::before{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E")}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    @keyframes fadeUp  {from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn  {from{opacity:0}to{opacity:1}}
+    @keyframes shimmer {0%,100%{opacity:.55}50%{opacity:.2}}
+    @keyframes ticker  {0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    @keyframes pulse   {0%,100%{opacity:1}50%{opacity:.35}}
+    @keyframes spin    {to{transform:rotate(360deg)}}
+    @keyframes popIn   {0%{transform:scale(.85);opacity:0}65%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
 
-    body {
-      font-family: var(--mono);
-      background: var(--bg);
-      color: var(--txt);
-      min-height: 100dvh;
-      overscroll-behavior: none;
-      padding-bottom: 80px;
-    }
+    /* ── TICKER ── */
+    .ticker-wrap{position:sticky;top:0;z-index:400;height:32px;overflow:hidden;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center}
+    .ticker-track{display:flex;align-items:center;white-space:nowrap;animation:ticker 48s linear infinite;will-change:transform}
+    .ticker-track:hover{animation-play-state:paused}
+    .ticker-item{display:inline-flex;align-items:center;gap:7px;padding:0 20px;border-right:1px solid var(--line);font-size:9.5px;letter-spacing:1.4px;color:var(--txt2)}
+    .t-sym{color:var(--txt);font-weight:500}
+    .t-chg{font-size:8.5px}
+    .t-chg.up{color:var(--green)}.t-chg.dn{color:var(--red)}.t-chg.na{color:var(--txt3)}
+    .t-dot{width:3px;height:3px;border-radius:50%;background:var(--line2)}
 
-    /* Grain overlay */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 9998; pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
-    }
+    /* ── HEADER ── */
+    .header{position:sticky;top:32px;z-index:300;height:52px;background:rgba(12,12,14,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+    .logo{font-family:var(--display);font-size:22px;letter-spacing:5px;display:flex;align-items:center;gap:7px;user-select:none;cursor:default;color:var(--txt)}
+    .logo span.blue{color:var(--blue)}
+    .logo-gem{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);flex-shrink:0}
+    .hdr-right{display:flex;align-items:center;gap:9px}
+    .mkt{display:flex;align-items:center;gap:5px;font-size:7.5px;letter-spacing:1.5px;padding:3px 9px;border-radius:20px;background:var(--bg3);border:1px solid var(--line2);color:var(--txt3)}
+    .mkt-dot{width:5px;height:5px;border-radius:50%;background:var(--txt3)}
+    .mkt.open{color:var(--green);border-color:rgba(32,196,90,.25)}
+    .mkt.open .mkt-dot{background:var(--green);animation:pulse 1.4s infinite}
+    #hdr-avatar{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--blue);object-fit:cover;display:none;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+    #hdr-avatar:hover{transform:scale(1.08);border-color:var(--gold);box-shadow:0 0 12px rgba(240,192,64,.3)}
+    .btn-sair{font-size:7.5px;letter-spacing:1.5px;padding:3px 11px;border-radius:20px;background:none;border:1px solid var(--line2);color:var(--txt3);cursor:pointer;transition:color .2s,border-color .2s}
+    .btn-sair:hover{color:var(--red);border-color:var(--red)}
 
-    /* ══ ANIMATIONS ══ */
-    @keyframes fadeUp   { from { opacity:0; transform:translateY(18px) } to { opacity:1; transform:translateY(0) } }
-    @keyframes fadeIn   { from { opacity:0 } to { opacity:1 } }
-    @keyframes shimmer  { 0%,100%{opacity:.55} 50%{opacity:.2} }
-    @keyframes ticker   { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-    @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.35} }
-    @keyframes popIn    { 0%{transform:scale(.85);opacity:0} 65%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
-    @keyframes spin     { to{transform:rotate(360deg)} }
+    /* ── LAYOUT ── */
+    .app{max-width:640px;margin:0 auto;padding:14px 12px}
 
-    /* ══════════════════════════════════
-       TICKER TAPE
-    ══════════════════════════════════ */
-    .ticker-wrap {
-      position: sticky; top: 0; z-index: 400;
-      height: 32px; overflow: hidden;
-      background: var(--bg2);
-      border-bottom: 1px solid var(--line);
-      display: flex; align-items: center;
-    }
-    .ticker-track {
-      display: flex; align-items: center;
-      white-space: nowrap;
-      animation: ticker 48s linear infinite;
-      will-change: transform;
-    }
-    .ticker-track:hover { animation-play-state: paused; }
-    .ticker-item {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 0 20px;
-      border-right: 1px solid var(--line);
-      font-size: 9.5px; letter-spacing: 1.4px;
-      color: var(--txt2);
-    }
-    .t-sym { color: var(--txt); font-weight: 500; }
-    .t-val { }
-    .t-chg { font-size: 8.5px; }
-    .t-chg.up { color: var(--green); }
-    .t-chg.dn { color: var(--red); }
-    .t-chg.na { color: var(--txt3); }
-    .t-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--line2); }
+    /* ── ÍNDICES ── */
+    .idx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+    .idx-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;position:relative;overflow:hidden;transition:border-color .2s}
+    .idx-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(64,112,255,.035) 0%,transparent 55%);pointer-events:none}
+    .idx-card:hover{border-color:var(--line2)}
+    .idx-name{font-size:7.5px;letter-spacing:2.5px;color:var(--txt3);margin-bottom:5px}
+    .idx-val{font-size:15px;font-weight:500;color:var(--txt);margin-bottom:2px;letter-spacing:.3px;min-height:20px}
+    .idx-chg{font-size:9px;letter-spacing:.4px}
+    .idx-chg.up{color:var(--green)}.idx-chg.dn{color:var(--red)}.idx-chg.na{color:var(--txt3)}
+    .sk-inline{display:inline-block;background:var(--bg3);border-radius:4px;animation:shimmer 1.6s infinite;color:transparent;user-select:none}
+    .offline-banner{display:none;font-size:8px;letter-spacing:1px;color:var(--txt3);text-align:center;padding:3px 0 10px;animation:fadeIn .4s ease}
+    .offline-banner.show{display:block}
 
-    /* ══════════════════════════════════
-       HEADER
-    ══════════════════════════════════ */
-    .header {
-      position: sticky; top: 32px; z-index: 300;
-      height: 52px;
-      background: rgba(12,12,14,.92);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--line);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 16px;
-    }
-
-    .logo {
-      font-family: var(--display);
-      font-size: 22px; letter-spacing: 5px;
-      display: flex; align-items: center; gap: 7px;
-      user-select: none; cursor: default;
-      color: var(--txt);
-    }
-    .logo span.blue { color: var(--blue); }
-    .logo-gem {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--gold);
-      box-shadow: 0 0 8px var(--gold);
-      flex-shrink: 0;
-    }
-
-    .hdr-right { display: flex; align-items: center; gap: 9px; }
-
-    /* Mercado badge */
-    .mkt {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 7.5px; letter-spacing: 1.5px;
-      padding: 3px 9px; border-radius: 20px;
-      background: var(--bg3); border: 1px solid var(--line2);
-      color: var(--txt3);
-    }
-    .mkt-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--txt3); }
-    .mkt.open { color: var(--green); border-color: rgba(32,196,90,.25); }
-    .mkt.open .mkt-dot { background: var(--green); animation: pulse 1.4s infinite; }
-
-    /* Avatar no header */
-    #hdr-avatar {
-      width: 30px; height: 30px; border-radius: 50%;
-      border: 1.5px solid var(--blue); object-fit: cover;
-      display: none; cursor: pointer;
-      transition: transform .2s, border-color .2s, box-shadow .2s;
-    }
-    #hdr-avatar:hover {
-      transform: scale(1.08);
-      border-color: var(--gold);
-      box-shadow: 0 0 12px rgba(240,192,64,.3);
-    }
-
-    /* Botão sair */
-    .btn-sair {
-      font-size: 7.5px; letter-spacing: 1.5px;
-      padding: 3px 11px; border-radius: 20px;
-      background: none; border: 1px solid var(--line2);
-      color: var(--txt3); cursor: pointer;
-      transition: color .2s, border-color .2s;
-    }
-    .btn-sair:hover { color: var(--red); border-color: var(--red); }
-
-    /* ══════════════════════════════════
-       LAYOUT
-    ══════════════════════════════════ */
-    .app { max-width: 640px; margin: 0 auto; padding: 14px 12px; }
-
-    /* ══════════════════════════════════
-       ÍNDICES — grid 2x2
-    ══════════════════════════════════ */
-    .idx-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
+    /* ════════════════════════════════
+       SEÇÃO DESCOBRIR MEMBROS
+    ════════════════════════════════ */
+    .descobrir-wrap {
       margin-bottom: 14px;
     }
-    .idx-card {
-      background: var(--bg2); border: 1px solid var(--line);
-      border-radius: var(--radius-sm); padding: 11px 13px;
-      position: relative; overflow: hidden;
-      transition: border-color .2s;
-    }
-    .idx-card::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(64,112,255,.035) 0%, transparent 55%);
-      pointer-events: none;
-    }
-    .idx-card:hover { border-color: var(--line2); }
-    .idx-name { font-size: 7.5px; letter-spacing: 2.5px; color: var(--txt3); margin-bottom: 5px; }
-    .idx-val {
-      font-size: 15px; font-weight: 500; color: var(--txt);
-      margin-bottom: 2px; letter-spacing: .3px;
-      min-height: 20px;
-    }
-    .idx-chg { font-size: 9px; letter-spacing: .4px; }
-    .idx-chg.up { color: var(--green); }
-    .idx-chg.dn { color: var(--red); }
-    .idx-chg.na { color: var(--txt3); }
 
-    /* Skeleton loading nos índices */
-    .sk-inline {
-      display: inline-block;
-      background: var(--bg3); border-radius: 4px;
-      animation: shimmer 1.6s infinite;
-      color: transparent; user-select: none;
+    .descobrir-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
     }
 
-    /* ══════════════════════════════════
-       BANNER OFFLINE (cotações)
-    ══════════════════════════════════ */
-    .offline-banner {
-      display: none;
-      font-size: 8px; letter-spacing: 1px;
-      color: var(--txt3); text-align: center;
-      padding: 3px 0 10px;
-      animation: fadeIn .4s ease;
-    }
-    .offline-banner.show { display: block; }
-
-    /* ══════════════════════════════════
-       POST BOX
-    ══════════════════════════════════ */
-    .post-box {
-      background: var(--bg2); border: 1px solid var(--line);
-      border-radius: var(--radius); padding: 14px;
-      margin-bottom: 12px;
-      transition: border-color .25s, box-shadow .25s;
-    }
-    .post-box:focus-within {
-      border-color: var(--blue-dim);
-      box-shadow: 0 0 0 3px var(--blue-glow);
+    .descobrir-titulo {
+      font-size: 8px; letter-spacing: 3px;
+      color: var(--txt3);
     }
 
-    .post-row { display: flex; gap: 10px; align-items: flex-start; }
-
-    #post-avatar {
-      width: 34px; height: 34px; border-radius: 50%;
-      border: 1.5px solid var(--blue-dim); object-fit: cover;
-      flex-shrink: 0; background: var(--bg3);
+    .descobrir-titulo span {
+      color: var(--gold);
+      margin-right: 6px;
     }
 
-    #post-input {
-      flex: 1; background: transparent; border: none; outline: none;
-      font-family: var(--serif); font-style: italic; font-size: 15px;
-      color: var(--txt); resize: none; min-height: 52px; line-height: 1.7;
-      padding-top: 2px;
+    .descobrir-count {
+      font-size: 7.5px; letter-spacing: 1px;
+      color: var(--txt3);
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 2px 8px;
     }
-    #post-input::placeholder { color: var(--txt3); }
 
-    .post-footer {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
-      gap: 8px; flex-wrap: wrap;
-    }
-    .post-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-    .char-c { font-size: 8.5px; color: var(--txt3); }
-    .char-c.warn { color: var(--gold); }
-    .char-c.over { color: var(--red); }
-
-    /* Mood pills */
-    .moods { display: flex; gap: 3px; }
-    .mood-btn {
-      font-size: 16px; padding: 2px 4px;
-      border: 1.5px solid transparent; border-radius: 7px;
-      cursor: pointer; background: none; line-height: 1;
-      transition: background .12s, transform .12s, border-color .12s;
-    }
-    .mood-btn:hover { background: var(--bg3); transform: scale(1.2); }
-    .mood-btn.on { background: var(--blue-dim); border-color: var(--blue); }
-
-    .btn-post {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 1.8px;
-      font-weight: 500; background: var(--blue); color: #fff;
-      border: none; border-radius: 20px; padding: 8px 20px;
-      cursor: pointer; transition: background .2s, transform .2s, box-shadow .2s;
-      white-space: nowrap;
-    }
-    .btn-post:hover:not(:disabled) {
-      background: var(--blue-lt); transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(64,112,255,.4);
-    }
-    .btn-post:disabled { opacity: .38; cursor: not-allowed; }
-
-    /* ══════════════════════════════════
-       FILTROS
-    ══════════════════════════════════ */
-    .filters {
-      display: flex; gap: 5px; overflow-x: auto;
-      padding-bottom: 2px; margin-bottom: 12px;
+    .membros-scroll {
+      display: flex; gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
-    .filters::-webkit-scrollbar { display: none; }
-    .filt {
-      flex-shrink: 0; font-size: 7.5px; letter-spacing: 1.5px;
-      padding: 5px 13px; border-radius: 20px;
-      border: 1px solid var(--line); background: var(--bg2);
-      color: var(--txt3); cursor: pointer; transition: all .18s;
-    }
-    .filt.on { background: var(--blue); color: #fff; border-color: var(--blue); }
-    .filt:hover:not(.on) { border-color: var(--blue); color: var(--blue); }
+    .membros-scroll::-webkit-scrollbar { display: none; }
 
-    /* ══════════════════════════════════
-       FEED LIST
-    ══════════════════════════════════ */
-    #feed-list { display: flex; flex-direction: column; gap: 7px; }
-
-    /* ══════════════════════════════════
-       POST CARD — texto
-    ══════════════════════════════════ */
-    .post-card {
-      background: var(--bg2); border: 1px solid var(--line);
-      border-radius: var(--radius); padding: 13px 14px;
-      display: flex; gap: 10px;
+    .membro-card {
+      flex-shrink: 0;
+      width: 100px;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
+      cursor: pointer;
       transition: border-color .2s, transform .15s;
-      animation: fadeUp .32s ease both;
+      animation: popIn .3s ease both;
+      text-decoration: none;
     }
-    .post-card:hover { border-color: var(--line2); transform: translateY(-1px); }
+    .membro-card:hover {
+      border-color: var(--blue-dim);
+      transform: translateY(-2px);
+    }
 
-    /* Trade cards têm borda lateral colorida */
-    .post-card.trade-buy  { border-left: 2px solid var(--green); }
-    .post-card.trade-sell { border-left: 2px solid var(--red); }
-
-    .p-av {
-      width: 36px; height: 36px; border-radius: 50%;
-      object-fit: cover; flex-shrink: 0;
+    .membro-av {
+      width: 48px; height: 48px; border-radius: 50%;
+      object-fit: cover;
       border: 1.5px solid var(--line2);
       background: var(--bg3);
       transition: border-color .2s;
     }
-    .post-card:hover .p-av { border-color: var(--blue); }
+    .membro-card:hover .membro-av { border-color: var(--blue); }
 
-    .p-body { flex: 1; min-width: 0; }
-
-    .p-meta {
-      display: flex; align-items: center; gap: 6px;
-      margin-bottom: 5px; flex-wrap: wrap;
-    }
-    .p-author { font-size: 10.5px; font-weight: 500; color: var(--blue); letter-spacing: .4px; }
-    .p-time   { font-size: 8.5px; color: var(--txt3); }
-    .p-mood   { font-size: 13px; line-height: 1; }
-
-    .p-text {
-      font-family: var(--serif); font-size: 14px;
-      color: var(--txt); line-height: 1.75;
-      word-break: break-word; white-space: pre-wrap;
+    .membro-nome {
+      font-size: 9px; letter-spacing: .5px;
+      color: var(--txt);
+      text-align: center;
+      max-width: 84px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
-    /* ── Trade pill ── */
-    .trade-pill {
-      font-size: 7.5px; letter-spacing: 1px; font-weight: 500;
-      border-radius: 20px; padding: 2px 8px;
-      font-family: var(--mono);
-    }
-    .trade-pill.buy  { background: rgba(32,196,90,.11); color: var(--green); border: 1px solid rgba(32,196,90,.22); }
-    .trade-pill.sell { background: rgba(240,64,64,.11); color: var(--red);   border: 1px solid rgba(240,64,64,.22); }
-
-    /* ── Trade grid ── */
-    .trade-grid {
-      display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 1px; background: var(--line);
-      border-radius: var(--radius-xs); overflow: hidden;
-      margin-top: 9px;
-    }
-    .tc { background: var(--bg3); padding: 9px 10px; }
-    .tc.span3 { grid-column: 1/-1; }
-    .tc-l { font-size: 7px; letter-spacing: 2px; color: var(--txt3); margin-bottom: 3px; }
-    .tc-v { font-size: 12px; font-weight: 500; color: var(--txt); }
-    .tc-v.blue { color: var(--blue); }
-    .tc-v.big  { font-family: var(--display); font-size: 17px; letter-spacing: 1px; }
-
-    /* Link relatório */
-    .btn-rel {
-      display: inline-flex; align-items: center; gap: 4px;
-      margin-top: 8px; font-size: 8px; letter-spacing: 1.4px;
-      color: var(--blue); text-decoration: none;
-      background: rgba(64,112,255,.08); border: 1px solid var(--blue-dim);
-      border-radius: 20px; padding: 4px 11px;
-      transition: background .2s, color .2s;
-      font-family: var(--mono);
-    }
-    .btn-rel:hover { background: var(--blue); color: #fff; }
-
-    /* ── Reactions ── */
-    .p-reacts {
-      display: flex; align-items: center; gap: 5px;
-      margin-top: 9px; padding-top: 8px;
-      border-top: 1px solid var(--line);
-    }
-    .react {
-      display: flex; align-items: center; gap: 4px;
-      font-size: 8.5px; letter-spacing: .4px; color: var(--txt3);
-      background: none; border: 1px solid transparent;
-      border-radius: 20px; padding: 3px 9px;
-      cursor: pointer; transition: all .18s;
-      font-family: var(--mono);
-    }
-    .react:hover { border-color: var(--line2); color: var(--txt); }
-    .react.on {
-      color: var(--green); background: rgba(32,196,90,.08);
-      border-color: rgba(32,196,90,.22);
+    .membro-saldo {
+      font-size: 8px; letter-spacing: .5px;
+      color: var(--green);
+      text-align: center;
     }
 
-    /* ══════════════════════════════════
-       SKELETON LOADING CARDS
-    ══════════════════════════════════ */
-    .skel {
+    .membro-saldo.negativo { color: var(--red); }
+
+    /* skeleton membros */
+    .membro-skel {
+      flex-shrink: 0; width: 100px;
       background: var(--bg2); border: 1px solid var(--line);
-      border-radius: var(--radius); padding: 13px 14px;
-      display: flex; gap: 10px; margin-bottom: 7px;
+      border-radius: var(--radius-sm); padding: 12px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
     }
-    .sk-av {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--bg3); flex-shrink: 0;
-      animation: shimmer 1.7s infinite;
-    }
-    .sk-b  { flex: 1; display: flex; flex-direction: column; gap: 7px; padding-top: 3px; }
-    .sk-l  { height: 8px; border-radius: 4px; background: var(--bg3); animation: shimmer 1.7s infinite; }
-    .sk-l:nth-child(1) { width: 32%; animation-delay: .08s; }
-    .sk-l:nth-child(2) { width: 85%; animation-delay: .18s; }
-    .sk-l:nth-child(3) { width: 58%; animation-delay: .28s; }
+    .sk-av-m { width: 48px; height: 48px; border-radius: 50%; background: var(--bg3); animation: shimmer 1.7s infinite; }
+    .sk-nm   { width: 64px; height: 7px; border-radius: 3px; background: var(--bg3); animation: shimmer 1.7s infinite; animation-delay:.1s }
+    .sk-sl   { width: 48px; height: 7px; border-radius: 3px; background: var(--bg3); animation: shimmer 1.7s infinite; animation-delay:.2s }
 
-    /* ══════════════════════════════════
-       ESTADO VAZIO
-    ══════════════════════════════════ */
-    .empty {
-      text-align: center; padding: 56px 20px;
-      color: var(--txt3); font-size: 10.5px; letter-spacing: 1px;
-      animation: fadeIn .4s ease;
-    }
-    .empty-ico { font-size: 42px; margin-bottom: 12px; display: block; opacity: .6; }
+    /* ── POST BOX ── */
+    .post-box{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;transition:border-color .25s,box-shadow .25s}
+    .post-box:focus-within{border-color:var(--blue-dim);box-shadow:0 0 0 3px var(--blue-glow)}
+    .post-row{display:flex;gap:10px;align-items:flex-start}
+    #post-avatar{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--blue-dim);object-fit:cover;flex-shrink:0;background:var(--bg3)}
+    #post-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--txt);resize:none;min-height:52px;line-height:1.7;padding-top:2px}
+    #post-input::placeholder{color:var(--txt3)}
+    .post-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);gap:8px;flex-wrap:wrap}
+    .post-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .char-c{font-size:8.5px;color:var(--txt3)}
+    .char-c.warn{color:var(--gold)}.char-c.over{color:var(--red)}
+    .moods{display:flex;gap:3px}
+    .mood-btn{font-size:16px;padding:2px 4px;border:1.5px solid transparent;border-radius:7px;cursor:pointer;background:none;line-height:1;transition:background .12s,transform .12s,border-color .12s}
+    .mood-btn:hover{background:var(--bg3);transform:scale(1.2)}
+    .mood-btn.on{background:var(--blue-dim);border-color:var(--blue)}
+    .btn-post{font-family:var(--mono);font-size:9px;letter-spacing:1.8px;font-weight:500;background:var(--blue);color:#fff;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s;white-space:nowrap}
+    .btn-post:hover:not(:disabled){background:var(--blue-lt);transform:translateY(-1px);box-shadow:0 6px 20px rgba(64,112,255,.4)}
+    .btn-post:disabled{opacity:.38;cursor:not-allowed}
 
-    /* ══════════════════════════════════
-       LOADING SPINNER (cotações)
-    ══════════════════════════════════ */
-    .spin {
-      display: inline-block; width: 10px; height: 10px;
-      border: 1.5px solid var(--line2); border-top-color: var(--blue);
-      border-radius: 50%; animation: spin .7s linear infinite;
-      vertical-align: middle; margin-right: 4px;
-    }
+    /* ── FILTROS ── */
+    .filters{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none}
+    .filters::-webkit-scrollbar{display:none}
+    .filt{flex-shrink:0;font-size:7.5px;letter-spacing:1.5px;padding:5px 13px;border-radius:20px;border:1px solid var(--line);background:var(--bg2);color:var(--txt3);cursor:pointer;transition:all .18s}
+    .filt.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+    .filt:hover:not(.on){border-color:var(--blue);color:var(--blue)}
 
-    /* ══════════════════════════════════
-       TOAST
-    ══════════════════════════════════ */
-    #toast {
-      position: fixed; bottom: 84px; left: 50%;
-      transform: translateX(-50%) translateY(8px);
-      background: var(--txt); color: var(--bg);
-      font-size: 10.5px; letter-spacing: .4px;
-      padding: 9px 20px; border-radius: 20px;
-      opacity: 0; pointer-events: none; z-index: 9000;
-      white-space: nowrap; box-shadow: var(--sh-lg);
-      transition: opacity .22s, transform .22s;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    /* ── FEED ── */
+    #feed-list{display:flex;flex-direction:column;gap:7px}
+    .post-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;display:flex;gap:10px;transition:border-color .2s,transform .15s;animation:fadeUp .32s ease both}
+    .post-card:hover{border-color:var(--line2);transform:translateY(-1px)}
+    .post-card.trade-buy{border-left:2px solid var(--green)}
+    .post-card.trade-sell{border-left:2px solid var(--red)}
+    .p-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid var(--line2);background:var(--bg3);transition:border-color .2s}
+    .post-card:hover .p-av{border-color:var(--blue)}
+    .p-body{flex:1;min-width:0}
+    .p-meta{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+    .p-author{font-size:10.5px;font-weight:500;color:var(--blue);letter-spacing:.4px}
+    .p-time{font-size:8.5px;color:var(--txt3)}
+    .p-mood{font-size:13px;line-height:1}
+    .p-text{font-family:var(--serif);font-size:14px;color:var(--txt);line-height:1.75;word-break:break-word;white-space:pre-wrap}
+    .trade-pill{font-size:7.5px;letter-spacing:1px;font-weight:500;border-radius:20px;padding:2px 8px;font-family:var(--mono)}
+    .trade-pill.buy{background:rgba(32,196,90,.11);color:var(--green);border:1px solid rgba(32,196,90,.22)}
+    .trade-pill.sell{background:rgba(240,64,64,.11);color:var(--red);border:1px solid rgba(240,64,64,.22)}
+    .trade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:var(--radius-xs);overflow:hidden;margin-top:9px}
+    .tc{background:var(--bg3);padding:9px 10px}
+    .tc.span3{grid-column:1/-1}
+    .tc-l{font-size:7px;letter-spacing:2px;color:var(--txt3);margin-bottom:3px}
+    .tc-v{font-size:12px;font-weight:500;color:var(--txt)}
+    .tc-v.blue{color:var(--blue)}.tc-v.big{font-family:var(--display);font-size:17px;letter-spacing:1px}
+    .btn-rel{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:8px;letter-spacing:1.4px;color:var(--blue);text-decoration:none;background:rgba(64,112,255,.08);border:1px solid var(--blue-dim);border-radius:20px;padding:4px 11px;transition:background .2s,color .2s;font-family:var(--mono)}
+    .btn-rel:hover{background:var(--blue);color:#fff}
+    .p-reacts{display:flex;align-items:center;gap:5px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}
+    .react{display:flex;align-items:center;gap:4px;font-size:8.5px;letter-spacing:.4px;color:var(--txt3);background:none;border:1px solid transparent;border-radius:20px;padding:3px 9px;cursor:pointer;transition:all .18s;font-family:var(--mono)}
+    .react:hover{border-color:var(--line2);color:var(--txt)}
+    .react.on{color:var(--green);background:rgba(32,196,90,.08);border-color:rgba(32,196,90,.22)}
 
-    /* ══════════════════════════════════
-       BOTTOM NAV
-    ══════════════════════════════════ */
-    .nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      height: 62px;
-      background: rgba(12,12,14,.95);
-      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border-top: 1px solid var(--line);
-      display: flex; justify-content: space-around; align-items: center;
-      z-index: 200;
-    }
-    .nav-a {
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      text-decoration: none; color: inherit;
-      padding: 6px 18px; border-radius: 12px;
-      cursor: pointer; transition: background .18s;
-      -webkit-tap-highlight-color: transparent;
-      position: relative;
-    }
-    .nav-a:hover { background: var(--bg3); }
-    .nav-ico { font-size: 18px; line-height: 1; transition: transform .18s; }
-    .nav-a:hover .nav-ico { transform: translateY(-2px); }
-    .nav-lbl { font-size: 7.5px; letter-spacing: 1.5px; color: var(--txt3); transition: color .18s; }
-    .nav-a.on .nav-lbl { color: var(--blue); font-weight: 500; }
-    .nav-a.on .nav-ico { filter: drop-shadow(0 0 7px rgba(64,112,255,.55)); }
+    /* ── SKELETONS ── */
+    .skel{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;display:flex;gap:10px;margin-bottom:7px}
+    .sk-av{width:36px;height:36px;border-radius:50%;background:var(--bg3);flex-shrink:0;animation:shimmer 1.7s infinite}
+    .sk-b{flex:1;display:flex;flex-direction:column;gap:7px;padding-top:3px}
+    .sk-l{height:8px;border-radius:4px;background:var(--bg3);animation:shimmer 1.7s infinite}
+    .sk-l:nth-child(1){width:32%;animation-delay:.08s}
+    .sk-l:nth-child(2){width:85%;animation-delay:.18s}
+    .sk-l:nth-child(3){width:58%;animation-delay:.28s}
 
-    /* badge no nav (notificações futuras) */
-    .nav-badge {
-      position: absolute; top: 4px; right: 10px;
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--gold); border: 1.5px solid var(--bg);
-      display: none;
-    }
-    .nav-badge.show { display: block; }
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:56px 20px;color:var(--txt3);font-size:10.5px;letter-spacing:1px;animation:fadeIn .4s ease}
+    .empty-ico{font-size:42px;margin-bottom:12px;display:block;opacity:.6}
 
-    /* ══════════════════════════════════
-       DIVIDER de data no feed
-    ══════════════════════════════════ */
-    .day-div {
-      display: flex; align-items: center; gap: 10px;
-      margin: 4px 0 2px;
-      font-size: 8px; letter-spacing: 2px; color: var(--txt3);
-    }
-    .day-div::before, .day-div::after {
-      content: ''; flex: 1; height: 1px; background: var(--line);
-    }
+    /* ── SPIN ── */
+    .spin{display:inline-block;width:10px;height:10px;border:1.5px solid var(--line2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px}
 
-    /* ══════════════════════════════════
-       PULL-TO-REFRESH indicator
-    ══════════════════════════════════ */
-    #ptr {
-      text-align: center; font-size: 8px; letter-spacing: 1.5px;
-      color: var(--txt3); height: 0; overflow: hidden;
-      transition: height .2s ease;
-    }
-    #ptr.show { height: 32px; line-height: 32px; }
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--txt);color:var(--bg);font-size:10.5px;letter-spacing:.4px;padding:9px 20px;border-radius:20px;opacity:0;pointer-events:none;z-index:9000;white-space:nowrap;box-shadow:var(--sh-lg);transition:opacity .22s,transform .22s}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* ── BOTTOM NAV ── */
+    .nav{position:fixed;bottom:0;left:0;right:0;height:62px;background:rgba(12,12,14,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;z-index:200}
+    .nav-a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:inherit;padding:6px 18px;border-radius:12px;cursor:pointer;transition:background .18s;-webkit-tap-highlight-color:transparent;position:relative}
+    .nav-a:hover{background:var(--bg3)}
+    .nav-ico{font-size:18px;line-height:1;transition:transform .18s}
+    .nav-a:hover .nav-ico{transform:translateY(-2px)}
+    .nav-lbl{font-size:7.5px;letter-spacing:1.5px;color:var(--txt3);transition:color .18s}
+    .nav-a.on .nav-lbl{color:var(--blue);font-weight:500}
+    .nav-a.on .nav-ico{filter:drop-shadow(0 0 7px rgba(64,112,255,.55))}
+
+    /* ── DAY DIVIDER ── */
+    .day-div{display:flex;align-items:center;gap:10px;margin:4px 0 2px;font-size:8px;letter-spacing:2px;color:var(--txt3)}
+    .day-div::before,.day-div::after{content:'';flex:1;height:1px;background:var(--line)}
+
+    #ptr{text-align:center;font-size:8px;letter-spacing:1.5px;color:var(--txt3);height:0;overflow:hidden;transition:height .2s ease}
+    #ptr.show{height:32px;line-height:32px}
   </style>
 </head>
 <body>
 
-<!-- ══ TICKER ══ -->
+<!-- TICKER -->
 <div class="ticker-wrap">
   <div class="ticker-track" id="tt">
-    <!-- Bloco 1 -->
     <span class="ticker-item"><span class="t-sym">IBOV</span><span class="t-val" id="tk-ibov">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-ibov-c">···</span></span>
     <span class="ticker-item"><span class="t-sym">USD</span><span class="t-val" id="tk-usd">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-usd-c">···</span></span>
     <span class="ticker-item"><span class="t-sym">BTC</span><span class="t-val" id="tk-btc">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-btc-c">···</span></span>
@@ -534,7 +274,6 @@
     <span class="ticker-item"><span class="t-sym">VALE3</span><span class="t-val" id="tk-vale">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-vale-c">···</span></span>
     <span class="ticker-item"><span class="t-sym">ITUB4</span><span class="t-val" id="tk-itub">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-itub-c">···</span></span>
     <span class="ticker-item"><span class="t-sym">SELIC</span><span class="t-val">14,75%</span><span class="t-dot"></span><span class="t-chg na">a.a.</span></span>
-    <!-- Bloco 2 — loop infinito -->
     <span class="ticker-item"><span class="t-sym">IBOV</span><span class="t-val" id="tk-ibov2">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-ibov-c2">···</span></span>
     <span class="ticker-item"><span class="t-sym">USD</span><span class="t-val" id="tk-usd2">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-usd-c2">···</span></span>
     <span class="ticker-item"><span class="t-sym">BTC</span><span class="t-val" id="tk-btc2">···</span><span class="t-dot"></span><span class="t-chg na" id="tk-btc-c2">···</span></span>
@@ -545,7 +284,7 @@
   </div>
 </div>
 
-<!-- ══ HEADER ══ -->
+<!-- HEADER -->
 <header class="header">
   <div class="logo">
     <span class="blue">LOS</span>
@@ -557,19 +296,17 @@
       <span class="mkt-dot"></span>
       <span id="mkt-txt">···</span>
     </div>
-    <!-- FIX: avatar navega direto pra perfil.html -->
     <img id="hdr-avatar" src="" alt="perfil" onclick="window.location.href='perfil.html'">
     <button class="btn-sair" onclick="sair()">SAIR</button>
   </div>
 </header>
 
-<!-- ══ CONTEÚDO ══ -->
+<!-- CONTEÚDO -->
 <div class="app">
 
-  <!-- pull-to-refresh visual -->
   <div id="ptr">↻ ATUALIZANDO</div>
 
-  <!-- Índices de mercado -->
+  <!-- Índices -->
   <div class="idx-grid">
     <div class="idx-card">
       <div class="idx-name">IBOVESPA</div>
@@ -593,9 +330,23 @@
     </div>
   </div>
 
-  <!-- Banner offline — só aparece se todas as APIs falharem -->
   <div class="offline-banner" id="offline-banner">
     ⚡ cotações offline — dados podem estar desatualizados
+  </div>
+
+  <!-- ════ SEÇÃO DESCOBRIR MEMBROS ════ -->
+  <div class="descobrir-wrap">
+    <div class="descobrir-header">
+      <span class="descobrir-titulo"><span>✦</span> DESCOBRIR MEMBROS</span>
+      <span class="descobrir-count" id="membros-count">···</span>
+    </div>
+    <div class="membros-scroll" id="membros-scroll">
+      <!-- skeletons enquanto carrega -->
+      <div class="membro-skel"><div class="sk-av-m"></div><div class="sk-nm"></div><div class="sk-sl"></div></div>
+      <div class="membro-skel"><div class="sk-av-m"></div><div class="sk-nm"></div><div class="sk-sl"></div></div>
+      <div class="membro-skel"><div class="sk-av-m"></div><div class="sk-nm"></div><div class="sk-sl"></div></div>
+      <div class="membro-skel"><div class="sk-av-m"></div><div class="sk-nm"></div><div class="sk-sl"></div></div>
+    </div>
   </div>
 
   <!-- Post box -->
@@ -631,21 +382,18 @@
     <button class="filt"    onclick="filtrar('euforia',this)">🚀 EUFORIA</button>
   </div>
 
-  <!-- Skeletons enquanto carrega -->
+  <!-- Skeletons feed -->
   <div id="feed-skeletons">
     <div class="skel"><div class="sk-av"></div><div class="sk-b"><div class="sk-l"></div><div class="sk-l"></div><div class="sk-l"></div></div></div>
     <div class="skel"><div class="sk-av"></div><div class="sk-b"><div class="sk-l"></div><div class="sk-l"></div><div class="sk-l"></div></div></div>
     <div class="skel"><div class="sk-av"></div><div class="sk-b"><div class="sk-l"></div><div class="sk-l"></div><div class="sk-l"></div></div></div>
   </div>
 
-  <!-- Feed real -->
   <div id="feed-list"></div>
 
-</div><!-- /.app -->
+</div>
 
-<!-- ══ BOTTOM NAV ══ -->
-<!-- FIX: perfil agora é link direto → perfil.html, sem seção interna -->
-<nav class="nav">
+<!-- BOTTOM NAV -->
 <nav class="nav">
   <div class="nav-a on" id="nav-feed">
     <span class="nav-ico">🏠</span>
@@ -671,552 +419,417 @@
 
 <div id="toast"></div>
 
-<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 <script src="firebase.js"></script>
 
 <script>
-/* ════════════════════════════════════════════════════════
-   LOS POMBITOS — feed.js
-   Correções aplicadas:
-     1. Nav Perfil → link direto perfil.html (sem seção interna)
-     2. Cotações → sistema de 3 APIs sem CORS (brapi + awesomeapi + coingecko)
-     3. Patrimônio → NÃO exibido no feed; lógica correta movida pra perfil.html
-   ════════════════════════════════════════════════════════ */
-
 'use strict';
 
-// ── Estado global ──
-let db             = null;
-let unsubTimeline  = null;
-let todosOsPosts   = [];
-let filtroAtual    = 'todos';
-let moodAtual      = null;
-let cotacoesOk     = false;
+let unsubTimeline = null;
+let todosOsPosts  = [];
+let filtroAtual   = 'todos';
+let moodAtual     = null;
+let meuUid        = null;
 
-/* ═══════════════════════════════════════
-   TOAST
-═══════════════════════════════════════ */
-let _toastTimer;
-function toast(msg, dur = 2800) {
+/* ── TOAST ── */
+let _tt;
+function toast(msg, dur=2800) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), dur);
 }
 
-/* ═══════════════════════════════════════
-   FORMATADORES
-═══════════════════════════════════════ */
-const BRL = v =>
-  'R$\u202f' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-const pct = v =>
-  (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
-
-const bigNum = v =>
-  v >= 1e6  ? (v / 1e6).toFixed(1) + 'M'
-  : v >= 1e3 ? v.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
-  : Number(v).toFixed(2);
+/* ── FORMATADORES ── */
+const BRL = v => 'R$\u202f' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = v => (v>=0?'+':'')+Number(v).toFixed(2)+'%';
+const bigNum = v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?v.toLocaleString('pt-BR',{maximumFractionDigits:0}):Number(v).toFixed(2);
 
 function tempoRelativo(segundos) {
   if (!segundos) return '···';
-  const diff = Math.floor((Date.now() / 1000) - segundos);
+  const diff = Math.floor((Date.now()/1000) - segundos);
   if (diff < 60)    return 'agora';
-  if (diff < 3600)  return Math.floor(diff / 60) + 'm';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'h';
-  return new Date(segundos * 1000)
-    .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  if (diff < 3600)  return Math.floor(diff/60)+'m';
+  if (diff < 86400) return Math.floor(diff/3600)+'h';
+  return new Date(segundos*1000).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
 }
 
-/* ═══════════════════════════════════════
-   MERCADO — status ABERTO / FECHADO
-═══════════════════════════════════════ */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ── MERCADO ── */
 function atualizarMercado() {
-  const agora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-  const h = agora.getHours(), m = agora.getMinutes(), d = agora.getDay();
-  const min = h * 60 + m;
-  const aberto = d > 0 && d < 6 && min >= 9 * 60 + 45 && min < 17 * 60 + 30;
+  const agora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
+  const h=agora.getHours(), m=agora.getMinutes(), d=agora.getDay();
+  const min = h*60+m;
+  const aberto = d>0 && d<6 && min>=9*60+45 && min<17*60+30;
   const el = document.getElementById('mkt');
-  document.getElementById('mkt-txt').textContent = aberto ? 'ABERTO' : 'FECHADO';
-  if (aberto) el.classList.add('open');
-  else el.classList.remove('open');
+  document.getElementById('mkt-txt').textContent = aberto?'ABERTO':'FECHADO';
+  aberto ? el.classList.add('open') : el.classList.remove('open');
 }
 
-/* ═══════════════════════════════════════
-   COTAÇÕES — FIX 2
-   3 camadas sem CORS, funcionam no mobile:
-   1. brapi.dev   → ações BR + IBOV
-   2. awesomeapi  → USD/BRL
-   3. coingecko   → BTC
-   Fallback estático se tudo falhar.
-═══════════════════════════════════════ */
-
-// Dados estáticos recentes (backup se offline)
+/* ── COTAÇÕES ── */
 const FALLBACK = {
-  ibov: { v: '137.400', c: null },
-  usd:  { v: 'R$ 5,70',  c: null },
-  btc:  { v: '$103.000', c: null },
-  petr: { v: 'R$38,20',  c: null },
-  vale: { v: 'R$57,80',  c: null },
-  itub: { v: 'R$36,50',  c: null },
+  ibov:{v:'137.400'},usd:{v:'R$ 5,70'},btc:{v:'$103.000'},
+  petr:{v:'R$38,20'},vale:{v:'R$57,80'},itub:{v:'R$36,50'},
 };
 
 function aplicarCotacao(sym, preco, variacao) {
-  const cls  = variacao !== null ? (variacao >= 0 ? 'up' : 'dn') : 'na';
-  const chg  = variacao !== null ? pct(variacao) : '—';
-
-  const setIdx = (idxV, idxC, val) => {
-    const ve = document.getElementById(idxV);
-    const ce = document.getElementById(idxC);
-    if (ve) ve.innerHTML = val;          // innerHTML pois remove sk-inline
-    if (ce) { ce.textContent = chg; ce.className = 'idx-chg ' + cls; }
+  const cls = variacao!==null?(variacao>=0?'up':'dn'):'na';
+  const chg = variacao!==null?pct(variacao):'—';
+  const setIdx=(idxV,idxC,val)=>{
+    const ve=document.getElementById(idxV); const ce=document.getElementById(idxC);
+    if(ve) ve.innerHTML=val; if(ce){ce.textContent=chg;ce.className='idx-chg '+cls;}
   };
-
-  const setTk = (base, val) => {
-    [base, base + '2'].forEach(s => {
-      const ve = document.getElementById('tk-' + s);
-      const ce = document.getElementById('tk-' + s + '-c');
-      if (ve) ve.textContent = val;
-      if (ce) { ce.textContent = chg; ce.className = 't-chg ' + cls; }
+  const setTk=(base,val)=>{
+    [base,base+'2'].forEach(s=>{
+      const ve=document.getElementById('tk-'+s); const ce=document.getElementById('tk-'+s+'-c');
+      if(ve) ve.textContent=val; if(ce){ce.textContent=chg;ce.className='t-chg '+cls;}
     });
   };
-
-  if (sym === 'IBOV')  { const v = bigNum(preco);       setIdx('idx-ibov','idx-ibov-c', v); setTk('ibov', v); }
-  if (sym === 'USD')   { const v = 'R$ '+preco.toFixed(2); setIdx('idx-usd','idx-usd-c', v); setTk('usd', v); }
-  if (sym === 'BTC')   { const v = '$'+bigNum(preco);    setIdx('idx-btc','idx-btc-c', v); setTk('btc', v); }
-  if (sym === 'PETR4') { setTk('petr', 'R$'+preco.toFixed(2)); }
-  if (sym === 'VALE3') { setTk('vale', 'R$'+preco.toFixed(2)); }
-  if (sym === 'ITUB4') { setTk('itub', 'R$'+preco.toFixed(2)); }
-
-  cotacoesOk = true;
+  if(sym==='IBOV')  {const v=bigNum(preco);      setIdx('idx-ibov','idx-ibov-c',v);       setTk('ibov',v);}
+  if(sym==='USD')   {const v='R$ '+preco.toFixed(2); setIdx('idx-usd','idx-usd-c',v);     setTk('usd',v);}
+  if(sym==='BTC')   {const v='$'+bigNum(preco);   setIdx('idx-btc','idx-btc-c',v);        setTk('btc',v);}
+  if(sym==='PETR4') {setTk('petr','R$'+preco.toFixed(2));}
+  if(sym==='VALE3') {setTk('vale','R$'+preco.toFixed(2));}
+  if(sym==='ITUB4') {setTk('itub','R$'+preco.toFixed(2));}
 }
 
 function aplicarFallback() {
   document.getElementById('offline-banner').classList.add('show');
-  const setIdx = (idxV, idxC, v) => {
-    const ve = document.getElementById(idxV);
-    const ce = document.getElementById(idxC);
-    if (ve) ve.innerHTML = v;
-    if (ce) { ce.textContent = 'offline'; ce.className = 'idx-chg na'; }
-  };
-  setIdx('idx-ibov','idx-ibov-c', FALLBACK.ibov.v);
-  setIdx('idx-usd','idx-usd-c',   FALLBACK.usd.v);
-  setIdx('idx-btc','idx-btc-c',   FALLBACK.btc.v);
-  Object.keys(FALLBACK).forEach(k => {
-    [k, k+'2'].forEach(s => {
-      const ve = document.getElementById('tk-'+s);
-      const ce = document.getElementById('tk-'+s+'-c');
-      if (ve) ve.textContent = FALLBACK[k].v;
-      if (ce) { ce.textContent = '—'; ce.className = 't-chg na'; }
-    });
-  });
+  const setIdx=(v,c,val)=>{const ve=document.getElementById(v);const ce=document.getElementById(c);if(ve)ve.innerHTML=val;if(ce){ce.textContent='offline';ce.className='idx-chg na';}};
+  setIdx('idx-ibov','idx-ibov-c',FALLBACK.ibov.v);
+  setIdx('idx-usd','idx-usd-c',FALLBACK.usd.v);
+  setIdx('idx-btc','idx-btc-c',FALLBACK.btc.v);
 }
 
 async function carregarCotacoes() {
-  let hits = 0;
-
-  // ── 1. brapi: ações BR ──
+  let hits=0;
   try {
-    const r = await fetch(
-      'https://brapi.dev/api/quote/PETR4,VALE3,ITUB4?range=1d&interval=1d',
-      { signal: AbortSignal.timeout(7000) }
-    );
-    const d = await r.json();
-    (d.results || []).forEach(q => {
-      aplicarCotacao(q.symbol, q.regularMarketPrice, q.regularMarketChangePercent ?? null);
-      hits++;
-    });
-  } catch(e) { console.warn('[brapi ações]', e.message); }
-
-  // ── 2. brapi: IBOVESPA ──
+    const r=await fetch('https://brapi.dev/api/quote/PETR4,VALE3,ITUB4?range=1d&interval=1d',{signal:AbortSignal.timeout(7000)});
+    const d=await r.json();
+    (d.results||[]).forEach(q=>{aplicarCotacao(q.symbol,q.regularMarketPrice,q.regularMarketChangePercent??null);hits++;});
+  } catch(e){}
   try {
-    const r = await fetch(
-      'https://brapi.dev/api/quote/%5EBVSP?range=1d&interval=1d',
-      { signal: AbortSignal.timeout(7000) }
-    );
-    const d = await r.json();
-    const q = d.results?.[0];
-    if (q) { aplicarCotacao('IBOV', q.regularMarketPrice, q.regularMarketChangePercent ?? null); hits++; }
-  } catch(e) { console.warn('[brapi IBOV]', e.message); }
-
-  // ── 3. awesomeapi: USD/BRL ──
+    const r=await fetch('https://brapi.dev/api/quote/%5EBVSP?range=1d&interval=1d',{signal:AbortSignal.timeout(7000)});
+    const d=await r.json(); const q=d.results?.[0];
+    if(q){aplicarCotacao('IBOV',q.regularMarketPrice,q.regularMarketChangePercent??null);hits++;}
+  } catch(e){}
   try {
-    const r = await fetch(
-      'https://economia.awesomeapi.com.br/last/USD-BRL',
-      { signal: AbortSignal.timeout(6000) }
-    );
-    const d = await r.json();
-    const q = d.USDBRL;
-    if (q) {
-      const preco = parseFloat(q.bid);
-      const var_  = parseFloat(q.pctChange);
-      aplicarCotacao('USD', preco, isNaN(var_) ? null : var_);
-      hits++;
-    }
-  } catch(e) { console.warn('[awesomeapi USD]', e.message); }
-
-  // ── 4. coingecko: BTC ──
+    const r=await fetch('https://economia.awesomeapi.com.br/last/USD-BRL',{signal:AbortSignal.timeout(6000)});
+    const d=await r.json(); const q=d.USDBRL;
+    if(q){aplicarCotacao('USD',parseFloat(q.bid),parseFloat(q.pctChange)||null);hits++;}
+  } catch(e){}
   try {
-    const r = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
-      { signal: AbortSignal.timeout(7000) }
-    );
-    const d = await r.json();
-    if (d.bitcoin) {
-      aplicarCotacao('BTC', d.bitcoin.usd, d.bitcoin.usd_24h_change ?? null);
-      hits++;
-    }
-  } catch(e) { console.warn('[coingecko BTC]', e.message); }
-
-  // Se nada funcionou → fallback estático
-  if (hits === 0) aplicarFallback();
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',{signal:AbortSignal.timeout(7000)});
+    const d=await r.json();
+    if(d.bitcoin){aplicarCotacao('BTC',d.bitcoin.usd,d.bitcoin.usd_24h_change??null);hits++;}
+  } catch(e){}
+  if(hits===0) aplicarFallback();
 }
 
-/* ═══════════════════════════════════════
-   POST BOX
-═══════════════════════════════════════ */
+/* ════════════════════════════════════════
+   DESCOBRIR MEMBROS
+════════════════════════════════════════ */
+async function carregarMembros() {
+  const scroll = document.getElementById('membros-scroll');
+  const countEl = document.getElementById('membros-count');
+
+  try {
+    const snap = await db.collection('usuarios')
+      .where('perfil_completo', '==', true)
+      .orderBy('data_adesao', 'desc')
+      .limit(30)
+      .get();
+
+    scroll.innerHTML = '';
+    countEl.textContent = snap.size + ' membros';
+
+    if (snap.empty) {
+      scroll.innerHTML = '<span style="font-size:10px;color:var(--txt3);padding:12px 4px">Nenhum membro ainda.</span>';
+      return;
+    }
+
+    snap.docs.forEach((doc, i) => {
+      const u = doc.data();
+      const uid = doc.id;
+
+      // Não mostra o próprio usuário
+      if (uid === meuUid) {
+        countEl.textContent = (snap.size - 1) + ' membros';
+        return;
+      }
+
+      const foto = u.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
+      const nome = u.username || 'pombito';
+      const saldo = u.saldo_atual ?? u.saldo ?? 500000;
+      const saldoFormatado = BRL(saldo);
+      const negativo = saldo < 500000;
+
+      const card = document.createElement('a');
+      card.className = 'membro-card';
+      card.href = `perfil.html?uid=${uid}`;
+      card.style.animationDelay = `${i * 0.05}s`;
+      card.innerHTML = `
+        <img class="membro-av" src="${escHtml(foto)}" alt=""
+          onerror="this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${uid}'">
+        <span class="membro-nome">@${escHtml(nome)}</span>
+        <span class="membro-saldo ${negativo ? 'negativo' : ''}">${saldoFormatado}</span>
+      `;
+      scroll.appendChild(card);
+    });
+
+  } catch(e) {
+    console.warn('Erro ao carregar membros:', e);
+    // Tenta sem orderBy se índice não existir
+    try {
+      const snap = await db.collection('usuarios')
+        .where('perfil_completo', '==', true)
+        .limit(30)
+        .get();
+
+      scroll.innerHTML = '';
+      countEl.textContent = snap.size + ' membros';
+
+      snap.docs.forEach((doc, i) => {
+        const u = doc.data();
+        const uid = doc.id;
+        if (uid === meuUid) return;
+        const foto = u.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
+        const nome = u.username || 'pombito';
+        const saldo = u.saldo_atual ?? u.saldo ?? 500000;
+        const negativo = saldo < 500000;
+        const card = document.createElement('a');
+        card.className = 'membro-card';
+        card.href = `perfil.html?uid=${uid}`;
+        card.style.animationDelay = `${i * 0.05}s`;
+        card.innerHTML = `
+          <img class="membro-av" src="${escHtml(foto)}" alt=""
+            onerror="this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${uid}'">
+          <span class="membro-nome">@${escHtml(nome)}</span>
+          <span class="membro-saldo ${negativo?'negativo':''}">${BRL(saldo)}</span>
+        `;
+        scroll.appendChild(card);
+      });
+    } catch(e2) {
+      scroll.innerHTML = '<span style="font-size:10px;color:var(--txt3);padding:12px 4px">Erro ao carregar membros.</span>';
+    }
+  }
+}
+
+/* ── POST BOX ── */
 function onPostInput(el) {
-  const n = el.value.length;
-  const c = document.getElementById('char-c');
-  c.textContent = n + '/500';
-  c.className = 'char-c' + (n >= 500 ? ' over' : n >= 400 ? ' warn' : '');
+  const n=el.value.length;
+  const c=document.getElementById('char-c');
+  c.textContent=n+'/500';
+  c.className='char-c'+(n>=500?' over':n>=400?' warn':'');
 }
 
 function toggleMood(btn) {
-  const m = btn.dataset.m;
-  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('on'));
-  if (moodAtual === m) {
-    moodAtual = null;
-  } else {
-    moodAtual = m;
-    btn.classList.add('on');
-  }
+  const m=btn.dataset.m;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
+  if(moodAtual===m){moodAtual=null;}
+  else{moodAtual=m;btn.classList.add('on');}
 }
 
 async function postar() {
-  const inp  = document.getElementById('post-input');
-  const btn  = document.getElementById('btn-post');
-  const user = firebase.auth().currentUser;
-  const txt  = inp.value.trim();
-
-  if (!txt)  { toast('Escreve algo primeiro ✍️'); return; }
-  if (!user) { toast('Você precisa estar logado.'); return; }
-
-  btn.disabled = true; btn.textContent = '···';
-
+  const inp=document.getElementById('post-input');
+  const btn=document.getElementById('btn-post');
+  const user=firebase.auth().currentUser;
+  const txt=inp.value.trim();
+  if(!txt){toast('Escreve algo primeiro ✍️');return;}
+  if(!user){toast('Você precisa estar logado.');return;}
+  btn.disabled=true;btn.textContent='···';
   try {
-    const snap = await db.collection('usuarios').doc(user.uid).get();
-    const u    = snap.data() || {};
-
+    const snap=await db.collection('usuarios').doc(user.uid).get();
+    const u=snap.data()||{};
     await db.collection('posts').add({
-      uid:         user.uid,
-      username:    u.username    || 'pombito',
-      foto_perfil: u.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
-      texto:       txt,
-      mood:        moodAtual,
-      tipo:        'texto',
-      likes:       0,
-      data_post:   firebase.firestore.FieldValue.serverTimestamp(),
+      uid:user.uid,
+      username:u.username||'pombito',
+      foto_perfil:u.foto_perfil||`https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
+      texto:txt,mood:moodAtual,tipo:'texto',likes:0,
+      data_post:firebase.firestore.FieldValue.serverTimestamp(),
     });
-
-    inp.value = ''; onPostInput(inp);
-    moodAtual = null;
-    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('on'));
+    inp.value='';onPostInput(inp);moodAtual=null;
+    document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
     toast('Postado! 🪶');
-  } catch(e) {
-    console.error(e);
-    toast('Erro ao postar. Tente de novo.');
-  } finally {
-    btn.disabled = false; btn.textContent = 'POSTAR';
-  }
+  } catch(e){toast('Erro ao postar. Tente de novo.');}
+  finally{btn.disabled=false;btn.textContent='POSTAR';}
 }
 
-/* ═══════════════════════════════════════
-   LIKES
-═══════════════════════════════════════ */
+/* ── LIKES ── */
 async function darLike(postId, btn) {
-  const user = firebase.auth().currentUser;
-  if (!user) { toast('Faça login para curtir.'); return; }
-
-  const liked = btn.classList.contains('on');
-  const cnt   = btn.querySelector('.lc');
-  const cur   = parseInt(cnt.textContent) || 0;
-
-  // Optimistic UI
-  btn.classList.toggle('on');
-  cnt.textContent = liked ? cur - 1 : cur + 1;
-
+  const user=firebase.auth().currentUser;
+  if(!user){toast('Faça login para curtir.');return;}
+  const liked=btn.classList.contains('on');
+  const cnt=btn.querySelector('.lc');
+  const cur=parseInt(cnt.textContent)||0;
+  btn.classList.toggle('on');cnt.textContent=liked?cur-1:cur+1;
   try {
     await db.collection('posts').doc(postId).update({
-      likes: firebase.firestore.FieldValue.increment(liked ? -1 : 1)
+      likes:firebase.firestore.FieldValue.increment(liked?-1:1)
     });
-  } catch(e) {
-    // Reverte se falhar
-    btn.classList.toggle('on');
-    cnt.textContent = cur;
-  }
+  } catch(e){btn.classList.toggle('on');cnt.textContent=cur;}
 }
 
-/* ═══════════════════════════════════════
-   FILTROS
-═══════════════════════════════════════ */
+/* ── FILTROS ── */
 function filtrar(tipo, el) {
-  filtroAtual = tipo;
-  document.querySelectorAll('.filt').forEach(b => b.classList.remove('on'));
+  filtroAtual=tipo;
+  document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
   renderPosts(todosOsPosts);
 }
 
-/* ═══════════════════════════════════════
-   RENDER POSTS
-═══════════════════════════════════════ */
+/* ── RENDER POSTS ── */
 function renderPosts(posts) {
-  const list = document.getElementById('feed-list');
+  const list=document.getElementById('feed-list');
+  let items=posts;
+  if(filtroAtual==='texto')  items=posts.filter(p=>p.tipo!=='trade');
+  if(filtroAtual==='trade')  items=posts.filter(p=>p.tipo==='trade');
+  if(filtroAtual==='alta')   items=posts.filter(p=>p.mood==='🐂');
+  if(filtroAtual==='baixa')  items=posts.filter(p=>p.mood==='🐻');
+  if(filtroAtual==='euforia')items=posts.filter(p=>p.mood==='🚀');
 
-  // Filtro
-  let items = posts;
-  if (filtroAtual === 'texto')  items = posts.filter(p => p.tipo !== 'trade');
-  if (filtroAtual === 'trade')  items = posts.filter(p => p.tipo === 'trade');
-  if (filtroAtual === 'alta')   items = posts.filter(p => p.mood === '🐂');
-  if (filtroAtual === 'baixa')  items = posts.filter(p => p.mood === '🐻');
-  if (filtroAtual === 'euforia') items = posts.filter(p => p.mood === '🚀');
-
-  if (!items.length) {
-    list.innerHTML = `
-      <div class="empty">
-        <span class="empty-ico">🪶</span>
-        Nenhum post aqui.<br>
-        <span style="opacity:.45;display:block;margin-top:4px">Seja o primeiro Pombito!</span>
-      </div>`;
+  if(!items.length){
+    list.innerHTML=`<div class="empty"><span class="empty-ico">🪶</span>Nenhum post aqui.<br><span style="opacity:.45;display:block;margin-top:4px">Seja o primeiro Pombito!</span></div>`;
     return;
   }
 
-  list.innerHTML = '';
+  list.innerHTML='';
+  let lastDay=null;
 
-  // Agrupador por dia
-  let lastDay = null;
+  items.forEach((post,i)=>{
+    const fallbackAv=`https://api.dicebear.com/7.x/identicon/svg?seed=${post.uid}`;
+    const foto=post.foto_perfil||fallbackAv;
+    const t=tempoRelativo(post.data_post?.seconds);
+    const likes=post.likes||0;
 
-  items.forEach((post, i) => {
-    const fallbackAvatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${post.uid}`;
-    const foto  = post.foto_perfil || fallbackAvatar;
-    const t     = tempoRelativo(post.data_post?.seconds);
-    const likes = post.likes || 0;
-
-    // Divisor de dia
-    if (post.data_post?.seconds) {
-      const dia = new Date(post.data_post.seconds * 1000)
-        .toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'short' });
-      if (dia !== lastDay) {
-        lastDay = dia;
-        const div = document.createElement('div');
-        div.className = 'day-div';
-        div.textContent = dia.toUpperCase();
+    if(post.data_post?.seconds){
+      const dia=new Date(post.data_post.seconds*1000).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
+      if(dia!==lastDay){
+        lastDay=dia;
+        const div=document.createElement('div');
+        div.className='day-div';div.textContent=dia.toUpperCase();
         list.appendChild(div);
       }
     }
 
-    const card = document.createElement('div');
-    card.style.animationDelay = `${Math.min(i * 0.04, 0.35)}s`;
+    const card=document.createElement('div');
+    card.style.animationDelay=`${Math.min(i*.04,.35)}s`;
 
-    /* ── Card de Trade ── */
-    if (post.tipo === 'trade') {
-      const isBuy = post.lado === 'compra';
-      card.className = 'post-card ' + (isBuy ? 'trade-buy' : 'trade-sell');
-      card.innerHTML = `
-        <img class="p-av" src="${foto}" alt="" onerror="this.src='${fallbackAvatar}'">
+    if(post.tipo==='trade'){
+      const isBuy=post.lado==='compra';
+      card.className='post-card '+(isBuy?'trade-buy':'trade-sell');
+      card.innerHTML=`
+        <img class="p-av" src="${foto}" alt="" onerror="this.src='${fallbackAv}'">
         <div class="p-body">
           <div class="p-meta">
-            <span class="p-author">@${escHtml(post.username || 'pombito')}</span>
-            <span class="trade-pill ${isBuy ? 'buy' : 'sell'}">${isBuy ? '📈 COMPRA' : '📉 VENDA'}</span>
+            <span class="p-author">@${escHtml(post.username||'pombito')}</span>
+            <span class="trade-pill ${isBuy?'buy':'sell'}">${isBuy?'📈 COMPRA':'📉 VENDA'}</span>
             <span class="p-time">· ${t}</span>
           </div>
           <div class="trade-grid">
-            <div class="tc">
-              <p class="tc-l">ATIVO</p>
-              <p class="tc-v blue">${escHtml(post.ticker || '—')}</p>
-            </div>
-            <div class="tc">
-              <p class="tc-l">QTD</p>
-              <p class="tc-v">${post.quantidade || '—'}</p>
-            </div>
-            <div class="tc">
-              <p class="tc-l">PREÇO</p>
-              <p class="tc-v">R$${Number(post.preco || 0).toFixed(2)}</p>
-            </div>
-            <div class="tc span3">
-              <p class="tc-l">TOTAL OPERAÇÃO</p>
-              <p class="tc-v big">${BRL(post.total || 0)}</p>
-            </div>
+            <div class="tc"><p class="tc-l">ATIVO</p><p class="tc-v blue">${escHtml(post.ticker||'—')}</p></div>
+            <div class="tc"><p class="tc-l">QTD</p><p class="tc-v">${post.quantidade||'—'}</p></div>
+            <div class="tc"><p class="tc-l">PREÇO</p><p class="tc-v">R$${Number(post.preco||0).toFixed(2)}</p></div>
+            <div class="tc span3"><p class="tc-l">TOTAL OPERAÇÃO</p><p class="tc-v big">${BRL(post.total||0)}</p></div>
           </div>
-          <a class="btn-rel"
-             href="relatorio.html?ticker=${encodeURIComponent(post.ticker || '')}&tipo=${encodeURIComponent(post.tipo_ativo || 'acoes')}">
-            Ver relatório →
-          </a>
-          <div class="p-reacts">
-            <button class="react" onclick="darLike('${post.id}',this)">
-              ❤️ <span class="lc">${likes}</span>
-            </button>
-          </div>
+          <a class="btn-rel" href="relatorio.html?ticker=${encodeURIComponent(post.ticker||'')}&tipo=${encodeURIComponent(post.tipo_ativo||'acoes')}">Ver relatório →</a>
+          <div class="p-reacts"><button class="react" onclick="darLike('${post.id}',this)">❤️ <span class="lc">${likes}</span></button></div>
         </div>`;
-      list.appendChild(card);
-      return;
+    } else {
+      card.className='post-card';
+      card.innerHTML=`
+        <img class="p-av" src="${foto}" alt="" onerror="this.src='${fallbackAv}'">
+        <div class="p-body">
+          <div class="p-meta">
+            <span class="p-author">@${escHtml(post.username||'pombito')}</span>
+            ${post.mood?`<span class="p-mood">${post.mood}</span>`:''}
+            <span class="p-time">· ${t}</span>
+          </div>
+          <p class="p-text">${escHtml(post.texto||'').replace(/\n/g,'<br>')}</p>
+          <div class="p-reacts"><button class="react" onclick="darLike('${post.id}',this)">❤️ <span class="lc">${likes}</span></button></div>
+        </div>`;
     }
-
-    /* ── Card de Texto ── */
-    card.className = 'post-card';
-    card.innerHTML = `
-      <img class="p-av" src="${foto}" alt="" onerror="this.src='${fallbackAvatar}'">
-      <div class="p-body">
-        <div class="p-meta">
-          <span class="p-author">@${escHtml(post.username || 'pombito')}</span>
-          ${post.mood ? `<span class="p-mood">${post.mood}</span>` : ''}
-          <span class="p-time">· ${t}</span>
-        </div>
-        <p class="p-text">${escHtml(post.texto || '').replace(/\n/g,'<br>')}</p>
-        <div class="p-reacts">
-          <button class="react" onclick="darLike('${post.id}',this)">
-            ❤️ <span class="lc">${likes}</span>
-          </button>
-        </div>
-      </div>`;
     list.appendChild(card);
   });
 }
 
-// Sanitiza HTML para evitar XSS
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-
-/* ═══════════════════════════════════════
-   TIMELINE — listener realtime
-═══════════════════════════════════════ */
+/* ── TIMELINE ── */
 function initTimeline() {
-  const skels = document.getElementById('feed-skeletons');
-  const list  = document.getElementById('feed-list');
-
-  if (unsubTimeline) unsubTimeline();
-
-  unsubTimeline = db.collection('posts')
-    .orderBy('data_post', 'desc')
-    .limit(80)
+  const skels=document.getElementById('feed-skeletons');
+  const list=document.getElementById('feed-list');
+  if(unsubTimeline) unsubTimeline();
+  unsubTimeline=db.collection('posts').orderBy('data_post','desc').limit(80)
     .onSnapshot(
-      snap => {
-        skels.style.display = 'none';
-        if (snap.empty) {
-          todosOsPosts = [];
-          list.innerHTML = `
-            <div class="empty">
-              <span class="empty-ico">🪶</span>
-              Nenhum post ainda.<br>
-              <span style="opacity:.45;display:block;margin-top:4px">Seja o primeiro!</span>
-            </div>`;
+      snap=>{
+        skels.style.display='none';
+        if(snap.empty){
+          todosOsPosts=[];
+          list.innerHTML=`<div class="empty"><span class="empty-ico">🪶</span>Nenhum post ainda.<br><span style="opacity:.45;display:block;margin-top:4px">Seja o primeiro!</span></div>`;
           return;
         }
-        todosOsPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        todosOsPosts=snap.docs.map(d=>({id:d.id,...d.data()}));
         renderPosts(todosOsPosts);
       },
-      err => {
-        console.error('Timeline snapshot erro:', err);
-        skels.style.display = 'none';
-
-        // Fallback: sem orderBy se índice não existe
-        if (err.code === 'failed-precondition' || err.code === 'unimplemented') {
+      err=>{
+        skels.style.display='none';
+        if(err.code==='failed-precondition'||err.code==='unimplemented'){
           db.collection('posts').limit(80).get()
-            .then(snap => {
-              todosOsPosts = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .sort((a, b) => (b.data_post?.seconds || 0) - (a.data_post?.seconds || 0));
+            .then(snap=>{
+              todosOsPosts=snap.docs.map(d=>({id:d.id,...d.data()}))
+                .sort((a,b)=>(b.data_post?.seconds||0)-(a.data_post?.seconds||0));
               renderPosts(todosOsPosts);
-            })
-            .catch(() => {
-              list.innerHTML = `
-                <div class="empty">
-                  <span class="empty-ico">⚠️</span>
-                  Erro ao carregar o feed.<br>
-                  <span style="opacity:.45;display:block;margin-top:4px">
-                    Crie o índice no Firebase Console.
-                  </span>
-                </div>`;
+            }).catch(()=>{
+              list.innerHTML=`<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar o feed.</div>`;
             });
         }
       }
     );
 }
 
-/* ═══════════════════════════════════════
-   LOGOUT
-═══════════════════════════════════════ */
+/* ── LOGOUT ── */
 async function sair() {
-  if (!confirm('Sair do Ninho?')) return;
-  try {
-    await firebase.auth().signOut();
-    window.location.href = 'invite.html';
-  } catch(e) {
-    toast('Erro ao sair.');
-  }
+  if(!confirm('Sair do Ninho?')) return;
+  try{await firebase.auth().signOut();window.location.href='invite.html';}
+  catch(e){toast('Erro ao sair.');}
 }
 
-/* ═══════════════════════════════════════
-   INIT — único onAuthStateChanged
-   FIX 3: patrimônio calculado apenas em
-   perfil.html / carteira.html, não aqui.
-═══════════════════════════════════════ */
+/* ── INIT ── */
 firebase.auth().onAuthStateChanged(async user => {
-  if (!user) {
-    window.location.href = 'invite.html';
-    return;
-  }
+  if(!user){window.location.href='invite.html';return;}
 
-  db = firebase.firestore();
+  meuUid = user.uid;
 
   try {
-    const uSnap = await db.collection('usuarios').doc(user.uid).get();
-
-    if (!uSnap.exists || !uSnap.data()?.perfil_completo) {
-      window.location.href = 'setup-perfil.html';
-      return;
+    const uSnap=await db.collection('usuarios').doc(user.uid).get();
+    if(!uSnap.exists||!uSnap.data()?.perfil_completo){
+      window.location.href='setup-perfil.html';return;
     }
+    const u=uSnap.data();
+    const foto=u.foto_perfil||`https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
+    const hdrAv=document.getElementById('hdr-avatar');
+    const postAv=document.getElementById('post-avatar');
+    if(hdrAv){hdrAv.src=foto;hdrAv.style.display='block';}
+    if(postAv) postAv.src=foto;
 
-    const u = uSnap.data();
-
-    // Configura avatar
-    const foto = u.foto_perfil
-      || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
-
-    const hdrAv  = document.getElementById('hdr-avatar');
-    const postAv = document.getElementById('post-avatar');
-    if (hdrAv)  { hdrAv.src  = foto; hdrAv.style.display  = 'block'; }
-    if (postAv) { postAv.src = foto; }
-
-    // Inicializa features
     atualizarMercado();
-    setInterval(atualizarMercado, 60_000); // atualiza a cada minuto
-
+    setInterval(atualizarMercado,60_000);
     carregarCotacoes();
-    setInterval(carregarCotacoes, 5 * 60_000); // recarrega cotações a cada 5min
-
+    setInterval(carregarCotacoes,5*60_000);
+    carregarMembros();
     initTimeline();
-
-  } catch(e) {
-    console.error('Init error:', e);
+  } catch(e){
+    console.error('Init error:',e);
     toast('Erro ao carregar. Recarregue a página.');
   }
 });
 
-// Cleanup
-window.addEventListener('beforeunload', () => {
-  if (unsubTimeline) unsubTimeline();
-});
+window.addEventListener('beforeunload',()=>{if(unsubTimeline)unsubTimeline();});
 </script>
 
 </body>
