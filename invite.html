@@ -6,359 +6,87 @@
   <title>Soldo — Simulador de Investimentos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --bg:        #141414;
-      --surface:   #1e1e1e;
-      --surface-2: #272727;
-      --border:    rgba(192,192,192,0.15);
-      --border-hi: rgba(192,192,192,0.35);
-      --silver:    #c0c0c0;
-      --silver-hi: #e8e8e8;
-      --silver-lo: #787878;
-      --gold:      #b8962e;
-      --gold-hi:   #d4b048;
-      --gold-lo:   #7a6018;
-      --display:   'Playfair Display', Georgia, serif;
-      --body:      'Inter', system-ui, sans-serif;
-      --mono:      'DM Mono', monospace;
+      --bg:#141414; --surface:#1e1e1e; --surface-2:#272727;
+      --border:rgba(192,192,192,0.15); --border-hi:rgba(192,192,192,0.35);
+      --silver:#c0c0c0; --silver-hi:#e8e8e8; --silver-lo:#787878;
+      --gold:#b8962e; --gold-hi:#d4b048; --gold-lo:#7a6018;
+      --display:'Playfair Display',Georgia,serif;
+      --body:'Inter',system-ui,sans-serif;
+      --mono:'DM Mono',monospace;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100dvh;background:var(--bg);color:var(--silver);font-family:var(--body)}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(184,150,46,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 50% 100%,rgba(192,192,192,.03) 0%,transparent 60%);pointer-events:none;z-index:0}
+    body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(192,192,192,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(192,192,192,.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    .page{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+    .wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;animation:entrada .9s cubic-bezier(.22,1,.36,1) both}
+    @keyframes entrada{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-    html, body {
-      min-height: 100dvh;
-      background: var(--bg);
-      color: var(--silver);
-      font-family: var(--body);
-    }
+    .moeda-wrap{position:relative;width:96px;height:96px;margin-bottom:36px}
+    .moeda-anel{position:absolute;inset:0;border-radius:50%;border:1px solid transparent;border-top-color:var(--gold);border-bottom-color:rgba(184,150,46,.3);animation:girar 18s linear infinite}
+    .moeda-anel-2{position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(192,192,192,.1);border-left-color:rgba(192,192,192,.25);animation:girar 28s linear infinite reverse}
+    @keyframes girar{to{transform:rotate(360deg)}}
+    .moeda-face{position:absolute;inset:12px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#2a2a2a,#141414);border:1px solid var(--border-hi);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 32px rgba(184,150,46,.08)}
+    .moeda-s{font-family:var(--display);font-size:36px;font-weight:900;color:transparent;background:linear-gradient(150deg,var(--silver-hi) 0%,var(--gold-hi) 50%,var(--silver) 100%);-webkit-background-clip:text;background-clip:text;line-height:1;letter-spacing:-1px;animation:brilhar 4s ease-in-out infinite}
+    @keyframes brilhar{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
 
-    /* fundo sutil */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(184,150,46,.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(192,192,192,.03) 0%, transparent 60%);
-      pointer-events: none; z-index: 0;
-    }
+    .marca{text-align:center;margin-bottom:8px}
+    .marca-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:5px;color:var(--gold);opacity:.7;margin-bottom:10px}
+    .marca-nome{font-family:var(--display);font-size:clamp(42px,11vw,56px);font-weight:700;letter-spacing:-1px;line-height:1;color:var(--silver-hi)}
+    .marca-nome em{font-style:normal;color:var(--gold-hi)}
+    .marca-tagline{font-family:var(--body);font-size:11px;font-weight:300;letter-spacing:3px;color:var(--silver-lo);margin-top:10px;text-transform:uppercase}
 
-    /* grid de linhas — textura financeira */
-    body::after {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(192,192,192,.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(192,192,192,.03) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none; z-index: 0;
-    }
+    .divider{width:100%;display:flex;align-items:center;gap:12px;margin:28px 0}
+    .divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border-hi),transparent)}
+    .divider-mark{width:4px;height:4px;background:var(--gold);transform:rotate(45deg);opacity:.6}
 
-    /* ── LAYOUT ── */
-    .page {
-      position: relative; z-index: 1;
-      min-height: 100dvh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 40px 20px;
-    }
+    .card{width:100%;border:1px solid var(--border);border-radius:2px;background:var(--surface);padding:32px 28px;position:relative}
+    .card::before,.card::after{content:'';position:absolute;width:16px;height:16px;border-color:var(--gold-lo);border-style:solid}
+    .card::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+    .card::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
 
-    .wrap {
-      width: 100%; max-width: 400px;
-      display: flex; flex-direction: column;
-      align-items: center;
-      animation: entrada .9s cubic-bezier(.22,1,.36,1) both;
-    }
+    .card-titulo{font-family:var(--display);font-size:20px;font-weight:600;color:var(--silver-hi);margin-bottom:6px;letter-spacing:.5px}
+    .card-desc{font-size:12px;font-weight:300;color:var(--silver-lo);line-height:1.75;margin-bottom:24px}
+    .card-desc strong{color:var(--gold-hi);font-weight:500}
 
-    @keyframes entrada {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    .ativos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:28px}
+    .ativo-tag{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--silver-lo);border:1px solid var(--border);border-radius:2px;padding:4px 8px;background:var(--surface-2)}
 
-    /* ── MOEDA / SÍMBOLO ── */
-    .moeda-wrap {
-      position: relative;
-      width: 96px; height: 96px;
-      margin-bottom: 36px;
-    }
+    .btn-google{width:100%;height:52px;display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid var(--border-hi);border-radius:2px;background:transparent;color:var(--silver-hi);font-family:var(--mono);font-size:11px;letter-spacing:3px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+    .btn-google::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(184,150,46,.08),transparent);opacity:0;transition:opacity .2s}
+    .btn-google:hover:not(:disabled)::before{opacity:1}
+    .btn-google:hover:not(:disabled){border-color:var(--gold);box-shadow:0 0 24px rgba(184,150,46,.12)}
+    .btn-google:disabled{opacity:.35;cursor:not-allowed}
+    .btn-google img{width:16px;height:16px}
 
-    .moeda-anel {
-      position: absolute; inset: 0;
-      border-radius: 50%;
-      border: 1px solid transparent;
-      border-top-color: var(--gold);
-      border-bottom-color: rgba(184,150,46,.3);
-      animation: girar 18s linear infinite;
-    }
+    .sep{display:flex;align-items:center;gap:10px;margin:14px 0}
+    .sep-line{flex:1;height:1px;background:var(--border)}
+    .sep-txt{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--silver-lo)}
+    .card-nota{font-size:11px;font-weight:300;color:var(--silver-lo);line-height:1.7;text-align:center}
 
-    .moeda-anel-2 {
-      position: absolute; inset: 6px;
-      border-radius: 50%;
-      border: 1px solid rgba(192,192,192,.1);
-      border-left-color: rgba(192,192,192,.25);
-      animation: girar 28s linear infinite reverse;
-    }
+    .msg{display:none;width:100%;margin-top:12px;padding:10px 16px;border-radius:2px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;line-height:1.6;text-align:center}
+    .msg-ok  {display:block;background:rgba(50,120,50,.15);color:#7dc97d;border:1px solid rgba(80,160,80,.25)}
+    .msg-erro{display:block;background:rgba(160,50,50,.15);color:#d07070;border:1px solid rgba(180,60,60,.25)}
+    .msg-info{display:block;background:rgba(184,150,46,.1);color:var(--gold-hi);border:1px solid rgba(184,150,46,.25)}
 
-    @keyframes girar { to { transform: rotate(360deg); } }
-
-    .moeda-face {
-      position: absolute; inset: 12px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 38% 32%, #2a2a2a, #141414);
-      border: 1px solid var(--border-hi);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.06),
-        0 0 32px rgba(184,150,46,.08);
-    }
-
-    .moeda-s {
-      font-family: var(--display);
-      font-size: 36px;
-      font-weight: 900;
-      color: transparent;
-      background: linear-gradient(150deg, var(--silver-hi) 0%, var(--gold-hi) 50%, var(--silver) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      line-height: 1;
-      letter-spacing: -1px;
-      animation: brilhar 4s ease-in-out infinite;
-    }
-
-    @keyframes brilhar {
-      0%,100% { filter: brightness(1); }
-      50%      { filter: brightness(1.25); }
-    }
-
-    /* ── HEADER TEXTO ── */
-    .marca {
-      text-align: center;
-      margin-bottom: 8px;
-    }
-
-    .marca-eyebrow {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 5px;
-      color: var(--gold);
-      opacity: .7;
-      margin-bottom: 10px;
-    }
-
-    .marca-nome {
-      font-family: var(--display);
-      font-size: clamp(42px, 11vw, 56px);
-      font-weight: 700;
-      letter-spacing: -1px;
-      line-height: 1;
-      color: var(--silver-hi);
-    }
-
-    .marca-nome em {
-      font-style: normal;
-      color: var(--gold-hi);
-    }
-
-    .marca-tagline {
-      font-family: var(--body);
-      font-size: 11px;
-      font-weight: 300;
-      letter-spacing: 3px;
-      color: var(--silver-lo);
-      margin-top: 10px;
-      text-transform: uppercase;
-    }
-
-    /* ── DIVIDER ── */
-    .divider {
-      width: 100%;
-      display: flex; align-items: center; gap: 12px;
-      margin: 28px 0;
-    }
-
-    .divider-line {
-      flex: 1; height: 1px;
-      background: linear-gradient(to right, transparent, var(--border-hi), transparent);
-    }
-
-    .divider-mark {
-      width: 4px; height: 4px;
-      background: var(--gold);
-      transform: rotate(45deg);
-      opacity: .6;
-    }
-
-    /* ── CARD ── */
-    .card {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      background: var(--surface);
-      padding: 32px 28px;
-      position: relative;
-    }
-
-    /* cantos finos */
-    .card::before, .card::after {
-      content: '';
-      position: absolute;
-      width: 16px; height: 16px;
-      border-color: var(--gold-lo);
-      border-style: solid;
-    }
-    .card::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
-    .card::after  { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
-
-    .card-titulo {
-      font-family: var(--display);
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--silver-hi);
-      margin-bottom: 6px;
-      letter-spacing: .5px;
-    }
-
-    .card-desc {
-      font-size: 12px;
-      font-weight: 300;
-      color: var(--silver-lo);
-      line-height: 1.75;
-      margin-bottom: 24px;
-    }
-
-    .card-desc strong {
-      color: var(--gold-hi);
-      font-weight: 500;
-    }
-
-    /* ativos */
-    .ativos {
-      display: flex; flex-wrap: wrap; gap: 6px;
-      margin-bottom: 28px;
-    }
-
-    .ativo-tag {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 2px;
-      color: var(--silver-lo);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 4px 8px;
-      background: var(--surface-2);
-    }
-
-    /* ── BOTÃO GOOGLE ── */
-    .btn-google {
-      width: 100%; height: 52px;
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      border: 1px solid var(--border-hi);
-      border-radius: 2px;
-      background: transparent;
-      color: var(--silver-hi);
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 3px;
-      cursor: pointer;
-      transition: all .2s;
-      position: relative; overflow: hidden;
-    }
-
-    .btn-google::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(184,150,46,.08), transparent);
-      opacity: 0;
-      transition: opacity .2s;
-    }
-
-    .btn-google:hover:not(:disabled)::before { opacity: 1; }
-    .btn-google:hover:not(:disabled) {
-      border-color: var(--gold);
-      color: var(--silver-hi);
-      box-shadow: 0 0 24px rgba(184,150,46,.12);
-    }
-    .btn-google:disabled { opacity: .35; cursor: not-allowed; }
-
-    .btn-google img { width: 16px; height: 16px; }
-
-    .sep {
-      display: flex; align-items: center; gap: 10px;
-      margin: 14px 0;
-    }
-    .sep-line { flex: 1; height: 1px; background: var(--border); }
-    .sep-txt {
-      font-family: var(--mono);
-      font-size: 8px; letter-spacing: 2px;
-      color: var(--silver-lo);
-    }
-
-    .card-nota {
-      font-size: 11px;
-      font-weight: 300;
-      color: var(--silver-lo);
-      line-height: 1.7;
-      text-align: center;
-    }
-
-    /* ── FEEDBACK ── */
-    .msg {
-      display: none;
-      width: 100%;
-      margin-top: 12px;
-      padding: 10px 16px;
-      border-radius: 2px;
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: .5px;
-      line-height: 1.6;
-      text-align: center;
-    }
-    .msg-ok   { display:block; background:rgba(50,120,50,.15); color:#7dc97d; border:1px solid rgba(80,160,80,.25); }
-    .msg-erro { display:block; background:rgba(160,50,50,.15);  color:#d07070; border:1px solid rgba(180,60,60,.25); }
-    .msg-info { display:block; background:rgba(184,150,46,.1);  color:var(--gold-hi); border:1px solid rgba(184,150,46,.25); }
-
-    /* ── FOOTER ── */
-    .rodape {
-      margin-top: 32px;
-      text-align: center;
-      display: flex; flex-direction: column; gap: 6px;
-    }
-
-    .rodape-lema {
-      font-family: var(--display);
-      font-size: 10px;
-      font-style: italic;
-      color: var(--gold);
-      opacity: .5;
-      letter-spacing: 1px;
-    }
-
-    .rodape-meta {
-      font-family: var(--mono);
-      font-size: 8px;
-      letter-spacing: 3px;
-      color: var(--silver-lo);
-      opacity: .35;
-    }
+    .rodape{margin-top:32px;text-align:center;display:flex;flex-direction:column;gap:6px}
+    .rodape-lema{font-family:var(--display);font-size:10px;font-style:italic;color:var(--gold);opacity:.5;letter-spacing:1px}
+    .rodape-meta{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--silver-lo);opacity:.35}
   </style>
 </head>
 <body>
-
 <div class="page">
   <div class="wrap">
 
-    <!-- Símbolo -->
     <div class="moeda-wrap">
       <div class="moeda-anel"></div>
       <div class="moeda-anel-2"></div>
-      <div class="moeda-face">
-        <span class="moeda-s">S</span>
-      </div>
+      <div class="moeda-face"><span class="moeda-s">S</span></div>
     </div>
 
-    <!-- Marca -->
     <div class="marca">
       <p class="marca-eyebrow">PLATAFORMA DE INVESTIMENTOS</p>
       <h1 class="marca-nome">Sol<em>do</em></h1>
@@ -371,7 +99,6 @@
       <div class="divider-line"></div>
     </div>
 
-    <!-- Card de acesso -->
     <div class="card">
       <p class="card-titulo">Acesse sua conta</p>
       <p class="card-desc">
@@ -379,7 +106,6 @@
         <strong>R$ 500.000</strong> em capital virtual para operar
         nos principais mercados brasileiros sem nenhum risco.
       </p>
-
       <div class="ativos">
         <span class="ativo-tag">AÇÕES</span>
         <span class="ativo-tag">FIIs</span>
@@ -405,7 +131,7 @@
       </p>
     </div>
 
-    <div class="msg" id="msg-feedback"></div>
+    <div class="msg" id="msg"></div>
 
     <div class="rodape">
       <p class="rodape-lema">"Capital é disciplina aplicada no tempo."</p>
@@ -422,72 +148,86 @@
 
 <script>
   function showMsg(texto, tipo) {
-    const el = document.getElementById('msg-feedback');
+    const el = document.getElementById('msg');
     el.textContent = texto;
     el.className = 'msg msg-' + tipo;
   }
 
-  async function entrarOuCriar() {
+  function setBtnLoading(texto) {
     const btn = document.getElementById('btn-google');
     btn.disabled = true;
-    btn.innerHTML = '<span style="letter-spacing:2px;font-family:var(--mono);font-size:11px">REDIRECIONANDO...</span>';
-
-    try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      await firebase.auth().signInWithRedirect(provider);
-    } catch(e) {
-      showMsg('Erro ao iniciar login: ' + e.message, 'erro');
-      btn.disabled = false;
-      btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="16"> ENTRAR COM GOOGLE';
-    }
+    btn.innerHTML = `<span style="font-family:var(--mono);font-size:11px;letter-spacing:2px">${texto}</span>`;
   }
 
-  // Resultado do redirect
-  firebase.auth().getRedirectResult().then(async (result) => {
-    if (!result.user) return;
+  function resetBtn() {
+    const btn = document.getElementById('btn-google');
+    btn.disabled = false;
+    btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="16"> ENTRAR COM GOOGLE';
+  }
 
-    const user = result.user;
-    showMsg('Verificando conta...', 'info');
-
+  async function processarUsuario(user) {
     const snap = await db.collection('usuarios').doc(user.uid).get();
 
     if (snap.exists && snap.data().perfil_completo === true) {
       showMsg('Bem-vindo de volta. Entrando...', 'ok');
       setTimeout(() => window.location.href = 'feed.html', 800);
-    } else if (snap.exists && snap.data().perfil_completo === false) {
+
+    } else if (snap.exists) {
       showMsg('Continuando configuração do perfil...', 'info');
       setTimeout(() => window.location.href = 'setup-perfil.html', 800);
+
     } else {
+      // Conta nova
       await db.collection('usuarios').doc(user.uid).set({
         uid:             user.uid,
         email:           user.email,
         perfil_completo: false,
         data_adesao:     firebase.firestore.FieldValue.serverTimestamp(),
       });
-      showMsg('Conta criada. Configurando perfil...', 'ok');
+      showMsg('Conta criada! Configurando perfil...', 'ok');
       setTimeout(() => window.location.href = 'setup-perfil.html', 900);
     }
+  }
 
-  }).catch((e) => {
-    if (e.code && e.code !== 'auth/no-current-user') {
-      showMsg('Erro no login: ' + e.message, 'erro');
+  async function entrarOuCriar() {
+    setBtnLoading('REDIRECIONANDO...');
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await firebase.auth().signInWithRedirect(provider);
+    } catch(e) {
+      showMsg('Erro: ' + e.message, 'erro');
+      resetBtn();
+    }
+  }
+
+  // Roda quando a página carrega — captura o resultado do redirect
+  // e também detecta se já estava logado
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) {
+      // Tenta capturar resultado de redirect pendente
+      try {
+        const result = await firebase.auth().getRedirectResult();
+        if (result && result.user) {
+          setBtnLoading('VERIFICANDO...');
+          await processarUsuario(result.user);
+        }
+      } catch(e) {
+        if (e.code !== 'auth/no-current-user') {
+          showMsg('Erro no login: ' + e.message, 'erro');
+        }
+      }
+      return;
+    }
+
+    // Já estava logado → redireciona direto
+    try {
+      setBtnLoading('CARREGANDO...');
+      await processarUsuario(user);
+    } catch(e) {
+      resetBtn();
     }
   });
-
-  // Se já logado
-  firebase.auth().onAuthStateChanged(async user => {
-    if (!user) return;
-    try {
-      const snap = await db.collection('usuarios').doc(user.uid).get();
-      if (snap.exists && snap.data().perfil_completo === true) {
-        window.location.href = 'feed.html';
-      } else if (snap.exists) {
-        window.location.href = 'setup-perfil.html';
-      }
-    } catch(e) {}
-  });
 </script>
-
 </body>
 </html>
