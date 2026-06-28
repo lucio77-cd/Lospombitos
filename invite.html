@@ -145,7 +145,6 @@
 <script src="firebase.js"></script>
 
 <script>
-  // ── UI helpers ──
   function showMsg(texto, tipo) {
     const el = document.getElementById('msg');
     el.textContent = texto;
@@ -164,85 +163,81 @@
     b.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="16"> ENTRAR COM GOOGLE';
   }
 
-  // ── Após ter o user, decide para onde ir ──
   async function processarUsuario(user) {
     try {
+      showMsg('Verificando conta...', 'info');
       const snap = await db.collection('usuarios').doc(user.uid).get();
 
       if (snap.exists && snap.data().perfil_completo === true) {
         showMsg('Bem-vindo de volta!', 'ok');
-        window.location.replace('feed.html');
+        setTimeout(() => window.location.replace('feed.html'), 600);
 
       } else if (snap.exists) {
         showMsg('Continuando seu perfil...', 'info');
-        window.location.replace('setup-perfil.html');
+        setTimeout(() => window.location.replace('setup-perfil.html'), 600);
 
       } else {
-        // Primeiro acesso — cria documento
         await db.collection('usuarios').doc(user.uid).set({
           uid:             user.uid,
           email:           user.email,
-          perfil_completo: false,
-          data_adesao:     firebase.firestore.FieldValue.serverTimestamp(),
+          nome:            user.displayName || '',
+          foto_google:     user.photoURL || null,
+          saldo_disponivel: 500000,
+          saldo_investido:  0,
+          patrimonio_total: 500000,
+          perfil_completo:  false,
+          data_adesao:      firebase.firestore.FieldValue.serverTimestamp(),
         });
         showMsg('Conta criada! Configurando perfil...', 'ok');
-        window.location.replace('setup-perfil.html');
+        setTimeout(() => window.location.replace('setup-perfil.html'), 600);
       }
     } catch(e) {
       console.error('processarUsuario:', e);
-      showMsg('Erro ao acessar conta: ' + e.message, 'erro');
-      resetBtn();
-    }
-  }
-
-  // ── Botão: dispara o redirect para o Google ──
-  async function entrarOuCriar() {
-    setBtnLoading('REDIRECIONANDO...');
-    try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      await firebase.auth().signInWithRedirect(provider);
-    } catch(e) {
       showMsg('Erro: ' + e.message, 'erro');
       resetBtn();
     }
   }
 
-  // ── Ponto de entrada: roda assim que o Firebase está pronto ──
-  // getRedirectResult PRIMEIRO — antes de onAuthStateChanged
-  // Isso evita a corrida entre os dois
-  (async function init() {
+  async function entrarOuCriar() {
+    setBtnLoading('AGUARDE...');
     try {
-      setBtnLoading('VERIFICANDO...');
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
 
-      const result = await firebase.auth().getRedirectResult();
-
-      if (result && result.user) {
-        // Voltou do Google agora
-        showMsg('Login realizado. Carregando...', 'ok');
-        await processarUsuario(result.user);
-        return; // não precisa do onAuthStateChanged
-      }
-
-      // Não veio do redirect — verifica se já estava logado
-      resetBtn();
-      firebase.auth().onAuthStateChanged(async user => {
-        if (!user) return; // não logado, mostra página normalmente
-        setBtnLoading('CARREGANDO...');
-        await processarUsuario(user);
-      });
+      // Usa sempre signInWithPopup — mais confiável no mobile com domínio customizado
+      const result = await firebase.auth().signInWithPopup(provider);
+      await processarUsuario(result.user);
 
     } catch(e) {
-      console.error('getRedirectResult erro:', e);
-      resetBtn();
-      // Mesmo com erro no redirect, monitora estado normal
-      firebase.auth().onAuthStateChanged(async user => {
-        if (!user) return;
-        setBtnLoading('CARREGANDO...');
-        await processarUsuario(user);
-      });
+      console.error('login erro:', e);
+      if (e.code === 'auth/popup-blocked') {
+        // Popup bloqueado pelo browser — tenta redirect como fallback
+        showMsg('Popup bloqueado. Tentando redirecionamento...', 'info');
+        try {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          await firebase.auth().signInWithRedirect(provider);
+        } catch(e2) {
+          showMsg('Erro ao redirecionar: ' + e2.message, 'erro');
+          resetBtn();
+        }
+      } else if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        showMsg('Login cancelado. Tente novamente.', 'info');
+        resetBtn();
+      } else {
+        showMsg('Erro: ' + e.message, 'erro');
+        resetBtn();
+      }
     }
-  })();
+  }
+
+  // Verifica se já estava logado ao abrir a página
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) return;
+    // Já logado — redireciona direto sem mostrar botão
+    setBtnLoading('CARREGANDO...');
+    await processarUsuario(user);
+  });
 </script>
 </body>
 </html>
