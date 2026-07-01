@@ -834,28 +834,22 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
 {"resumo":"2-3 frases sobre o ativo e momento atual","positivos":["p1","p2","p3"],"atencao":["a1","a2","a3"],"perfil_ideal":"uma frase","horizonte":"curto/médio/longo prazo","contexto_macro":"uma frase sobre o contexto macroeconômico"}`;
 
       try {
-        // FIX: model string correto + header obrigatório para chamadas browser-side
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        // A chamada à Anthropic agora passa pelo proxy serverless /api/analise-ia,
+        // que guarda a chave no servidor (variável de ambiente ANTHROPIC_API_KEY
+        // na Vercel). O client nunca vê a chave nem fala direto com api.anthropic.com.
+        const res = await fetch('/api/analise-ia', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'anthropic-dangerous-direct-browser-ipc': 'true',
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-6',   // FIX: era 'claude-sonnet-4-20250514' (inválido)
-            max_tokens: 1000,
-            messages: [{ role: 'user', content: prompt }]
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
         });
 
         if (!res.ok) {
-          const err = await res.json().catch(()=>({error:{message:res.statusText}}));
-          throw new Error(err?.error?.message || `HTTP ${res.status}`);
+          const err = await res.json().catch(()=>({error:'Erro desconhecido'}));
+          throw new Error(err?.error || `HTTP ${res.status}`);
         }
 
         const data = await res.json();
-        const texto = data.content?.map(b => b.type === 'text' ? b.text : '').join('') || '';
-        const limpo = texto.replace(/```json|```/g, '').trim();
+        const limpo = (data.texto || '').replace(/```json|```/g, '').trim();
         const a = JSON.parse(limpo);
 
         el.innerHTML = `

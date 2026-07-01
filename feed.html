@@ -725,7 +725,7 @@ function renderPosts(posts) {
       const isBuy=post.lado==='compra';
       card.className='post-card '+(isBuy?'trade-buy':'trade-sell');
       card.innerHTML=`
-        <img class="p-av" src="${foto}" alt="" onerror="this.src='${fallbackAv}'">
+        <img class="p-av" src="${escHtml(foto)}" alt="" onerror="this.src='${escHtml(fallbackAv)}'">
         <div class="p-body">
           <div class="p-meta">
             <span class="p-author">@${escHtml(post.username||'pombito')}</span>
@@ -744,11 +744,11 @@ function renderPosts(posts) {
     } else {
       card.className='post-card';
       card.innerHTML=`
-        <img class="p-av" src="${foto}" alt="" onerror="this.src='${fallbackAv}'">
+        <img class="p-av" src="${escHtml(foto)}" alt="" onerror="this.src='${escHtml(fallbackAv)}'">
         <div class="p-body">
           <div class="p-meta">
             <span class="p-author">@${escHtml(post.username||'pombito')}</span>
-            ${post.mood?`<span class="p-mood">${post.mood}</span>`:''}
+            ${post.mood?`<span class="p-mood">${escHtml(post.mood)}</span>`:''}
             <span class="p-time">· ${t}</span>
           </div>
           <p class="p-text">${escHtml(post.texto||'').replace(/\n/g,'<br>')}</p>

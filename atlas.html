@@ -536,22 +536,16 @@ Retorne este JSON (com valores reais calculados, não os exemplos):
 }`;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'anthropic-dangerous-direct-browser-ipc': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
       });
 
+      if (!res.ok) throw new Error(`Erro no proxy da IA: ${res.status}`);
+
       const data = await res.json();
-      const text = data.content?.map(b => b.text || '').join('') || '';
-      const clean = text.replace(/```json|```/g, '').trim();
+      const clean = (data.texto || '').replace(/```json|```/g, '').trim();
       const result = JSON.parse(clean);
       renderResultado(result, ativo);
 
@@ -635,22 +629,16 @@ Retorne este JSON:
 }`;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'anthropic-dangerous-direct-browser-ipc': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
       });
 
+      if (!res.ok) throw new Error(`Erro no proxy da IA: ${res.status}`);
+
       const data = await res.json();
-      const text = data.content?.map(b => b.text || '').join('') || '';
-      const clean = text.replace(/```json|```/g, '').trim();
+      const clean = (data.texto || '').replace(/```json|```/g, '').trim();
       const result = JSON.parse(clean);
       renderResultado(result, cripto);
 
@@ -823,21 +811,16 @@ Responda em 4-6 linhas cobrindo:
 
 Seja específico e direto. Não use bullet points, use parágrafos curtos.`;
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'anthropic-dangerous-direct-browser-ipc': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 400,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
       });
 
+      if (!res.ok) throw new Error(`Erro no proxy da IA: ${res.status}`);
+
       const data = await res.json();
-      const text = data.content?.map(b => b.text || '').join('') || 'Sem resposta.';
+      const text = data.texto || 'Sem resposta.';
       resultEl.textContent = `📌 CENÁRIO: ${cenario.toUpperCase()}\n\n${text}`;
 
     } catch (e) {

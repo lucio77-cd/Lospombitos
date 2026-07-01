@@ -11,7 +11,8 @@
 //  7. Timer regressivo até domingo 23:00
 // ============================================================
 
-const GEMINI_KEY = "AIzaSyCdQ1MThqZ5Y1Ciir99U8u3vgLuSBJMj5Q";
+// A chave da API Gemini NÃO fica mais aqui — vive só no servidor
+// (variável de ambiente GEMINI_API_KEY na Vercel), acessada via /api/gemini.
 
 const ArteSemanal = {
 
@@ -188,21 +189,16 @@ Respond ONLY with valid JSON, no markdown, no explanation:
 }`;
 
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 1.0, maxOutputTokens: 400 }
-          })
-        }
-      );
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, temperature: 1.0, maxOutputTokens: 400 })
+      });
+
+      if (!res.ok) throw new Error(`Erro no proxy da IA: ${res.status}`);
 
       const data  = await res.json();
-      const texto = data.candidates[0].content.parts[0].text;
-      const limpo = texto.replace(/```json|```/g, '').trim();
+      const limpo = data.texto.replace(/```json|```/g, '').trim();
       const dna   = JSON.parse(limpo);
 
       console.log('[Arte] DNA gerado pelo Gemini:', dna);

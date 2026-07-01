@@ -9,7 +9,9 @@
 //  5. URL salva no Firestore como foto_perfil
 // ============================================================
 
-const GEMINI_API_KEY = "AIzaSyCdQ1MThqZ5Y1Ciir99U8u3vgLuSBJMj5Q";
+// A chave da API Gemini NÃO fica mais aqui — vive só no servidor
+// (variável de ambiente GEMINI_API_KEY na Vercel). O client chama
+// o endpoint /api/gemini, que faz a chamada real por trás.
 
 // ----------------------------------------------------------
 // ENTRADA PRINCIPAL
@@ -425,23 +427,18 @@ async function salvarArteNoStorage(svgString, uid) {
 // CONSULTA AO GEMINI
 // ----------------------------------------------------------
 async function consultarGemini(prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-  const response = await fetch(url, {
+  const response = await fetch('/api/gemini', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents:         [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.9, maxOutputTokens: 300 }
-    })
+    body: JSON.stringify({ prompt, temperature: 0.9, maxOutputTokens: 300 })
   });
 
   if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+    throw new Error(`Erro no proxy da IA: ${response.status}`);
   }
 
   const data = await response.json();
-  return data.candidates[0].content.parts[0].text;
+  return data.texto;
 }
 
 // ----------------------------------------------------------
