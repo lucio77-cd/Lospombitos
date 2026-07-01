@@ -292,11 +292,6 @@
   </nav>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
-  <script src="mercado-api.js"></script>
   <script>
   'use strict';
 
@@ -340,124 +335,48 @@
     _resizeTimer = setTimeout(() => { if (posicoes.length) renderGraficos(); }, 200);
   });
 
-  firebase.auth().onAuthStateChanged(async user => {
-    if (!user) { location.href = 'invite.html'; return; }
-    meuUID = user.uid;
-    db = window.db || firebase.firestore();
-    MercadoAPI.onPrecioFallback = async () => null;
-    await carregar();
-  });
+  // ── DADOS MOCKADOS — só para esta preview visual, sem Firebase ──
+  posicoes = [
+    { ticker:'ITUB4', tipo:'acoes', quantidade:1800, preco_medio:29.40, data_compra:'2026-02-10' },
+    { ticker:'WEGE3', tipo:'acoes', quantidade:900,  preco_medio:38.10, data_compra:'2026-03-02' },
+    { ticker:'PETR4', tipo:'acoes', quantidade:1200, preco_medio:41.90, data_compra:'2026-01-22' },
+    { ticker:'VALE3', tipo:'acoes', quantidade:700,  preco_medio:61.80, data_compra:'2026-04-11' },
+    { ticker:'HGLG11', tipo:'fiis', quantidade:250,  preco_medio:162.00, data_compra:'2026-02-28' },
+  ];
+  cotacoes = { ITUB4:33.10, WEGE3:40.75, PETR4:38.42, VALE3:58.90, HGLG11:168.40 };
+  ordensValidas = [
+    { ticker:'ITUB4', tipo:'acoes', lado:'compra', quantidade:1800, preco:29.40, total:52920, data:'2026-02-10' },
+    { ticker:'WEGE3', tipo:'acoes', lado:'compra', quantidade:900,  preco:38.10, total:34290, data:'2026-03-02' },
+  ];
+  saldoDispGlobal = 373.64;
 
-  async function carregar() {
-    try {
-      const [uS, cS, ordSnap] = await Promise.all([
-        db.collection('usuarios').doc(meuUID).get(),
-        db.collection('carteiras').doc(meuUID).get(),
-        db.collection('ordens').where('uid', '==', meuUID).get()
-          .catch(() => db.collection('ordens').where('uid', '==', meuUID).limit(200).get())
-      ]);
+  const valorMercado = posicoes.reduce((acc, p) => acc + p.quantidade * (cotacoes[p.ticker] || p.preco_medio), 0);
+  const patrimonioDisplay = saldoDispGlobal + valorMercado;
+  const resultado = patrimonioDisplay - CAPITAL;
+  const rentab = (resultado / CAPITAL) * 100;
+  const isPos = resultado >= 0;
 
-      const u = uS.data() || {};
-      const c = cS.exists ? cS.data() : {};
+  document.getElementById('pat-total').textContent = R$(patrimonioDisplay);
+  document.getElementById('pat-disp').textContent  = R$(saldoDispGlobal);
+  document.getElementById('pat-inv').textContent   = R$(valorMercado);
 
-      // Deduplicação de posições
-      const posMap = {};
-      for (const p of (c.posicoes || [])) {
-        const t = p.ticker;
-        if (!posMap[t]) { posMap[t] = { ...p }; }
-        else {
-          const qa = posMap[t].quantidade || 0, pa = posMap[t].preco_medio || 0;
-          const qn = p.quantidade || 0, pn = p.preco_medio || 0;
-          const qt = qa + qn;
-          posMap[t].quantidade  = qt;
-          posMap[t].preco_medio = qt > 0 ? (qa * pa + qn * pn) / qt : 0;
-        }
-      }
-      posicoes = Object.values(posMap);
+  const rentEl = document.getElementById('pat-rentab');
+  rentEl.textContent = pct(rentab) + ' desde o início';
+  rentEl.className   = 'pat-rentab ' + (isPos ? 'pos' : 'neg');
 
-      // Ordens válidas
-      const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      ordensValidas = todasOrdens
-        .filter(o => {
-          const d = parseData(o.data);
-          if (!d || isNaN(d.getTime())) return false;
-          const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-          if (total <= 0) return false;
-          if (!o.lado || o.status === 'cancelada') return false;
-          return true;
-        })
-        .sort((a, b) => parseData(a.data) - parseData(b.data));
+  const banner = document.getElementById('resultado-banner');
+  banner.className     = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
+  banner.style.display = 'flex';
+  document.getElementById('rb-label').textContent = isPos ? '📈 GANHO TOTAL' : '📉 PERDA TOTAL';
+  document.getElementById('rb-label').className   = 'rb-label ' + (isPos ? 'pos' : 'neg');
+  document.getElementById('rb-valor').textContent = (isPos ? '+' : '') + R$(resultado);
+  document.getElementById('rb-valor').className   = 'rb-valor ' + (isPos ? 'pos' : 'neg');
+  document.getElementById('rb-pct').textContent   = pct(rentab);
+  document.getElementById('rb-pct').className     = 'rb-pct ' + (isPos ? 'pos' : 'neg');
 
-      // Saldo recalculado
-      let saldoRecalc = CAPITAL;
-      for (const o of ordensValidas) {
-        const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-        if (o.lado === 'compra') saldoRecalc -= total;
-        if (o.lado === 'venda')  saldoRecalc += total;
-      }
-      saldoDispGlobal = Math.max(0, saldoRecalc);
-
-      // Cotações
-      const tickers = posicoes
-        .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
-        .map(p => p.ticker);
-
-      if (tickers.length) {
-        try {
-          const dados = await MercadoAPI.buscarMultiplos(tickers);
-          dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
-        } catch (e) { console.warn('buscarMultiplos:', e); }
-
-        const faltam = tickers.filter(t => !cotacoes[t]);
-        if (faltam.length) {
-          await Promise.allSettled(faltam.map(async ticker => {
-            try {
-              const d = await MercadoAPI.buscarAtivo(ticker);
-              if (d?.preco > 0) cotacoes[ticker] = d.preco;
-            } catch (_) {}
-          }));
-        }
-      }
-
-      // Patrimônio
-      const valorMercado = posicoes.reduce((acc, p) => {
-        const preco = cotacoes[p.ticker] || p.preco_medio || 0;
-        return acc + (p.quantidade || 0) * preco;
-      }, 0);
-
-      const patrimonioDisplay = saldoDispGlobal + valorMercado;
-      const resultado = patrimonioDisplay - CAPITAL;
-      const rentab    = (resultado / CAPITAL) * 100;
-      const isPos     = resultado >= 0;
-
-      document.getElementById('pat-total').textContent = R$(patrimonioDisplay);
-      document.getElementById('pat-disp').textContent  = R$(saldoDispGlobal);
-      document.getElementById('pat-inv').textContent   = R$(valorMercado);
-
-      const rentEl = document.getElementById('pat-rentab');
-      rentEl.textContent = pct(rentab) + ' desde o início';
-      rentEl.className   = 'pat-rentab ' + (isPos ? 'pos' : 'neg');
-
-      const banner = document.getElementById('resultado-banner');
-      banner.className     = 'resultado-banner ' + (isPos ? 'pos' : 'neg');
-      banner.style.display = 'flex';
-      document.getElementById('rb-label').textContent = isPos ? '📈 GANHO TOTAL' : '📉 PERDA TOTAL';
-      document.getElementById('rb-label').className   = 'rb-label ' + (isPos ? 'pos' : 'neg');
-      document.getElementById('rb-valor').textContent = (isPos ? '+' : '') + R$(resultado);
-      document.getElementById('rb-valor').className   = 'rb-valor ' + (isPos ? 'pos' : 'neg');
-      document.getElementById('rb-pct').textContent   = pct(rentab);
-      document.getElementById('rb-pct').className     = 'rb-pct ' + (isPos ? 'pos' : 'neg');
-
-      renderPosicoes();
-      renderGraficos();
-      renderHistorico();
-
-    } catch (e) {
-      console.error('carregar:', e);
-      document.getElementById('pos-loading').innerHTML =
-        `<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">${e.message}</span></div>`;
-    }
-  }
+  renderPosicoes();
+  renderGraficos();
+  renderHistorico();
 
   // ═══════════════════════════════════════
   //  GRÁFICOS
