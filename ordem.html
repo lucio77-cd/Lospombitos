@@ -619,14 +619,19 @@
   }
 
   // ── Executa a ordem ──
+  // A partir de agora, quem calcula o preço, debita o saldo e grava a
+  // posição é o servidor (api/executar-ordem.js), não o navegador.
+  // Isso fecha a brecha de alguém forjar o preço via DevTools antes de
+  // confirmar a ordem — importante porque o ranking entre membros
+  // depende do saldo/patrimônio ser confiável.
   async function executar() {
     const ok    = document.getElementById('btn-modal-ok');
     const qtd   = parseInt(document.getElementById('qtd').value) || 1;
     const preco = getPrecoEfetivo();
-    const total = qtd * preco;
 
-    // ══ GUARD PRINCIPAL: nunca salva com preco=0 ou total=0 ══
-    if (!preco || preco <= 0 || !total || total <= 0) {
+    // Guard local só pra feedback rápido — a validação que vale
+    // de verdade acontece no servidor.
+    if (!preco || preco <= 0) {
       fecharModal();
       toast('❌ Preço inválido. A ordem não pode ser executada com preço zero.');
       return;
@@ -634,73 +639,37 @@
 
     ok.disabled = true; ok.textContent = 'PROCESSANDO...';
 
-    // Ticker a salvar no Firestore: para cripto usa o ID em minúsculas para consistência
     const tickerSalvo = TICKER;
 
     try {
-      await db.runTransaction(async t => {
-        const cRef  = db.collection('carteiras').doc(meuUID);
-        const cSnap = await t.get(cRef);
-        const c     = cSnap.exists ? cSnap.data() : {};
-        let saldo   = c.saldo_disponivel ?? 500000;
-        let posicoes = [...(c.posicoes || [])];
+      const idToken = await firebase.auth().currentUser.getIdToken();
 
-        if (lado === 'compra') {
-          if (total > saldo) throw new Error('Saldo insuficiente.');
-          saldo -= total;
-          const idx = posicoes.findIndex(p => p.ticker === tickerSalvo);
-          if (idx >= 0) {
-            const qtdAnt = posicoes[idx].quantidade;
-            const totAnt = qtdAnt * posicoes[idx].preco_medio;
-            posicoes[idx].quantidade   += qtd;
-            posicoes[idx].preco_medio   = (totAnt + total) / posicoes[idx].quantidade;
-            posicoes[idx].ultima_atualizacao = new Date().toISOString();
-          } else {
-            posicoes.push({
-              ticker: tickerSalvo, tipo: TIPO, quantidade: qtd,
-              preco_medio: preco,
-              data_compra: new Date().toISOString(),
-              ultima_atualizacao: new Date().toISOString()
-            });
-          }
-        } else {
-          const idx = posicoes.findIndex(p => p.ticker === tickerSalvo);
-          if (idx < 0) throw new Error('Ativo não encontrado na carteira.');
-          if (posicoes[idx].quantidade < qtd) throw new Error('Quantidade insuficiente.');
-          saldo += total;
-          posicoes[idx].quantidade -= qtd;
-          if (posicoes[idx].quantidade === 0) posicoes.splice(idx, 1);
-        }
-
-        const investido  = posicoes.reduce((a, p) => a + p.quantidade * p.preco_medio, 0);
-        const patrimonio = saldo + investido;
-
-        t.set(cRef, {
-          uid: meuUID, saldo_disponivel: saldo, saldo_investido: investido,
-          patrimonio_total: patrimonio, posicoes,
-          ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        t.set(db.collection('ordens').doc(), {
-          uid: meuUID, ticker: tickerSalvo, tipo: TIPO, lado, quantidade: qtd,
-          preco, total, tipo_ordem: tipoOrdem,
-          status: mercadoStatus === 'aberto' ? 'executada' : 'agendada',
-          data: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Post no feed só se preço e total são válidos
-        if (preco > 0 && total > 0) {
-          t.set(db.collection('posts').doc(), {
-            uid: meuUID, tipo: 'trade', tipo_ativo: TIPO,
-            ticker: tickerSalvo, lado, quantidade: qtd,
-            preco, total, auto: true,
-            data_post: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        }
-
-        const uRef = db.collection('usuarios').doc(meuUID);
-        t.update(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio });
+      const res = await fetch('/api/executar-ordem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          ticker: tickerSalvo,
+          tipo: TIPO,
+          lado,
+          quantidade: qtd,
+          tipo_ordem: tipoOrdem,
+          // Só é usado pelo servidor quando a ordem NÃO é "a mercado"
+          // em ações/FIIs/cripto (ver TODO em api/_lib/precos.js)
+          preco_limite: preco,
+        }),
       });
+
+      const resultado = await res.json();
+      if (!res.ok) {
+        throw new Error(resultado.error || `Erro HTTP ${res.status}`);
+      }
+
+      const precoConfirmado = resultado.preco;
+      const totalConfirmado = qtd * precoConfirmado;
+      const executadaAgora  = resultado.status === 'executada';
 
       fecharModal();
 
@@ -709,13 +678,13 @@
       const s = document.getElementById('sucesso');
       s.classList.add('show');
       document.getElementById('s-icon').textContent  = lado === 'compra' ? '✅' : '💰';
-      document.getElementById('s-title').textContent = mercadoStatus === 'aberto' ? 'ORDEM EXECUTADA' : 'ORDEM AGENDADA';
+      document.getElementById('s-title').textContent = executadaAgora ? 'ORDEM EXECUTADA' : 'ORDEM AGENDADA';
       const displayTicker = TIPO === 'cripto' ? TICKER.toUpperCase() : TICKER;
       document.getElementById('s-desc').textContent  =
         `${lado === 'compra' ? 'Compra' : 'Venda'} de ${qtd} ${unit()} de ${displayTicker}\n` +
-        `a ${R$(preco)} por unidade\n` +
-        `Total: ${R$(total)}\n` +
-        `${mercadoStatus === 'aberto' ? 'Executada imediatamente ✅' : 'Agendada para o próximo dia útil ⏰'}`;
+        `a ${R$(precoConfirmado)} por unidade\n` +
+        `Total: ${R$(totalConfirmado)}\n` +
+        `${executadaAgora ? 'Executada imediatamente ✅' : 'Agendada para o próximo dia útil ⏰'}`;
 
     } catch (e) {
       console.error(e);

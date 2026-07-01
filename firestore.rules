@@ -1,0 +1,160 @@
+// ============================================================
+//  firestore.rules — RASCUNHO
+//
+//  ⚠️ IMPORTANTE: eu não tinha o arquivo de rules atual do projeto,
+//  então isto foi reconstruído do zero a partir do que o código
+//  client faz. Antes de publicar em produção:
+//    1. Teste no Firebase Console → Firestore → Regras → Playground
+//       simulando as operações reais de cada página (login, postar,
+//       comprar/vender, ver feed, ver "Descobrir Membros" etc.)
+//    2. Ou rode com o Firebase Emulator Suite localmente.
+//  Algumas coleções (galeria, leiloes/lances, pagamentos, transacoes)
+//  eu não auditei a fundo — marquei com "REVISAR" abaixo. Rules erradas
+//  quebram o app (não deixam nem o dono ler/escrever), então valide
+//  com calma, coleção por coleção.
+//
+//  PREMISSA CENTRAL desta versão:
+//  - saldo_disponivel, patrimonio_total, rentabilidade_pct (em
+//    "usuarios") e TUDO em "carteiras" e "ordens" só podem ser
+//    escritos pelo servidor (Firebase Admin SDK em api/executar-ordem.js),
+//    que ignora estas regras. Por isso as regras abaixo NEGAM escrita
+//    direta do client nesses campos/coleções.
+//  - pombcoins (em "usuarios") AINDA é escrito direto pelo client em
+//    pomb-economy.js — as regras abaixo permitem isso por enquanto
+//    (senão o $POMB quebra), mas isso significa que o $POMB continua
+//    vulnerável a alguém rodar POMB._creditar() manualmente no
+//    console. Se o $POMB importa pra valer (ele decide lances de
+//    leilão), esse é o próximo passo a mover pro servidor.
+// ============================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function ehDono(uid) {
+      return logado() && request.auth.uid == uid;
+    }
+
+    // ── usuarios/{uid} ──
+    // Leitura: qualquer membro autenticado (necessário para o feed
+    // e para "Descobrir Membros" mostrarem outros perfis/saldos).
+    // Escrita: só o dono, e só em campos de perfil — nunca em saldo,
+    // patrimônio ou rentabilidade (isso é papel do servidor).
+    match /usuarios/{uid} {
+      allow read: if logado();
+
+      allow create: if ehDono(uid);
+
+      allow update: if ehDono(uid) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['saldo_disponivel', 'patrimonio_total', 'rentabilidade_pct']);
+
+      // Subcoleção de histórico do $POMB — só o dono lê/escreve
+      match /pomb_historico/{docId} {
+        allow read, create: if ehDono(uid);
+        allow update, delete: if false;
+      }
+    }
+
+    // ── carteiras/{uid} ──
+    // Só o servidor (Admin SDK) escreve. O client só lê a própria carteira.
+    match /carteiras/{uid} {
+      allow read: if ehDono(uid);
+      allow write: if false;
+    }
+
+    // ── ordens/{id} ──
+    // Só o servidor cria (via api/executar-ordem.js). O client só lê as
+    // próprias ordens.
+    match /ordens/{id} {
+      allow read: if logado() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ── convites/{codigo} ──
+    // Leitura pública (o fluxo de convite lê o código ANTES do login,
+    // ver auth.js). Como o ID do documento é um código aleatório de
+    // 6 caracteres, isso não permite listar convites de outra pessoa,
+    // só confirmar um código que você já tem em mãos.
+    // Criação: só o dono autenticado, gerando pra si mesmo, não usado.
+    // Uso (marcar como usado): só se ainda não tiver sido usado.
+    match /convites/{codigo} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create: if logado() &&
+        request.resource.data.gerado_por == request.auth.uid &&
+        request.resource.data.usado == false;
+
+      allow update: if logado() &&
+        resource.data.usado == false &&
+        request.resource.data.usado == true &&
+        request.resource.data.quem_usou == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    // ── posts/{id} ──
+    // Client pode criar posts próprios, MAS nunca do tipo "trade"
+    // (esses só vêm do servidor, junto da execução da ordem — evita
+    // alguém postar uma "compra" falsa pro feed sem ela ter acontecido).
+    match /posts/{id} {
+      allow read: if logado();
+
+      allow create: if logado() &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.tipo != 'trade';
+
+      // Curtidas: permite só incrementar 'likes' em 1, mais nada.
+      // (REVISAR: confirme contra a implementação real de darLike()
+      // em feed.html antes de publicar — hoje eu não tracei esse fluxo.)
+      allow update: if logado() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+
+      allow delete: if logado() && resource.data.uid == request.auth.uid;
+    }
+
+    // ── REVISAR: coleções que eu não auditei em profundidade ──
+    // Deixei fechadas por padrão (allow: if false) até você confirmar
+    // o fluxo real de cada uma — abrir demais aqui é o tipo de coisa
+    // que vaza dado ou permite escrita indevida sem ninguém perceber.
+    match /galeria/{id} {
+      allow read: if logado();
+      allow write: if false; // REVISAR
+    }
+
+    match /leiloes/{id} {
+      allow read: if logado();
+      allow write: if false; // REVISAR
+
+      match /lances/{lanceId} {
+        allow read: if logado();
+        allow write: if false; // REVISAR — provavelmente precisa permitir
+        // create para o dono do lance, mas o valor do lance deveria ser
+        // validado contra o pombcoins disponível — hoje isso é feito
+        // client-side em pomb-economy.js/debitar(), o que tem o mesmo
+        // problema de confiança que ordem.html tinha antes desta correção.
+      }
+    }
+
+    match /pagamentos/{id} {
+      allow read: if logado() && resource.data.uid == request.auth.uid;
+      allow write: if false; // REVISAR
+    }
+
+    match /transacoes/{id} {
+      allow read: if logado() && resource.data.uid == request.auth.uid;
+      allow write: if false; // REVISAR
+    }
+
+    // Qualquer coisa não listada acima: fechada por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "los-pombitos-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Funções serverless (pasta /api) usadas pela Vercel — não afeta as páginas estáticas.",
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
