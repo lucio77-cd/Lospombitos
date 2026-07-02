@@ -8,8 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root{
-      --ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;
-      --sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;
+      --ink:#170f28;--sand:#f5f2fb;--shore:#e3d9f5;--wave:#5b2a99;--foam:#ece0fa;
+      --sun:#c9962e;--muted:#756c86;--card:#ffffff;--green:#128a55;--red:#c62828;
       --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -24,7 +24,7 @@
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
     /* ── Patrimônio card ── */
-    .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#1a4fff 0%,#0033cc 60%,#001a80 100%);padding:22px;border-radius:20px;color:white;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
+    .pat-card{background:var(--wave);background-image:linear-gradient(135deg,#6b34ad 0%,#3d1a70 55%,#170f28 100%);padding:22px;border-radius:20px;color:white;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeUp .3s ease}
     .pat-card::before{content:'POMBITOS';position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:70px;color:rgba(255,255,255,.05);pointer-events:none;letter-spacing:-2px}
     .pat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;opacity:.7;margin-bottom:4px}
     .pat-valor{font-family:var(--display);font-size:38px;letter-spacing:2px;line-height:1;margin-bottom:2px}
@@ -33,11 +33,12 @@
     .pat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
     .pat-item .pat-label{margin-bottom:2px}
     .pat-item-val{font-family:var(--mono);font-size:11px;font-weight:500}
+    .pat-item-val.gold{color:#e8c46a}
 
     /* ── Resultado banner ── */
     .resultado-banner{border-radius:16px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;animation:fadeUp .35s ease}
-    .resultado-banner.pos{background:linear-gradient(135deg,#d4f5e2,#b8f0d0);border:1.5px solid #1a8a4a30}
-    .resultado-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc2b8);border:1.5px solid #cc220030}
+    .resultado-banner.pos{background:linear-gradient(135deg,#d4f5e2,#b8f0d0);border:1.5px solid #128a5530}
+    .resultado-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc2b8);border:1.5px solid #c6282830}
     .rb-left .rb-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;margin-bottom:4px}
     .rb-left .rb-label.pos{color:var(--green)}.rb-left .rb-label.neg{color:var(--red)}
     .rb-valor{font-family:var(--display);font-size:30px;letter-spacing:1px}
@@ -76,8 +77,8 @@
     .pos-rentab{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:2px}
     .pos-rentab.pos{color:var(--green)}.pos-rentab.neg{color:var(--red)}
     .pos-resultado{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;margin-bottom:10px}
-    .pos-resultado.pos{background:linear-gradient(135deg,#d4f5e2,#c8f0da);border:1px solid #1a8a4a20}
-    .pos-resultado.neg{background:linear-gradient(135deg,#ffd5ce,#ffc8bf);border:1px solid #cc220020}
+    .pos-resultado.pos{background:linear-gradient(135deg,#d4f5e2,#c8f0da);border:1px solid #128a5520}
+    .pos-resultado.neg{background:linear-gradient(135deg,#ffd5ce,#ffc8bf);border:1px solid #c6282820}
     .pr-left .pr-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;margin-bottom:4px}
     .pr-label.pos{color:var(--green)}.pr-label.neg{color:var(--red)}
     .pr-valor{font-family:var(--display);font-size:22px;letter-spacing:1px}
@@ -222,7 +223,7 @@
       <div class="pat-grid">
         <div class="pat-item"><p class="pat-label">DISPONÍVEL</p><p class="pat-item-val" id="pat-disp">···</p></div>
         <div class="pat-item"><p class="pat-label">INVESTIDO</p><p class="pat-item-val" id="pat-inv">···</p></div>
-        <div class="pat-item"><p class="pat-label">CAPITAL</p><p class="pat-item-val">R$ 500K</p></div>
+        <div class="pat-item"><p class="pat-label">CAPITAL</p><p class="pat-item-val gold">R$ 500K</p></div>
       </div>
     </div>
 
@@ -244,7 +245,7 @@
         <p class="chart-title">📊 DESEMPENHO</p>
         <canvas id="perf-chart"></canvas>
         <div class="bar-legend">
-          <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#c8d8ff"></div>CUSTO</div>
+          <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#ece0fa"></div>CUSTO</div>
           <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#1a8a4a"></div>HOJE</div>
         </div>
       </div>
@@ -305,7 +306,7 @@
   let posicoes = [], cotacoes = {}, ordensValidas = [];
   let saldoDispGlobal = 0;
 
-  const CORES_DONUT = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#8a8278','#c8d8ff','#ff5533','#0033cc'];
+  const CORES_DONUT = ['#5b2a99','#128a55','#c9962e','#c62828','#756c86','#ece0fa','#8b5fc4','#3d1a70'];
 
   function parseData(v) {
     if (!v) return null;
@@ -511,10 +512,10 @@
       const bH    = 11;
       const gap   = 3;
       const isP   = a.valorAtual >= a.custo;
-      const cor   = a.temCotacao ? (isP ? '#1a8a4a' : '#cc2200') : '#8a8278';
+      const cor   = a.temCotacao ? (isP ? '#128a55' : '#c62828') : '#8a8278';
 
       // Ticker
-      ctx.fillStyle = '#1a4fff';
+      ctx.fillStyle = '#5b2a99';
       ctx.font = '500 9px DM Mono,monospace';
       ctx.textAlign = 'right';
       ctx.fillText(a.ticker, PAD.l - 6, y + bH + 1);
@@ -527,7 +528,7 @@
 
       // Barra custo
       const wC = (a.custo / maxVal) * BW;
-      ctx.fillStyle = '#c8d8ff';
+      ctx.fillStyle = '#ece0fa';
       ctx.beginPath();
       ctx.roundRect(PAD.l, y, wC, bH, 3);
       ctx.fill();

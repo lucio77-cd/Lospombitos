@@ -8,9 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink: #0d0d0d; --sand: #f0ebe3; --shore: #e2d9cd; --wave: #1a4fff;
-      --foam: #c8d8ff; --muted: #8a8278; --card: #faf8f5;
-      --green: #1a8a4a; --red: #cc2200; --gold: #c9860a;
+      --ink: #170f28; --sand: #f5f2fb; --shore: #e3d9f5; --wave: #5b2a99;
+      --foam: #ece0fa; --muted: #756c86; --card: #ffffff;
+      --green: #128a55; --red: #c62828; --gold: #c9962e;
       --radius: 14px;
       --mono: 'DM Mono', monospace;
       --sans: 'DM Sans', sans-serif;
@@ -39,7 +39,7 @@
     .search-input:focus { border-color: var(--wave); }
     .search-input::placeholder { color: var(--shore); font-size: 18px; letter-spacing: 2px; }
     .search-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: var(--wave); border: none; color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-    .search-btn:hover { background: #0033cc; transform: translateY(-50%) scale(1.05); }
+    .search-btn:hover { background: #3d1a70; transform: translateY(-50%) scale(1.05); }
     .search-btn:disabled { opacity: .5; cursor: not-allowed; }
 
     /* ── Ativo hero ── */
@@ -106,7 +106,7 @@
     .cenario-input { flex: 1; height: 40px; background: var(--sand); border: 1.5px solid var(--shore); border-radius: 10px; font-family: var(--mono); font-size: 11px; padding: 0 12px; outline: none; transition: border-color .2s; color: var(--ink); }
     .cenario-input:focus { border-color: var(--wave); }
     .btn-cenario { height: 40px; padding: 0 16px; background: var(--wave); color: white; border: none; border-radius: 10px; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 1px; cursor: pointer; transition: all .2s; white-space: nowrap; }
-    .btn-cenario:hover { background: #0033cc; }
+    .btn-cenario:hover { background: #3d1a70; }
     .btn-cenario:disabled { opacity: .5; cursor: not-allowed; }
     .cenario-result { background: var(--sand); border: 1.5px solid var(--shore); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--ink); display: none; white-space: pre-wrap; }
     .cenario-result.show { display: block; }
@@ -118,7 +118,7 @@
     .faixa-val { font-family: var(--display); font-size: 26px; letter-spacing: 2px; }
     .faixa-sep { font-family: var(--mono); font-size: 10px; opacity: .4; }
     .faixa-track { flex: 1; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; position: relative; margin-bottom: 8px; }
-    .faixa-fill { position: absolute; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #1a8a4a, #f5b800, #cc2200); }
+    .faixa-fill { position: absolute; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #128a55, #c9962e, #c62828); }
     .faixa-dot  { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--gold); }
     .faixa-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 8px; opacity: .4; }
     .faixa-prazo { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; opacity: .4; text-align: center; }
@@ -143,14 +143,62 @@
     /* Divider */
     .section-divider { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--shore); }
+
+    /* ══════ RESPONSIVO — mobile (padrão acima) / tablet / desktop ══════ */
+    .sidebar{display:none}
+    .hdr-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;gap:14px}
+
+    @media (min-width:640px){
+      .container{max-width:760px;padding:22px 24px}
+      .hdr{padding:0 24px;height:64px}
+      .hdr-inner{max-width:760px}
+      .hdr-brand{font-size:26px}
+    }
+
+    @media (min-width:1024px){
+      body{padding-bottom:0}
+      .sidebar{
+        display:flex;flex-direction:column;gap:2px;
+        position:fixed;top:0;left:0;bottom:0;width:212px;
+        background:var(--card);border-right:1.5px solid var(--shore);
+        padding:22px 14px;z-index:100
+      }
+      .sidebar-brand{font-family:var(--display);font-size:20px;letter-spacing:2px;padding:8px 12px 22px;color:var(--wave)}
+      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
+      .sni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-decoration:none;transition:background .15s,color .15s}
+      .sni:hover{background:var(--shore);color:var(--ink)}
+      .sni.on{background:var(--wave);color:#fff}
+      .sni-ico{font-size:16px;line-height:1}
+      .app-main{margin-left:212px}
+      .nav{display:none}
+      .hdr{padding:0 40px;height:76px}
+      .hdr-inner{max-width:1080px}
+      .hdr-brand{font-size:28px}
+      .container{max-width:1080px;padding:32px 40px}
+      .search-wrap{max-width:640px;margin-left:auto;margin-right:auto}
+    }
   </style>
 </head>
 <body>
+  <aside class="sidebar">
+    <div class="sidebar-brand">POMBITOS</div>
+    <nav class="sidebar-nav">
+      <a class="sni" href="feed.html"><span class="sni-ico">🏠</span>FEED</a>
+      <a class="sni" href="investir.html"><span class="sni-ico">📈</span>INVESTIR</a>
+      <a class="sni" href="carteira.html"><span class="sni-ico">💼</span>CARTEIRA</a>
+      <a class="sni on" href="atlas.html"><span class="sni-ico">🔭</span>ATLAS</a>
+      <a class="sni" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
+    </nav>
+  </aside>
+
+  <div class="app-main">
   <header class="hdr">
+    <div class="hdr-inner">
     <button class="btn-back" onclick="history.back()">←</button>
-    <div>
+    <div style="flex:1">
       <div class="hdr-brand">ATLAS</div>
       <div class="hdr-sub">ANÁLISE PROBABILÍSTICA</div>
+    </div>
     </div>
   </header>
 
@@ -205,7 +253,7 @@
           <div class="ring-container">
             <svg width="90" height="90" viewBox="0 0 90 90">
               <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>
-              <circle id="ring-alta" cx="45" cy="45" r="38" fill="none" stroke="#1a8a4a" stroke-width="7"
+              <circle id="ring-alta" cx="45" cy="45" r="38" fill="none" stroke="#128a55" stroke-width="7"
                 stroke-dasharray="0 239" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
             </svg>
             <span class="prob-ring-val" id="ring-alta-val" style="color:#88ffbb">—</span>
@@ -226,7 +274,7 @@
           <div class="ring-container">
             <svg width="90" height="90" viewBox="0 0 90 90">
               <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>
-              <circle id="ring-queda" cx="45" cy="45" r="38" fill="none" stroke="#cc2200" stroke-width="7"
+              <circle id="ring-queda" cx="45" cy="45" r="38" fill="none" stroke="#c62828" stroke-width="7"
                 stroke-dasharray="0 239" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
             </svg>
             <span class="prob-ring-val" id="ring-queda-val" style="color:#ffaaaa">—</span>
@@ -307,6 +355,7 @@
     <a class="ni on" href="atlas.html"><span class="ni-ico">🔭</span><span class="ni-lbl">ATLAS</span></a>
     <a class="ni" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
   </nav>
+  </div>
 
   <script src="mercado-api.js"></script>
   <script>
@@ -740,7 +789,7 @@ Retorne este JSON:
     const list = document.getElementById('fatores-list');
     list.innerHTML = '';
     r.fatores.forEach(f => {
-      const cor = f.direcao === 'pos' ? '#1a8a4a' : f.direcao === 'neg' ? '#cc2200' : '#c9860a';
+      const cor = f.direcao === 'pos' ? '#128a55' : f.direcao === 'neg' ? '#c62828' : '#c9962e';
       const sinal = f.direcao === 'pos' ? '▲' : f.direcao === 'neg' ? '▼' : '●';
       list.innerHTML += `
         <div class="fator-row">
