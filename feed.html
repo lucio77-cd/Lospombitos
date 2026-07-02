@@ -9,16 +9,16 @@
 
   <style>
     :root {
-      --bg:#0c0c0e; --bg2:#141418; --bg3:#1c1c22; --bg4:#22222a;
-      --line:#26262e; --line2:#363640;
-      --txt:#ede8e0; --txt2:#9994a0; --txt3:#56525e;
-      --blue:#4070ff; --blue-lt:#6a90ff; --blue-dim:#18286a; --blue-glow:rgba(64,112,255,.15);
-      --gold:#f0c040; --gold-dim:#38300a;
-      --green:#20c45a; --green-dim:#062a14;
-      --red:#f04040; --red-dim:#2a0808;
+      --bg:#f5f2fb; --bg2:#ffffff; --bg3:#ffffff; --bg4:#ece0fa;
+      --line:#e3d9f5; --line2:#d4c5ec;
+      --txt:#170f28; --txt2:#756c86; --txt3:#a89fb5;
+      --blue:#5b2a99; --blue-lt:#8b5fc4; --blue-dim:#ece0fa; --blue-glow:rgba(91,42,153,.12);
+      --gold:#c9962e; --gold-dim:#f5e6c4;
+      --green:#128a55; --green-dim:#d4f5e2;
+      --red:#c62828; --red-dim:#ffd5ce;
       --radius:14px; --radius-sm:9px; --radius-xs:6px;
       --mono:'DM Mono',monospace; --serif:'Fraunces',serif; --display:'Bebas Neue',sans-serif;
-      --sh:0 2px 20px rgba(0,0,0,.5); --sh-lg:0 8px 48px rgba(0,0,0,.7);
+      --sh:0 2px 20px rgba(23,15,40,.08); --sh-lg:0 8px 48px rgba(23,15,40,.14);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -60,6 +60,34 @@
 
     /* ── LAYOUT ── */
     .app{max-width:640px;margin:0 auto;padding:14px 12px}
+
+    /* ══════ RESPONSIVO — mobile / tablet / desktop ══════ */
+    .sidebar{display:none}
+
+    @media (min-width:640px){
+      .app{max-width:760px;padding:22px 24px}
+      .header{padding:0 24px}
+    }
+
+    @media (min-width:1024px){
+      body{padding-bottom:0}
+      .sidebar{
+        display:flex;flex-direction:column;gap:2px;
+        position:fixed;top:0;left:0;bottom:0;width:212px;
+        background:var(--bg2);border-right:1.5px solid var(--line);
+        padding:22px 14px;z-index:500
+      }
+      .sidebar-brand{font-family:var(--display);font-size:20px;letter-spacing:2px;padding:8px 12px 22px;color:var(--blue)}
+      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
+      .sni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--txt2);text-decoration:none;transition:background .15s,color .15s}
+      .sni:hover{background:var(--bg4);color:var(--txt)}
+      .sni.on{background:var(--blue);color:#fff}
+      .sni-ico{font-size:16px;line-height:1}
+      .app-main{margin-left:212px}
+      .nav{display:none}
+      .app{max-width:1000px;padding:32px 40px}
+      .idx-grid{max-width:100%}
+    }
 
     /* ── ÍNDICES ── */
     .idx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
@@ -264,6 +292,19 @@
 </head>
 <body>
 
+<aside class="sidebar">
+  <div class="sidebar-brand">POMBITOS</div>
+  <nav class="sidebar-nav">
+    <a class="sni on" href="feed.html"><span class="sni-ico">🏠</span>FEED</a>
+    <a class="sni" href="investir.html"><span class="sni-ico">📈</span>INVESTIR</a>
+    <a class="sni" href="atlas.html"><span class="sni-ico">🔭</span>ATLAS</a>
+    <a class="sni" href="carteira.html"><span class="sni-ico">💼</span>CARTEIRA</a>
+    <a class="sni" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
+  </nav>
+</aside>
+
+<div class="app-main">
+
 <!-- TICKER -->
 <div class="ticker-wrap">
   <div class="ticker-track" id="tt">
@@ -416,6 +457,8 @@
     <span class="nav-lbl">PERFIL</span>
   </a>
 </nav>
+
+</div>
 
 <div id="toast"></div>
 

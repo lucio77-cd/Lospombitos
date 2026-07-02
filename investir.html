@@ -9,17 +9,17 @@
 
   <style>
     :root {
-      --ink:     #0d0d0d;
-      --sand:    #f0ebe3;
-      --shore:   #e2d9cd;
-      --wave:    #1a4fff;
-      --foam:    #c8d8ff;
-      --sun:     #f5b800;
+      --ink:     #170f28;
+      --sand:    #f5f2fb;
+      --shore:   #e3d9f5;
+      --wave:    #5b2a99;
+      --foam:    #ece0fa;
+      --sun:     #c9962e;
       --coral:   #ff5533;
-      --muted:   #8a8278;
-      --card:    #faf8f5;
-      --green:   #1a8a4a;
-      --red:     #cc2200;
+      --muted:   #756c86;
+      --card:    #ffffff;
+      --green:   #128a55;
+      --red:     #c62828;
       --radius:  14px;
       --mono:    'DM Mono', monospace;
       --sans:    'DM Sans', sans-serif;
@@ -210,7 +210,7 @@
     }
     .categoria-card:hover {
       border-color: var(--wave); transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(26,79,255,.08);
+      box-shadow: 0 4px 16px rgba(91,42,153,.08);
     }
     .categoria-card:active { transform: translateY(0); }
 
@@ -314,7 +314,7 @@
     /* ── BOTTOM NAV ── */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
-      background: rgba(240,235,227,.92);
+      background: rgba(245,242,251,.92);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-top: 1.5px solid var(--shore);
       display: flex; justify-content: space-around; align-items: center;
@@ -334,7 +334,7 @@
       letter-spacing: 1.5px; color: var(--muted); transition: color .2s;
     }
     .nav-item.active-link .nav-label { color: var(--wave); font-weight: 500; }
-    .nav-item.active-link .nav-icon { filter: drop-shadow(0 0 6px rgba(26,79,255,.4)); }
+    .nav-item.active-link .nav-icon { filter: drop-shadow(0 0 6px rgba(91,42,153,.4)); }
 
     /* ── SKELETON DESTAQUES ── */
     .sk-destaque {
@@ -346,15 +346,60 @@
     .sk-ticker { width: 60px; height: 26px; background: var(--shore);
       border-radius: 6px; animation: shimmer 1.4s infinite; }
     .sk-info { display: flex; flex-direction: column; gap: 6px; }
+
+    /* ══════ RESPONSIVO — mobile (padrão acima) / tablet / desktop ══════ */
+    .sidebar{display:none}
+    .header-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between}
+
+    @media (min-width:640px){
+      .container{max-width:760px;padding:26px 24px}
+      .feed-header{padding:0 24px;height:64px}
+      .header-inner{max-width:760px}
+      .header-logo{font-size:30px}
+    }
+
+    @media (min-width:1024px){
+      body{padding-bottom:0}
+      .sidebar{
+        display:flex;flex-direction:column;gap:2px;
+        position:fixed;top:0;left:0;bottom:0;width:212px;
+        background:var(--card);border-right:1.5px solid var(--shore);
+        padding:22px 14px;z-index:100
+      }
+      .sidebar-brand{font-family:var(--display);font-size:20px;letter-spacing:2px;padding:8px 12px 22px;color:var(--wave)}
+      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
+      .sni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-decoration:none;transition:background .15s,color .15s}
+      .sni:hover{background:var(--shore);color:var(--ink)}
+      .sni.on{background:var(--wave);color:#fff}
+      .sni-ico{font-size:16px;line-height:1}
+      .app-main{margin-left:212px}
+      .bottom-nav{display:none}
+      .feed-header{padding:0 40px;height:76px}
+      .header-inner{max-width:1080px}
+      .header-logo{font-size:32px}
+      .container{max-width:1080px;padding:32px 40px}
+    }
   </style>
 </head>
 <body>
+  <aside class="sidebar">
+    <div class="sidebar-brand">POMBITOS</div>
+    <nav class="sidebar-nav">
+      <a class="sni" href="feed.html"><span class="sni-ico">🏠</span>FEED</a>
+      <a class="sni on" href="investir.html"><span class="sni-ico">📈</span>INVESTIR</a>
+      <a class="sni" href="atlas.html"><span class="sni-ico">🔭</span>ATLAS</a>
+      <a class="sni" href="carteira.html"><span class="sni-ico">💼</span>CARTEIRA</a>
+      <a class="sni" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
+    </nav>
+  </aside>
 
-  <!-- HEADER -->
+  <div class="app-main">
   <header class="feed-header">
+    <div class="header-inner">
     <div class="header-logo">INVES<span>TIR</span></div>
     <div class="header-mercado">
       <span class="mercado-badge fechado" id="mercado-badge">Carregando...</span>
+    </div>
     </div>
   </header>
 
@@ -518,6 +563,7 @@
     <span class="nav-label">PERFIL</span>
   </a>
   </nav>
+  </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>

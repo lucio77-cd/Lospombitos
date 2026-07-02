@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    :root{--ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;--sun:#f5b800;--coral:#ff5533;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
+    :root{--ink:#170f28;--sand:#f5f2fb;--shore:#e3d9f5;--wave:#5b2a99;--foam:#ece0fa;--sun:#c9962e;--coral:#ff5533;--muted:#756c86;--card:#ffffff;--green:#128a55;--red:#c62828;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:100px;overscroll-behavior:none}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
@@ -18,6 +18,18 @@
     .mkt-badge.open{background:#d4f5e2;color:var(--green)}
     .mkt-badge.closed{background:var(--shore);color:var(--muted)}
     .container{padding:20px 16px;max-width:640px;margin:0 auto}
+    .hdr-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;gap:14px}
+    /* Fluxo de ordem é uma tarefa focada — só ganha respiro, sem virar dashboard largo */
+    @media (min-width:640px){
+      .container{max-width:640px;padding:28px 24px}
+      .hdr{padding:0 24px;height:64px}
+      .hdr-inner{max-width:640px}
+    }
+    @media (min-width:1024px){
+      .container{max-width:560px;padding:40px 24px;margin:0 auto}
+      .hdr{padding:0 32px;height:68px}
+      .hdr-inner{max-width:560px;margin:0 auto}
+    }
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
     /* ── Cotação warning banner ── */
@@ -117,7 +129,7 @@
     .sucesso-title{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--ink);margin-bottom:8px}
     .sucesso-desc{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);line-height:1.8;margin-bottom:24px;white-space:pre-line}
     .btn-carteira{width:100%;height:50px;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;margin-bottom:10px}
-    .btn-carteira:hover{background:#0033cc}
+    .btn-carteira:hover{background:#3d1a70}
     .btn-novo{width:100%;height:44px;background:none;color:var(--muted);border:1.5px solid var(--shore);border-radius:25px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer}
     .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:white;font-family:var(--mono);font-size:12px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -125,9 +137,11 @@
 </head>
 <body>
   <header class="hdr">
+    <div class="hdr-inner">
     <button class="btn-back" onclick="history.back()">←</button>
     <div class="hdr-title" id="hdr-title">ORDEM</div>
     <span class="mkt-badge closed" id="mkt-badge">···</span>
+    </div>
   </header>
 
   <div class="container">

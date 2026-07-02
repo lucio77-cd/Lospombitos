@@ -8,8 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root{
-      --ink:#0d0d0d;--sand:#f0ebe3;--shore:#e2d9cd;--wave:#1a4fff;--foam:#c8d8ff;
-      --sun:#f5b800;--muted:#8a8278;--card:#faf8f5;--green:#1a8a4a;--red:#cc2200;
+      --ink:#170f28;--sand:#f5f2fb;--shore:#e3d9f5;--wave:#5b2a99;--foam:#ece0fa;
+      --sun:#c9962e;--muted:#756c86;--card:#ffffff;--green:#128a55;--red:#c62828;
       --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -95,12 +95,60 @@
     .ni-ico{font-size:20px;line-height:1}
     .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
     .ni.on .ni-lbl{color:var(--wave);font-weight:500}
+
+    /* ══════ RESPONSIVO — mobile (padrão acima) / tablet / desktop ══════ */
+    .sidebar{display:none}
+    .hdr-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between}
+
+    @media (min-width:640px){
+      .container{max-width:760px;padding:26px 24px}
+      .hdr{padding:0 24px;height:64px}
+      .hdr-inner{max-width:760px}
+      .hdr-title{font-size:24px}
+    }
+
+    @media (min-width:1024px){
+      body{padding-bottom:0}
+      .sidebar{
+        display:flex;flex-direction:column;gap:2px;
+        position:fixed;top:0;left:0;bottom:0;width:212px;
+        background:var(--card);border-right:1.5px solid var(--shore);
+        padding:22px 14px;z-index:100
+      }
+      .sidebar-brand{font-family:var(--display);font-size:20px;letter-spacing:2px;padding:8px 12px 22px;color:var(--wave)}
+      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
+      .sni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-decoration:none;transition:background .15s,color .15s}
+      .sni:hover{background:var(--shore);color:var(--ink)}
+      .sni.on{background:var(--wave);color:#fff}
+      .sni-ico{font-size:16px;line-height:1}
+      .app-main{margin-left:212px}
+      .nav{display:none}
+      .hdr{padding:0 40px;height:76px}
+      .hdr-inner{max-width:900px}
+      .hdr-title{font-size:26px}
+      .container{max-width:900px;padding:32px 40px}
+      .stats-row{max-width:900px}
+    }
   </style>
 </head>
 <body>
+  <aside class="sidebar">
+    <div class="sidebar-brand">POMBITOS</div>
+    <nav class="sidebar-nav">
+      <a class="sni" href="feed.html"><span class="sni-ico">🏠</span>FEED</a>
+      <a class="sni" href="investir.html"><span class="sni-ico">📈</span>INVESTIR</a>
+      <a class="sni" href="atlas.html"><span class="sni-ico">🔭</span>ATLAS</a>
+      <a class="sni" href="carteira.html"><span class="sni-ico">💼</span>CARTEIRA</a>
+      <a class="sni on" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
+    </nav>
+  </aside>
+
+  <div class="app-main">
   <header class="hdr">
+    <div class="hdr-inner">
     <div class="hdr-title">PERFIL</div>
     <button class="btn-edit" onclick="location.href='editar-perfil.html'">✏️ EDITAR</button>
+    </div>
   </header>
 
   <div class="container">
@@ -154,6 +202,7 @@
     <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
     <a class="ni on" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
   </nav>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -164,7 +213,7 @@
   'use strict';
 
   const CAPITAL  = 500000;
-  const CORES    = ['#1a4fff','#1a8a4a','#f5b800','#cc2200','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
+  const CORES    = ['#5b2a99','#128a55','#c9962e','#c62828','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
   const COR_DISP = '#d4c9b8';
 
   const Rk = v => {
@@ -257,14 +306,14 @@
 
   function corPombito() {
     const m = {
-      'azul':'#1a4fff','azul celeste':'#87ceeb','azul mar':'#006994',
-      'verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#cc2200',
+      'azul':'#5b2a99','azul celeste':'#87ceeb','azul mar':'#006994',
+      'verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#c62828',
       'rosa':'#e75480','roxo':'#6a0dad','laranja':'#e86a1a',
-      'amarelo':'#f5b800','dourado':'#c9a84c','cinza':'#6b6b6b',
+      'amarelo':'#c9962e','dourado':'#c9a84c','cinza':'#6b6b6b',
       'marrom':'#7a4e2d','ciano':'#00b4d8','violeta':'#7c3aed',
       'turquesa':'#40e0d0','coral':'#ff6b6b'
     };
-    return m[(userData.cor || '').toLowerCase().trim()] || '#1a4fff';
+    return m[(userData.cor || '').toLowerCase().trim()] || '#5b2a99';
   }
 
   function renderHero() {
@@ -499,7 +548,7 @@
     ctx.fillStyle = grad; ctx.fill();
 
     ctx.beginPath();
-    ctx.strokeStyle = '#0d0d0d'; ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#170f28'; ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
     ctx.moveTo(xOf(0), yOf(precos[0]));
     precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
     ctx.stroke();
@@ -507,17 +556,17 @@
     if (pm && pm >= minV && pm <= maxV) {
       const yPM = yOf(pm);
       ctx.save(); ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#cc2200'; ctx.lineWidth = 1.2;
+      ctx.strokeStyle = '#c62828'; ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
       ctx.restore();
-      ctx.fillStyle = '#cc2200'; ctx.font = '8px DM Mono,monospace';
+      ctx.fillStyle = '#c62828'; ctx.font = '8px DM Mono,monospace';
       ctx.textAlign = 'left'; ctx.fillText('PM', pad.l + 4, yPM - 3);
     }
 
     const lx = xOf(precos.length - 1), ly = yOf(precos[precos.length - 1]);
     ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#0d0d0d'; ctx.fill();
-    ctx.strokeStyle = '#faf8f5'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#170f28'; ctx.fill();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
   // ── POSTS ──

@@ -9,16 +9,16 @@
 
   <style>
     :root {
-      --ink:     #0d0d0d;
-      --sand:    #f0ebe3;
-      --shore:   #e2d9cd;
-      --wave:    #1a4fff;
-      --foam:    #c8d8ff;
-      --sun:     #f5b800;
+      --ink:     #170f28;
+      --sand:    #f5f2fb;
+      --shore:   #e3d9f5;
+      --wave:    #5b2a99;
+      --foam:    #ece0fa;
+      --sun:     #c9962e;
       --coral:   #ff5533;
-      --muted:   #8a8278;
-      --card:    #faf8f5;
-      --green:   #1a8a4a;
+      --muted:   #756c86;
+      --card:    #ffffff;
+      --green:   #128a55;
       --radius:  14px;
       --mono:    'DM Mono', monospace;
       --sans:    'DM Sans', sans-serif;
@@ -75,6 +75,14 @@
     .container {
       padding: 20px 16px 90px;
       max-width: 640px; margin: 0 auto;
+    }
+
+    /* Página secundária (sem os 5 tabs) — só ganha mais respiro em telas largas */
+    @media (min-width:640px){
+      .container{max-width:760px;padding:26px 24px 90px}
+    }
+    @media (min-width:1024px){
+      .container{max-width:960px;padding:36px 40px 90px}
     }
 
     @keyframes fadeUp {
@@ -407,7 +415,7 @@
       font-weight: 500; letter-spacing: 1.5px;
       cursor: pointer; transition: all .2s;
     }
-    .btn-primario:hover:not(:disabled) { background: #0033cc; transform: translateY(-1px); }
+    .btn-primario:hover:not(:disabled) { background: #3d1a70; transform: translateY(-1px); }
     .btn-primario:disabled { opacity: .5; cursor: not-allowed; }
 
     .btn-secundario {
@@ -1081,7 +1089,7 @@
       const ctx = canvas.getContext('2d');
       const W = canvas.width, H = canvas.height;
 
-      ctx.fillStyle = '#f0ebe3';
+      ctx.fillStyle = '#f5f2fb';
       ctx.fillRect(0, 0, W, H);
 
       const seed = hashStr(dna.tema || 'pombito');
@@ -1119,7 +1127,7 @@
       grade.forEach((linha, r) => {
         linha.forEach((cod, c) => {
           if (!cod) return;
-          ctx.fillStyle = cod === 1 ? '#e8d4a0' : cod === 2 ? corAsa : cod === 4 ? '#0d0d0d' : '#f5b800';
+          ctx.fillStyle = cod === 1 ? '#e8d4a0' : cod === 2 ? corAsa : cod === 4 ? '#170f28' : '#c9962e';
           ctx.fillRect(ox + c*px, oy + r*px, px-1, px-1);
         });
       });
