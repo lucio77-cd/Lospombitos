@@ -89,6 +89,13 @@
     .clima-sinal-desc { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; }
     .clima-aviso { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.5; padding: 4px 0 10px; }
     .clima-lista-title { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
+
+    .setor-bloco { text-align: left; max-width: 560px; margin: 0 auto 22px; }
+    .setor-titulo { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; color: var(--ink); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .setor-tag { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; font-weight: 500; color: var(--wave); background: var(--foam); padding: 2px 7px; border-radius: 20px; }
+    .setor-tag.gold { color: #8a6d1f; background: #f5e6c4; }
+    .setor-tag.muted { color: var(--muted); background: var(--shore); }
+    .setor-exp { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
     .fatores-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 14px; color: var(--ink); }
     .fator-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .fator-nome { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; color: var(--muted); width: 120px; flex-shrink: 0; }
@@ -224,21 +231,70 @@
     <div class="estado-inicial" id="estado-inicial">
       <div class="ei-ico">🔭</div>
       <p class="ei-titulo">ATLAS</p>
-      <p class="ei-desc">Digite um ticker acima para gerar<br>uma análise probabilística completa<br>com múltiplos agentes de IA</p>
-      <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">AÇÕES B3</div>
-      <div class="sugestoes" style="margin-bottom:10px">
-        <span class="sug-pill" onclick="analisarTicker('PETR4')">PETR4</span>
-        <span class="sug-pill" onclick="analisarTicker('VALE3')">VALE3</span>
-        <span class="sug-pill" onclick="analisarTicker('ITUB4')">ITUB4</span>
-        <span class="sug-pill" onclick="analisarTicker('WEGE3')">WEGE3</span>
-        <span class="sug-pill" onclick="analisarTicker('BBAS3')">BBAS3</span>
+      <p class="ei-desc">Digite um ticker acima, ou escolha abaixo — cada setor tem uma explicação de por que o clima entra (ou não) na análise.</p>
+
+      <div class="setor-bloco">
+        <div class="setor-titulo">🌾 AGRO <span class="setor-tag">clima fundamentalista</span></div>
+        <p class="setor-exp">Chuva acumulada na região produtora + regime El Niño/La Niña + câmbio — a safra reage à seca/excesso de chuva com semanas de atraso.</p>
+        <div class="sugestoes">
+          <span class="sug-pill" onclick="analisarTicker('SLCE3')">SLCE3</span>
+          <span class="sug-pill" onclick="analisarTicker('SMTO3')">SMTO3</span>
+          <span class="sug-pill" onclick="analisarTicker('RAIZ4')">RAIZ4</span>
+          <span class="sug-pill" onclick="analisarTicker('BEEF3')">BEEF3</span>
+          <span class="sug-pill" onclick="analisarTicker('MRFG3')">MRFG3</span>
+          <span class="sug-pill" onclick="analisarTicker('JBSS3')">JBSS3</span>
+        </div>
       </div>
-      <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">CRIPTO</div>
-      <div class="sugestoes">
-        <span class="sug-pill" style="border-color:#f7931a;color:#f7931a" onclick="analisarTicker('BTC')">₿ BTC</span>
-        <span class="sug-pill" style="border-color:#627eea;color:#627eea" onclick="analisarTicker('ETH')">Ξ ETH</span>
-        <span class="sug-pill" style="border-color:#9945ff;color:#9945ff" onclick="analisarTicker('SOL')">◎ SOL</span>
-        <span class="sug-pill" style="border-color:#0033ad;color:#0033ad" onclick="analisarTicker('BNB')">⬡ BNB</span>
+
+      <div class="setor-bloco">
+        <div class="setor-titulo">💧 ENERGIA / HIDRELÉTRICAS <span class="setor-tag">clima fundamentalista</span></div>
+        <p class="setor-exp">Nível de reservatório (dado oficial do ONS) — chuva enche represa, represa cheia gera mais energia hídrica, mais barata.</p>
+        <div class="sugestoes">
+          <span class="sug-pill" onclick="analisarTicker('ELET3')">ELET3</span>
+          <span class="sug-pill" onclick="analisarTicker('ENGI11')">ENGI11</span>
+          <span class="sug-pill" onclick="analisarTicker('CPFE3')">CPFE3</span>
+          <span class="sug-pill" onclick="analisarTicker('TAEE11')">TAEE11</span>
+          <span class="sug-pill" onclick="analisarTicker('EQTL3')">EQTL3</span>
+        </div>
+      </div>
+
+      <div class="setor-bloco">
+        <div class="setor-titulo">🌍 MERCADOS GLOBAIS <span class="setor-tag gold">clima comportamental</span></div>
+        <p class="setor-exp">Sem ligação com safra — testa se dias de mais sol na cidade da bolsa coincidem com o índice subindo (efeito de humor, estudado em finanças comportamentais).</p>
+        <div class="sugestoes">
+          <span class="sug-pill" onclick="analisarTicker('IBOVESPA')">IBOVESPA</span>
+          <span class="sug-pill" onclick="analisarTicker('SP500')">S&amp;P 500</span>
+          <span class="sug-pill" onclick="analisarTicker('NASDAQ')">NASDAQ</span>
+          <span class="sug-pill" onclick="analisarTicker('DOWJONES')">DOW JONES</span>
+          <span class="sug-pill" onclick="analisarTicker('FTSE100')">FTSE 100</span>
+          <span class="sug-pill" onclick="analisarTicker('DAX')">DAX</span>
+          <span class="sug-pill" onclick="analisarTicker('NIKKEI')">NIKKEI</span>
+          <span class="sug-pill" onclick="analisarTicker('DOLAR')">💵 DÓLAR</span>
+          <span class="sug-pill" onclick="analisarTicker('EURO')">💶 EURO</span>
+        </div>
+      </div>
+
+      <div class="setor-bloco">
+        <div class="setor-titulo">📊 OUTRAS AÇÕES B3 <span class="setor-tag muted">sem fator climático</span></div>
+        <p class="setor-exp">Bancos, industriais, petróleo — sem cadeia causal conhecida com clima, então essa parte da análise nem roda pra elas.</p>
+        <div class="sugestoes">
+          <span class="sug-pill" onclick="analisarTicker('PETR4')">PETR4</span>
+          <span class="sug-pill" onclick="analisarTicker('VALE3')">VALE3</span>
+          <span class="sug-pill" onclick="analisarTicker('ITUB4')">ITUB4</span>
+          <span class="sug-pill" onclick="analisarTicker('WEGE3')">WEGE3</span>
+          <span class="sug-pill" onclick="analisarTicker('BBAS3')">BBAS3</span>
+        </div>
+      </div>
+
+      <div class="setor-bloco">
+        <div class="setor-titulo">₿ CRIPTO <span class="setor-tag muted">sem fator climático</span></div>
+        <p class="setor-exp">Mercado 24h global sem sede física — não existe "cidade da bolsa" pra testar humor nem safra pra testar clima.</p>
+        <div class="sugestoes">
+          <span class="sug-pill" style="border-color:#f7931a;color:#f7931a" onclick="analisarTicker('BTC')">₿ BTC</span>
+          <span class="sug-pill" style="border-color:#627eea;color:#627eea" onclick="analisarTicker('ETH')">Ξ ETH</span>
+          <span class="sug-pill" style="border-color:#9945ff;color:#9945ff" onclick="analisarTicker('SOL')">◎ SOL</span>
+          <span class="sug-pill" style="border-color:#0033ad;color:#0033ad" onclick="analisarTicker('BNB')">⬡ BNB</span>
+        </div>
       </div>
     </div>
 
@@ -449,6 +505,8 @@
     }
   }
 
+  const MERCADOS_GLOBAIS_KEYS = ['IBOVESPA','SP500','DOWJONES','NASDAQ','FTSE100','DAX','CAC40','NIKKEI','HANGSENG','DOLAR','EURO'];
+
   async function analisarTicker(ticker) {
     ticker = ticker.toUpperCase().trim();
     document.getElementById('search-input').value = ticker;
@@ -456,6 +514,19 @@
     cenarioSelecionado = '';
 
     document.getElementById('estado-inicial').style.display = 'none';
+
+    // Índices e câmbio não são "ações" — pulam hero/agentes de IA (feitos pra
+    // ativos B3) e vão direto pro Fator Comportamental (sol × humor de mercado).
+    if (MERCADOS_GLOBAIS_KEYS.includes(ticker)) {
+      document.getElementById('ativo-hero').style.display = 'none';
+      document.getElementById('div-analise').style.display = 'none';
+      document.getElementById('analise-card').style.display = 'none';
+      document.getElementById('div-fatores').style.display = 'none';
+      document.getElementById('fatores-card').style.display = 'none';
+      carregarFatorClimatico(ticker, 'mercado_global');
+      return;
+    }
+
     mostrarEsqueleto();
 
     try {
@@ -512,6 +583,10 @@
 
       let html = '';
 
+      if (tipo === 'mercado_global' && d.contexto) {
+        html += `<div style="font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:10px">${d.contexto.ativo}</div>`;
+      }
+
       if (d.sinal) {
         const cor = d.sinal.r > 0 ? '#128a55' : '#c62828';
         const seta = d.sinal.r > 0 ? '▲' : '▼';
@@ -534,7 +609,9 @@
       if (d.contexto) {
         const ctxTxt = d.contexto.categoria === 'agro'
           ? `Ativo de agro — região de referência: ${d.contexto.regiao}`
-          : `Hidrelétrica/transmissora — subsistema: ${d.contexto.subsistema}`;
+          : d.contexto.categoria === 'hidro'
+          ? `Hidrelétrica/transmissora — subsistema: ${d.contexto.subsistema}`
+          : `Fator comportamental — cidade da bolsa: ${d.contexto.cidade}`;
         html += `<div class="clima-lista-title">${ctxTxt.toUpperCase()}</div>`;
       }
 

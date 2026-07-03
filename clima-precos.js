@@ -20,10 +20,12 @@
 // ============================================================
 
 const ATIVOS = require('./_lib/ativos-clima');
-const { serieDiaria, acumulado30d, addDias } = require('./_lib/clima');
+const MERCADOS_GLOBAIS = require('./_lib/mercados-globais');
+const { serieDiaria, acumulado30d, addDias, serieSolDiaria } = require('./_lib/clima');
 const { earHistorico } = require('./_lib/ons');
 const { oniHistorico } = require('./_lib/oni');
 const { cambioHistorico } = require('./_lib/cambio');
+const { historicoYahoo } = require('./_lib/yahoo');
 const { pearson, pValorCorrelacao, alfaBonferroni } = require('./_lib/estatistica');
 
 const DIAS_HISTORICO = 150; // precisa de folga pra acumulado 30d + lag 45d
@@ -81,6 +83,63 @@ function testar(nome, variavelPorData, variacaoPorData, lagDias) {
   return { nome, lagDias, r: Math.round(r * 1000) / 1000, p, n };
 }
 
+// Aceita a chave direta (IBOVESPA, DOLAR...) ou o símbolo Yahoo cru (^BVSP, USDBRL=X...)
+function resolverMercadoGlobal(tickerUpper) {
+  if (MERCADOS_GLOBAIS[tickerUpper]) return tickerUpper;
+  const semAcento = tickerUpper.replace(/[^A-Z0-9]/g, '');
+  const chave = Object.keys(MERCADOS_GLOBAIS).find((k) => {
+    const s = MERCADOS_GLOBAIS[k].simboloYahoo.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return s === semAcento || k === semAcento;
+  });
+  return chave || null;
+}
+
+// Fator comportamental: sol na cidade da bolsa × retorno do índice/câmbio,
+// testando defasagem de 0 a 3 dias (efeito de humor é rápido, não semanas).
+async function analisarMercadoGlobal(chave) {
+  const m = MERCADOS_GLOBAIS[chave];
+  const dataFim = hoje(-3);
+  const dataInicio = hoje(-3 - DIAS_HISTORICO);
+
+  const [pontosPreco, solSerie] = await Promise.all([
+    historicoYahoo(m.simboloYahoo, DIAS_HISTORICO + 10),
+    serieSolDiaria(m.lat, m.lon, dataInicio, dataFim),
+  ]);
+
+  if (pontosPreco.length < 30) {
+    return { aplicavel: false, motivo: 'historico_curto', aviso: 'Histórico de preço curto demais pra este índice/câmbio ainda.' };
+  }
+
+  const variacaoPorData = variacaoDiaria(pontosPreco);
+
+  const testes = [0, 1, 2, 3]
+    .map((lag) => testar(`Horas de sol — ${m.cidade}`, solSerie, variacaoPorData, lag))
+    .filter(Boolean);
+
+  if (!testes.length) {
+    return { aplicavel: false, motivo: 'sem_dados', aviso: 'Não consegui obter dados suficientes agora. Tente novamente mais tarde.' };
+  }
+
+  const alfaCorrigido = alfaBonferroni(testes.length);
+  const significativos = testes
+    .filter((t) => t.p !== null && t.p < alfaCorrigido)
+    .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+
+  return {
+    aplicavel: true,
+    mecanismo: 'comportamental',
+    contexto: { categoria: 'mercado_global', ativo: m.nome, cidade: m.cidade },
+    periodo: { inicio: dataInicio, fim: dataFim },
+    numTestes: testes.length,
+    alfaCorrigido: Math.round(alfaCorrigido * 10000) / 10000,
+    testes: testes.map((t) => ({ ...t, p: t.p !== null ? Math.round(t.p * 10000) / 10000 : null })),
+    sinal: significativos[0] || null,
+    aviso: significativos.length
+      ? null
+      : `As horas de sol em ${m.cidade} não passaram no limiar estatístico corrigido (p < ${Math.round(alfaCorrigido*10000)/10000}) — sem efeito de humor detectável no período. Isso é o mais comum: a literatura acadêmica descreve esse efeito como pequeno e nem sempre presente.`,
+  };
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
 
@@ -88,7 +147,19 @@ module.exports = async (req, res) => {
   if (!ticker) { res.status(400).json({ error: 'Informe o ticker.' }); return; }
 
   const tickerUpper = ticker.toUpperCase().trim();
+  const aliasGlobal = resolverMercadoGlobal(tickerUpper);
   const config = ATIVOS[tickerUpper];
+
+  if (aliasGlobal) {
+    try {
+      const resultado = await analisarMercadoGlobal(aliasGlobal);
+      res.status(200).json(resultado);
+    } catch (e) {
+      console.error('[api/clima-precos:global]', tickerUpper, e.message);
+      res.status(500).json({ error: 'Erro ao calcular o fator comportamental: ' + e.message });
+    }
+    return;
+  }
 
   if (!config) {
     res.status(200).json({

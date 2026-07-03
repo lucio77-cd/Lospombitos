@@ -44,4 +44,16 @@ function acumulado30d(serieClima) {
   return acumulado;
 }
 
-module.exports = { serieDiaria, acumulado30d, addDias };
+async function serieSolDiaria(lat, lon, dataInicio, dataFim) {
+  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${dataInicio}&end_date=${dataFim}&daily=sunshine_duration&timezone=auto`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}`);
+  const data = await res.json();
+  const dias = data?.daily?.time || [];
+  const sol = data?.daily?.sunshine_duration || []; // segundos de sol no dia
+  const serie = {};
+  dias.forEach((d, i) => { if (typeof sol[i] === 'number') serie[d] = sol[i] / 3600; }); // -> horas
+  return serie;
+}
+
+module.exports = { serieDiaria, acumulado30d, addDias, serieSolDiaria };
