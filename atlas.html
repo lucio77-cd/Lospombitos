@@ -81,6 +81,14 @@
 
     /* ── Fatores SHAP-like ── */
     .fatores-card { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; animation: fadeUp .45s ease; display: none; }
+
+    .clima-sinal { border: 1.5px solid; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; background: var(--sand); }
+    .clima-sinal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .clima-sinal-cidade { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink); }
+    .clima-sinal-forca { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; }
+    .clima-sinal-desc { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+    .clima-aviso { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.5; padding: 4px 0 10px; }
+    .clima-lista-title { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
     .fatores-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 14px; color: var(--ink); }
     .fator-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .fator-nome { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; color: var(--muted); width: 120px; flex-shrink: 0; }
@@ -329,6 +337,15 @@
       </div>
     </div>
 
+    <!-- Fator Climático -->
+    <div class="section-divider" id="div-clima" style="display:none">FATOR CLIMÁTICO</div>
+    <div class="fatores-card" id="clima-card">
+      <div class="fatores-title">🌦️ CLIMA × HISTÓRICO DE PREÇO</div>
+      <div id="clima-body">
+        <span class="analise-loading"><span class="spin-dot"></span> Cruzando ~35 cidades com o histórico de preço...</span>
+      </div>
+    </div>
+
     <!-- Cenários -->
     <div class="section-divider" id="div-cenarios" style="display:none">SIMULADOR DE CENÁRIOS</div>
     <div class="cenarios-card" id="cenarios-card">
@@ -449,6 +466,7 @@
         dadosAtivo = { ativo: cripto, detalhe: null, ticker, tipo: 'cripto' };
         renderAtivo(cripto, null);
         await gerarAnaliseCripto(ticker, cripto);
+        carregarFatorClimatico(ticker, 'cripto');
       } else {
         // ── Fluxo AÇÃO B3 ──
         const [ativo, detalhe] = await Promise.all([
@@ -458,12 +476,80 @@
         dadosAtivo = { ativo, detalhe, ticker, tipo: 'acao' };
         renderAtivo(ativo, detalhe);
         await gerarAnalise(ticker, ativo, detalhe);
+        carregarFatorClimatico(ticker, 'acoes');
       }
     } catch (e) {
       console.error(e);
       document.getElementById('div-analise').style.display = 'flex';
       document.getElementById('analise-card').style.display = 'block';
       document.getElementById('analise-body').textContent = '⚠️ Erro ao carregar: ' + e.message;
+    }
+  }
+
+  // ── Fator Climático: clima nas ~35 cidades × histórico de preço do ativo ──
+  // Roda em paralelo com a análise principal (não trava a tela). A correlação
+  // é calculada de verdade — não existe lista de "ativos elegíveis", é o
+  // próprio número que decide se aparece um sinal ou "sem relação aparente".
+  async function carregarFatorClimatico(ticker, tipo) {
+    document.getElementById('div-clima').style.display = 'flex';
+    document.getElementById('clima-card').style.display = 'block';
+    const body = document.getElementById('clima-body');
+
+    try {
+      const res = await fetch('/api/clima-precos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, tipo })
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+
+      if (!d.aplicavel) {
+        body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
+        return;
+      }
+
+      let html = '';
+
+      if (d.sinal) {
+        const cor = d.sinal.direcao === 'positiva' ? '#128a55' : '#c62828';
+        const seta = d.sinal.direcao === 'positiva' ? '▲' : '▼';
+        html += `
+          <div class="clima-sinal" style="border-color:${cor}">
+            <div class="clima-sinal-top">
+              <span class="clima-sinal-cidade">${d.sinal.cidade}</span>
+              <span class="clima-sinal-forca" style="color:${cor}">${seta} ${d.sinal.forca}</span>
+            </div>
+            <div class="clima-sinal-desc">
+              Correlação de <strong>r = ${d.sinal.r}</strong> entre ${d.sinal.variavel} e a variação diária de preço
+              nos últimos ${d.periodo.dias} dias — relação estatística ${d.sinal.direcao}, não uma garantia.
+            </div>
+          </div>`;
+      } else {
+        html += `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
+      }
+
+      if (d.cidades?.length) {
+        html += `<div class="clima-lista-title">CORRELAÇÃO POR CIDADE (top ${d.cidades.length})</div>`;
+        d.cidades.forEach(c => {
+          const abs = Math.abs(c.r);
+          const cor = abs < 0.2 ? 'var(--muted)' : c.r > 0 ? '#128a55' : '#c62828';
+          html += `
+            <div class="fator-row">
+              <span class="fator-nome">${c.nome} (${c.uf}) · ${c.variavel}</span>
+              <div class="fator-bar-wrap">
+                <div class="fator-bar" style="width:${Math.round(abs*100)}%;background:${cor}"></div>
+              </div>
+              <span class="fator-pct" style="color:${cor}">r=${c.r}</span>
+            </div>`;
+        });
+      }
+
+      body.innerHTML = html;
+
+    } catch (e) {
+      console.error('[Clima]', e);
+      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular o fator climático agora.</div>`;
     }
   }
 
@@ -480,6 +566,8 @@
     document.getElementById('fatores-card').style.display = 'none';
     document.getElementById('div-analise').style.display = 'none';
     document.getElementById('analise-card').style.display = 'none';
+    document.getElementById('div-clima').style.display = 'none';
+    document.getElementById('clima-card').style.display = 'none';
     document.getElementById('div-cenarios').style.display = 'none';
     document.getElementById('cenarios-card').style.display = 'none';
     document.getElementById('cenario-result').classList.remove('show');
