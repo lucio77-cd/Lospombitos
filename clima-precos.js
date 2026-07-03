@@ -101,10 +101,22 @@ async function analisarMercadoGlobal(chave) {
   const dataFim = hoje(-3);
   const dataInicio = hoje(-3 - DIAS_HISTORICO);
 
-  const [pontosPreco, solSerie] = await Promise.all([
+  const [precoResult, solResult] = await Promise.allSettled([
     historicoYahoo(m.simboloYahoo, DIAS_HISTORICO + 10),
     serieSolDiaria(m.lat, m.lon, dataInicio, dataFim),
   ]);
+
+  if (precoResult.status === 'rejected') {
+    console.error('[clima-precos:global] Yahoo falhou:', chave, precoResult.reason?.message);
+    return { aplicavel: false, motivo: 'fonte_preco_falhou', aviso: `Não consegui buscar o histórico de preço de ${m.nome} agora (Yahoo Finance instável ou bloqueado). Tente de novo em alguns minutos.` };
+  }
+  if (solResult.status === 'rejected') {
+    console.error('[clima-precos:global] Open-Meteo falhou:', chave, solResult.reason?.message);
+    return { aplicavel: false, motivo: 'fonte_clima_falhou', aviso: `Não consegui buscar o histórico de sol em ${m.cidade} agora (Open-Meteo instável). Tente de novo em alguns minutos.` };
+  }
+
+  const pontosPreco = precoResult.value;
+  const solSerie = solResult.value;
 
   if (pontosPreco.length < 30) {
     return { aplicavel: false, motivo: 'historico_curto', aviso: 'Histórico de preço curto demais pra este índice/câmbio ainda.' };
@@ -186,10 +198,18 @@ module.exports = async (req, res) => {
 
     if (config.categoria === 'agro') {
       const [climaSerie, oniSerie, cambioSerie] = await Promise.all([
-        serieDiaria(config.regiao.lat, config.regiao.lon, dataInicio, dataFim),
-        oniHistorico(8).catch(() => []),
-        cambioHistorico(DIAS_HISTORICO + 10).catch(() => ({})),
+        serieDiaria(config.regiao.lat, config.regiao.lon, dataInicio, dataFim).catch((e) => {
+          console.error('[clima-precos:agro] Open-Meteo falhou:', tickerUpper, e.message);
+          return null;
+        }),
+        oniHistorico(8).catch((e) => { console.warn('[clima-precos:agro] NOAA ONI falhou:', e.message); return []; }),
+        cambioHistorico(DIAS_HISTORICO + 10).catch((e) => { console.warn('[clima-precos:agro] AwesomeAPI falhou:', e.message); return {}; }),
       ]);
+
+      if (climaSerie === null) {
+        res.status(200).json({ aplicavel: false, motivo: 'fonte_clima_falhou', aviso: `Não consegui buscar o histórico de chuva de ${config.regiao.nome} agora (Open-Meteo instável). Tente de novo em alguns minutos.` });
+        return;
+      }
 
       const chuva30d = acumulado30d(climaSerie);
 
@@ -209,7 +229,16 @@ module.exports = async (req, res) => {
       contexto = { categoria: 'agro', regiao: config.regiao.nome, ativo: config.nome };
 
     } else if (config.categoria === 'hidro') {
-      const earSerie = await earHistorico(config.subsistema, dataInicio, dataFim);
+      const earSerie = await earHistorico(config.subsistema, dataInicio, dataFim).catch((e) => {
+        console.error('[clima-precos:hidro] ONS falhou:', tickerUpper, e.message);
+        return null;
+      });
+
+      if (earSerie === null) {
+        res.status(200).json({ aplicavel: false, motivo: 'fonte_clima_falhou', aviso: `Não consegui buscar o nível de reservatório do ONS agora (fonte instável, ou CSV muito grande pro tempo limite da função). Tente de novo em alguns minutos.` });
+        return;
+      }
+
       for (const lag of [0, 7, 14]) testes.push(testar(`Nível de reservatório (EAR) — ${ATIVOS.SUBSISTEMAS[config.subsistema]}`, earSerie, variacaoPorData, lag));
 
       contexto = { categoria: 'hidro', subsistema: ATIVOS.SUBSISTEMAS[config.subsistema], ativo: config.nome };

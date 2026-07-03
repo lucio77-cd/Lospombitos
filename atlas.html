@@ -636,7 +636,7 @@
 
     } catch (e) {
       console.error('[Clima]', e);
-      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular o fator climático agora.</div>`;
+      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular o fator climático agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
     }
   }
 
