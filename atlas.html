@@ -663,17 +663,43 @@
     }
   }
 
+  // ── Helper: faz fetch e SÓ tenta interpretar como JSON se a resposta
+  // realmente for JSON. Sem isso, se o endpoint não existir ainda no
+  // deploy (Vercel devolve uma página HTML de 404) ou cair um erro 500
+  // não tratado, o app quebrava com "Unexpected token '<'... is not
+  // valid JSON" — mensagem que não dizia nada sobre a causa real.
+  async function fetchJSON(url, options) {
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch (e) {
+      throw new Error(`Falha de rede ao chamar ${url}: ${e.message}`);
+    }
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      const corpo = await res.text().catch(() => '');
+      const dica = res.status === 404
+        ? ' — endpoint não encontrado (provável: o arquivo ainda não foi enviado/deployado no Vercel).'
+        : '';
+      throw new Error(`${url} devolveu HTTP ${res.status} (não-JSON)${dica} Início da resposta: "${corpo.slice(0, 80)}"`);
+    }
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+    return d;
+  }
+
   // ── Fatores Fundamentalistas (Value/Quality/Momentum) — Opção 1.
   // Reaproveita pl/pvp/roe/margem que MercadoAPI.buscarDetalhadoAtivo já
   // buscou (mesmos números mostrados no prompt da análise IA); o backend
-  // só faz UMA chamada nova, pro histórico de preço de 1 ano (momentum).
+  // só faz UMA chamada nova, pro histórico de preço de 1 ano (momentum),
+  // com fallback pra Yahoo Finance se a brapi falhar (ver aviso.fontes).
   async function carregarFatoresFundamentais(ticker, detalhe) {
     document.getElementById('div-fundamentos').style.display = 'flex';
     document.getElementById('fundamentos-card').style.display = 'block';
     const body = document.getElementById('fundamentos-body');
 
     try {
-      const res = await fetch('/api/fatores-fundamentais', {
+      const d = await fetchJSON('/api/fatores-fundamentais', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -682,8 +708,6 @@
           roe: detalhe?.roe, margem: detalhe?.margem_lucro,
         })
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
 
       if (!d.aplicavel) {
         body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
@@ -724,6 +748,7 @@
       }
 
       if (d.avisoMomentum) html += `<div class="clima-aviso">ℹ️ ${d.avisoMomentum}</div>`;
+      if (d.fonteHistorico) html += `<div class="clima-aviso" style="opacity:.6">Fonte do histórico: ${d.fonteHistorico}</div>`;
       html += `<div class="clima-aviso">${d.aviso}</div>`;
 
       body.innerHTML = html;
@@ -733,25 +758,31 @@
     }
   }
 
-  // ── Fator Sentimento — Opção 3. Busca notícias reais via Claude
-  // (web_search) em vez do agente "sentimento" antigo, que nunca via
-  // notícia nenhuma e só chutava um número a partir do preço.
+  // ── Fator Sentimento — Opção 3. Combina duas fontes: (1) Google News
+  // RSS, buscado diretamente por nós (rápido, sem custo, sem depender
+  // de nada além de uma URL pública) pra dar contexto factual com datas
+  // confiáveis; (2) o Claude com web_search pra interpretar/pontuar o
+  // sentimento. Se o Claude falhar, ainda mostramos as manchetes cruas
+  // da RSS em vez de quebrar — é a "segunda fonte" funcionando como
+  // fallback de verdade, não só enfeite.
   async function carregarSentimentoNoticias(ticker, nomeEmpresa) {
     document.getElementById('div-sentimento').style.display = 'flex';
     document.getElementById('sentimento-card').style.display = 'block';
     const body = document.getElementById('sentimento-body');
 
     try {
-      const res = await fetch('/api/sentimento-noticias', {
+      const d = await fetchJSON('/api/sentimento-noticias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker, nomeEmpresa })
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
 
       if (!d.aplicavel) {
         body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso || 'Não foi possível analisar sentimento agora.'}</div>`;
+        if (d.manchetesCruas?.length) {
+          body.innerHTML += `<div class="clima-lista-title">MANCHETES ENCONTRADAS (SEM ANÁLISE)</div>` +
+            d.manchetesCruas.map(h => `<div class="clima-aviso" style="padding:2px 0">• ${h.titulo}${h.data ? ` <span style="opacity:.6">(${h.data})</span>` : ''}</div>`).join('');
+        }
         return;
       }
 
@@ -780,6 +811,7 @@
       }
 
       if (d.aviso) html += `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
+      if (d.fontes?.length) html += `<div class="clima-aviso" style="opacity:.6">Fontes: ${d.fontes.join(' + ')}</div>`;
       html += `<div class="clima-aviso">${d.avisoMetodologico || ''}</div>`;
 
       body.innerHTML = html;

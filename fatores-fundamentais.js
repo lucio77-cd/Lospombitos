@@ -11,19 +11,37 @@
 //  A única chamada nova feita AQUI é o histórico de preço de ~1 ano
 //  (pra calcular momentum 12-1), porque o histórico de 6 meses que
 //  o restante do Atlas já busca não cobre a janela padrão acadêmica.
+//
+//  Duas fontes pro histórico, com fallback automático: brapi.dev
+//  primeiro (mesma fonte do resto do app); se falhar ou vier vazio,
+//  cai pro Yahoo Finance (api/_lib/yahoo.js, que o Atlas já usa pra
+//  índices/câmbio) usando o sufixo .SA do ticker na B3.
 // ============================================================
 
 const { scoreValue, scoreQuality, scoreMomentum, scoreGeral } = require('./_lib/fatores-fundamentais');
+const { historicoYahoo } = require('./_lib/yahoo');
 
-async function historicoAno(ticker) {
+async function historicoBrapi(ticker) {
   const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=1y&interval=1d&fundamental=false`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(9000) });
   if (!res.ok) throw new Error(`brapi HTTP ${res.status}`);
   const data = await res.json();
   const serie = data?.results?.[0]?.historicalDataPrice || [];
   return serie
     .filter((p) => p.close > 0)
     .map((p) => ({ data: new Date(p.date * 1000).toISOString().slice(0, 10), preco: p.close }));
+}
+
+async function historicoComFallback(ticker) {
+  try {
+    const pontos = await historicoBrapi(ticker);
+    if (pontos.length >= 40) return { pontos, fonte: 'brapi.dev' };
+    throw new Error('histórico brapi curto demais');
+  } catch (e) {
+    console.warn('[fatores-fundamentais] brapi falhou, tentando Yahoo:', ticker, e.message);
+    const pontosYahoo = await historicoYahoo(`${ticker.toUpperCase()}.SA`, 380);
+    return { pontos: pontosYahoo, fonte: 'Yahoo Finance (fallback)' };
+  }
 }
 
 module.exports = async (req, res) => {
@@ -44,13 +62,15 @@ module.exports = async (req, res) => {
 
     let momentum = null;
     let avisoMomentum = null;
+    let fonteHistorico = null;
     try {
-      const pontos = await historicoAno(ticker);
+      const { pontos, fonte } = await historicoComFallback(ticker);
+      fonteHistorico = fonte;
       momentum = scoreMomentum(pontos);
       if (!momentum) avisoMomentum = 'Histórico de preço curto demais pra calcular momentum de 12 meses.';
     } catch (e) {
-      console.error('[fatores-fundamentais] histórico falhou:', ticker, e.message);
-      avisoMomentum = 'Não consegui buscar o histórico de preço agora pra calcular momentum.';
+      console.error('[fatores-fundamentais] as duas fontes de histórico falharam:', ticker, e.message);
+      avisoMomentum = 'Não consegui buscar o histórico de preço agora (brapi.dev e Yahoo Finance indisponíveis) pra calcular momentum.';
     }
 
     const geral = scoreGeral(value, quality, momentum);
@@ -71,6 +91,7 @@ module.exports = async (req, res) => {
       quality,
       momentum,
       avisoMomentum,
+      fonteHistorico,
       geral,
       aviso: 'Scores heurísticos por faixas de mercado, não comparação direta contra o setor do ativo. Fator histórico, não garantia de retorno futuro.',
     });
@@ -79,3 +100,4 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Erro ao calcular fatores fundamentalistas: ' + e.message });
   }
 };
+
