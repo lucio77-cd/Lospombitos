@@ -342,7 +342,7 @@
     <div class="fatores-card" id="clima-card">
       <div class="fatores-title">🌦️ CLIMA × HISTÓRICO DE PREÇO</div>
       <div id="clima-body">
-        <span class="analise-loading"><span class="spin-dot"></span> Cruzando ~35 cidades com o histórico de preço...</span>
+        <span class="analise-loading"><span class="spin-dot"></span> Verificando se este ativo tem exposição climática conhecida...</span>
       </div>
     </div>
 
@@ -486,10 +486,11 @@
     }
   }
 
-  // ── Fator Climático: clima nas ~35 cidades × histórico de preço do ativo ──
-  // Roda em paralelo com a análise principal (não trava a tela). A correlação
-  // é calculada de verdade — não existe lista de "ativos elegíveis", é o
-  // próprio número que decide se aparece um sinal ou "sem relação aparente".
+  // ── Fator Climático (v2): só roda pra ativos com mecanismo causal
+  // conhecido (agro ou hidrelétrica). Testa poucas variáveis com sentido
+  // (chuva acumulada, ONI, câmbio, nível de reservatório) em vez de
+  // qualquer cidade contra qualquer ativo, e corrige o limiar estatístico
+  // pelo número real de testes (Bonferroni) — ver api/clima-precos.js.
   async function carregarFatorClimatico(ticker, tipo) {
     document.getElementById('div-clima').style.display = 'flex';
     document.getElementById('clima-card').style.display = 'block';
@@ -512,35 +513,44 @@
       let html = '';
 
       if (d.sinal) {
-        const cor = d.sinal.direcao === 'positiva' ? '#128a55' : '#c62828';
-        const seta = d.sinal.direcao === 'positiva' ? '▲' : '▼';
+        const cor = d.sinal.r > 0 ? '#128a55' : '#c62828';
+        const seta = d.sinal.r > 0 ? '▲' : '▼';
         html += `
           <div class="clima-sinal" style="border-color:${cor}">
             <div class="clima-sinal-top">
-              <span class="clima-sinal-cidade">${d.sinal.cidade}</span>
-              <span class="clima-sinal-forca" style="color:${cor}">${seta} ${d.sinal.forca}</span>
+              <span class="clima-sinal-cidade">${d.sinal.nome}</span>
+              <span class="clima-sinal-forca" style="color:${cor}">${seta} r=${d.sinal.r}</span>
             </div>
             <div class="clima-sinal-desc">
-              Correlação de <strong>r = ${d.sinal.r}</strong> entre ${d.sinal.variavel} e a variação diária de preço
-              nos últimos ${d.periodo.dias} dias — relação estatística ${d.sinal.direcao}, não uma garantia.
+              Defasagem de ${d.sinal.lagDias} dias · p=${d.sinal.p} (significativo mesmo após corrigir
+              por ${d.numTestes} testes, limiar p&lt;${d.alfaCorrigido}) · amostra de ${d.sinal.n} dias.
+              Ainda é uma relação estatística histórica, não uma garantia de resultado futuro.
             </div>
           </div>`;
       } else {
         html += `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
       }
 
-      if (d.cidades?.length) {
-        html += `<div class="clima-lista-title">CORRELAÇÃO POR CIDADE (top ${d.cidades.length})</div>`;
-        d.cidades.forEach(c => {
-          const abs = Math.abs(c.r);
-          const cor = abs < 0.2 ? 'var(--muted)' : c.r > 0 ? '#128a55' : '#c62828';
+      if (d.contexto) {
+        const ctxTxt = d.contexto.categoria === 'agro'
+          ? `Ativo de agro — região de referência: ${d.contexto.regiao}`
+          : `Hidrelétrica/transmissora — subsistema: ${d.contexto.subsistema}`;
+        html += `<div class="clima-lista-title">${ctxTxt.toUpperCase()}</div>`;
+      }
+
+      if (d.testes?.length) {
+        html += `<div class="clima-lista-title">TODAS AS VARIÁVEIS TESTADAS (${d.testes.length})</div>`;
+        d.testes.forEach(t => {
+          const abs = Math.abs(t.r);
+          const sig = t.p !== null && t.p < d.alfaCorrigido;
+          const cor = !sig ? 'var(--muted)' : t.r > 0 ? '#128a55' : '#c62828';
           html += `
             <div class="fator-row">
-              <span class="fator-nome">${c.nome} (${c.uf}) · ${c.variavel}</span>
+              <span class="fator-nome">${t.nome} · defasagem ${t.lagDias}d</span>
               <div class="fator-bar-wrap">
                 <div class="fator-bar" style="width:${Math.round(abs*100)}%;background:${cor}"></div>
               </div>
-              <span class="fator-pct" style="color:${cor}">r=${c.r}</span>
+              <span class="fator-pct" style="color:${cor}">r=${t.r}${sig ? ' ✓' : ''}</span>
             </div>`;
         });
       }

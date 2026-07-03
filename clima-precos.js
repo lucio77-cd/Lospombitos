@@ -1,204 +1,175 @@
 // ============================================================
-//  api/clima-precos.js — "Fator Climático" do Atlas
+//  api/clima-precos.js — "Fator Climático" do Atlas (v2)
 //
-//  Para o ticker pesquisado, busca o histórico de preço dos
-//  últimos ~90 dias e o histórico de clima (chuva + temperatura)
-//  das cidades em api/_lib/cidades.js no mesmo período, e calcula
-//  a correlação estatística entre as duas séries, cidade por
-//  cidade. Não existe uma lista de "ativos que valem a pena" —
-//  o número de correlação é que decide o que aparece como sinal
-//  e o que aparece como "sem relação aparente".
+//  Reescrita completa. A versão anterior testava 35 cidades × 2
+//  variáveis (70 testes) contra QUALQUER ticker, o que gera
+//  "sinal" falso em ~99% das buscas só por acaso estatístico
+//  (problema de comparações múltiplas). Esta versão:
+//
+//  1. Só roda pra ativos com mecanismo causal conhecido
+//     (api/_lib/ativos-clima.js) — pra todo o resto, não testa
+//     nada e diz isso claramente.
+//  2. Usa variáveis com sentido causal: chuva ACUMULADA em 30
+//     dias (não ponto diário), índice ONI (regime climático),
+//     e câmbio USD/BRL como controle — não "qualquer cidade".
+//  3. Testa poucas combinações de defasagem (o preço reage com
+//     atraso à safra, não no mesmo dia) — 7 testes pra agro, 3
+//     pra hidrelétricas, não 70.
+//  4. Calcula p-valor de verdade e aplica Bonferroni pro número
+//     real de testes rodados.
 // ============================================================
 
-const CIDADES = require('./_lib/cidades');
-const { pearson, forcaCorrelacao } = require('./_lib/correlacao');
+const ATIVOS = require('./_lib/ativos-clima');
+const { serieDiaria, acumulado30d, addDias } = require('./_lib/clima');
+const { earHistorico } = require('./_lib/ons');
+const { oniHistorico } = require('./_lib/oni');
+const { cambioHistorico } = require('./_lib/cambio');
+const { pearson, pValorCorrelacao, alfaBonferroni } = require('./_lib/estatistica');
 
-const DIAS_HISTORICO = 90;
-const ATRASO_ARQUIVO_CLIMA = 5; // dados do Open-Meteo têm alguns dias de atraso
+const DIAS_HISTORICO = 150; // precisa de folga pra acumulado 30d + lag 45d
 
-function formatarData(d) {
+function hoje(offsetDias = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDias);
   return d.toISOString().slice(0, 10);
 }
 
-// ── Histórico de preço ──
+// ── Histórico de preço (igual à v1) ──
 async function precoHistorico(tipo, ticker) {
   if (tipo === 'cripto') {
     const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(ticker.toLowerCase())}/market_chart?vs_currency=brl&days=${DIAS_HISTORICO}&interval=daily`;
     const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
     const data = await res.json();
-    const pontos = (data.prices || []).map(([ts, preco]) => ({
-      data: new Date(ts).toISOString().slice(0, 10),
-      preco,
-    }));
-    return pontos;
+    return (data.prices || []).map(([ts, preco]) => ({ data: new Date(ts).toISOString().slice(0, 10), preco }));
   }
-
-  if (tipo === 'acoes' || tipo === 'acao' || tipo === 'fiis') {
-    const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=3mo&interval=1d&fundamental=false`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error(`brapi HTTP ${res.status}`);
-    const data = await res.json();
-    const serie = data?.results?.[0]?.historicalDataPrice || [];
-    return serie
-      .filter((p) => p.close > 0)
-      .map((p) => ({
-        data: new Date(p.date * 1000).toISOString().slice(0, 10),
-        preco: p.close,
-      }));
-  }
-
-  return null; // tesouro/cdb/lci — sem série de mercado pra correlacionar
-}
-
-// ── Histórico de clima de uma cidade ──
-async function climaHistorico(cidade, dataInicio, dataFim) {
-  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${cidade.lat}&longitude=${cidade.lon}&start_date=${dataInicio}&end_date=${dataFim}&daily=precipitation_sum,temperature_2m_mean&timezone=America%2FSao_Paulo`;
+  const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=6mo&interval=1d&fundamental=false`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-  if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status} (${cidade.nome})`);
+  if (!res.ok) throw new Error(`brapi HTTP ${res.status}`);
   const data = await res.json();
-  const dias = data?.daily?.time || [];
-  const chuva = data?.daily?.precipitation_sum || [];
-  const temp = data?.daily?.temperature_2m_mean || [];
-
-  const porData = {};
-  dias.forEach((d, i) => { porData[d] = { chuva: chuva[i], temp: temp[i] }; });
-  return porData;
+  const serie = data?.results?.[0]?.historicalDataPrice || [];
+  return serie.filter((p) => p.close > 0).map((p) => ({ data: new Date(p.date * 1000).toISOString().slice(0, 10), preco: p.close }));
 }
 
-// Transforma série de preços em série de variação % diária (o que
-// realmente correlaciona com clima — preço bruto tem tendência própria).
 function variacaoDiaria(pontos) {
   const porData = {};
   for (let i = 1; i < pontos.length; i++) {
-    const anterior = pontos[i - 1].preco;
-    const atual = pontos[i].preco;
-    if (anterior > 0) {
-      porData[pontos[i].data] = ((atual - anterior) / anterior) * 100;
-    }
+    const ant = pontos[i - 1].preco, atu = pontos[i].preco;
+    if (ant > 0) porData[pontos[i].data] = ((atu - ant) / ant) * 100;
   }
   return porData;
 }
 
-module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Método não permitido. Use POST.' });
-    return;
+// Junta duas séries {data: valor} deslocando a variável explicativa
+// `lagDias` pra trás (ex.: lag=30 compara preço de hoje com clima de
+// 30 dias atrás) e devolve arrays alinhados prontos pra correlação.
+function alinharComLag(variacaoPorData, variavelPorData, lagDias) {
+  const xs = [], ys = [];
+  for (const data of Object.keys(variacaoPorData)) {
+    const dataDefasada = addDias(data, -lagDias);
+    const v = variavelPorData[dataDefasada];
+    if (typeof v === 'number') { xs.push(v); ys.push(variacaoPorData[data]); }
   }
+  return { xs, ys };
+}
+
+function testar(nome, variavelPorData, variacaoPorData, lagDias) {
+  const { xs, ys } = alinharComLag(variacaoPorData, variavelPorData, lagDias);
+  const { r, n } = pearson(xs, ys);
+  if (r === null) return null;
+  const p = pValorCorrelacao(r, n);
+  return { nome, lagDias, r: Math.round(r * 1000) / 1000, p, n };
+}
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
 
   const { ticker, tipo } = req.body || {};
-  if (!ticker || !tipo) {
-    res.status(400).json({ error: 'Informe ticker e tipo.' });
+  if (!ticker) { res.status(400).json({ error: 'Informe o ticker.' }); return; }
+
+  const tickerUpper = ticker.toUpperCase().trim();
+  const config = ATIVOS[tickerUpper];
+
+  if (!config) {
+    res.status(200).json({
+      aplicavel: false,
+      motivo: 'sem_mecanismo',
+      aviso: `${tickerUpper} não tem uma cadeia causal conhecida com clima (não é agro nem geração hidrelétrica), então o app não testa nada — testar sem motivo é o principal jeito de gerar um "sinal" que na verdade é só coincidência estatística.`,
+    });
     return;
   }
 
   try {
-    const pontosPreco = await precoHistorico(tipo, ticker);
-
-    if (pontosPreco === null) {
-      res.status(200).json({
-        aplicavel: false,
-        aviso: 'Este tipo de ativo não tem histórico de preço de mercado pra correlacionar com clima (é calculado por fórmula, não negociado em bolsa).',
-      });
+    const pontosPreco = await precoHistorico(tipo, tickerUpper);
+    if (pontosPreco.length < 40) {
+      res.status(200).json({ aplicavel: false, motivo: 'historico_curto', aviso: 'Histórico de preço curto demais pra testar com defasagem de até 45 dias.' });
       return;
     }
-
-    if (pontosPreco.length < 15) {
-      res.status(200).json({
-        aplicavel: false,
-        aviso: 'Histórico de preço curto demais pra calcular uma correlação confiável ainda.',
-      });
-      return;
-    }
-
     const variacaoPorData = variacaoDiaria(pontosPreco);
-    const datasComVariacao = Object.keys(variacaoPorData);
 
-    const fim = new Date();
-    fim.setDate(fim.getDate() - ATRASO_ARQUIVO_CLIMA);
-    const inicio = new Date(fim);
-    inicio.setDate(inicio.getDate() - DIAS_HISTORICO);
-    const dataInicioStr = formatarData(inicio);
-    const dataFimStr = formatarData(fim);
+    const dataFim = hoje(-5);   // Open-Meteo/ONS têm alguns dias de atraso
+    const dataInicio = hoje(-5 - DIAS_HISTORICO);
 
-    // Busca o clima de todas as cidades em paralelo
-    const resultadosClima = await Promise.allSettled(
-      CIDADES.map((c) => climaHistorico(c, dataInicioStr, dataFimStr))
-    );
+    let testes = [];
+    let contexto = {};
 
-    const porCidade = CIDADES.map((cidade, i) => {
-      const r = resultadosClima[i];
-      if (r.status !== 'fulfilled') return { ...cidade, erro: true };
+    if (config.categoria === 'agro') {
+      const [climaSerie, oniSerie, cambioSerie] = await Promise.all([
+        serieDiaria(config.regiao.lat, config.regiao.lon, dataInicio, dataFim),
+        oniHistorico(8).catch(() => []),
+        cambioHistorico(DIAS_HISTORICO + 10).catch(() => ({})),
+      ]);
 
-      const climaPorData = r.value;
-      const chuvaSerie = [];
-      const tempSerie = [];
-      const variacaoSerie = [];
+      const chuva30d = acumulado30d(climaSerie);
 
-      for (const data of datasComVariacao) {
-        const c = climaPorData[data];
-        if (c && typeof c.chuva === 'number' && typeof c.temp === 'number') {
-          chuvaSerie.push(c.chuva);
-          tempSerie.push(c.temp);
-          variacaoSerie.push(variacaoPorData[data]);
+      // ONI é mensal — replica o valor do mês pra cada dia daquele mês
+      const oniPorDia = {};
+      for (const p of oniSerie) {
+        const prefixo = `${p.ano}-${String(p.mes).padStart(2, '0')}`;
+        for (const data of Object.keys(variacaoPorData)) {
+          if (data.startsWith(prefixo)) oniPorDia[data] = p.anomalia;
         }
       }
 
-      const rChuva = pearson(chuvaSerie, variacaoSerie);
-      const rTemp = pearson(tempSerie, variacaoSerie);
+      for (const lag of [15, 30, 45]) testes.push(testar(`Chuva acumulada 30d — ${config.regiao.nome}`, chuva30d, variacaoPorData, lag));
+      for (const lag of [15, 30, 45]) testes.push(testar('Índice ONI (El Niño/La Niña)', oniPorDia, variacaoPorData, lag));
+      testes.push(testar('Câmbio USD/BRL', cambioSerie, variacaoPorData, 0));
 
-      return {
-        nome: cidade.nome,
-        uf: cidade.uf,
-        amostras: variacaoSerie.length,
-        r_chuva: rChuva,
-        r_temp: rTemp,
-      };
-    }).filter((c) => !c.erro && c.amostras >= 8);
+      contexto = { categoria: 'agro', regiao: config.regiao.nome, ativo: config.nome };
 
-    // Ordena pela correlação mais forte (chuva ou temperatura, o que for maior em módulo)
-    porCidade.sort((a, b) => {
-      const fa = Math.max(Math.abs(a.r_chuva || 0), Math.abs(a.r_temp || 0));
-      const fb = Math.max(Math.abs(b.r_chuva || 0), Math.abs(b.r_temp || 0));
-      return fb - fa;
-    });
+    } else if (config.categoria === 'hidro') {
+      const earSerie = await earHistorico(config.subsistema, dataInicio, dataFim);
+      for (const lag of [0, 7, 14]) testes.push(testar(`Nível de reservatório (EAR) — ${ATIVOS.SUBSISTEMAS[config.subsistema]}`, earSerie, variacaoPorData, lag));
 
-    const top = porCidade.slice(0, 8).map((c) => {
-      const usaChuva = Math.abs(c.r_chuva || 0) >= Math.abs(c.r_temp || 0);
-      const r = usaChuva ? c.r_chuva : c.r_temp;
-      return {
-        nome: c.nome,
-        uf: c.uf,
-        variavel: usaChuva ? 'chuva' : 'temperatura',
-        r: Math.round((r || 0) * 1000) / 1000,
-        forca: forcaCorrelacao(r || 0),
-        amostras: c.amostras,
-      };
-    });
+      contexto = { categoria: 'hidro', subsistema: ATIVOS.SUBSISTEMAS[config.subsistema], ativo: config.nome };
+    }
 
-    const melhor = top[0] || null;
-    const sinal =
-      melhor && Math.abs(melhor.r) >= 0.2
-        ? {
-            cidade: `${melhor.nome} (${melhor.uf})`,
-            variavel: melhor.variavel,
-            r: melhor.r,
-            forca: melhor.forca,
-            direcao: melhor.r > 0 ? 'positiva' : 'negativa',
-          }
-        : null;
+    testes = testes.filter(Boolean);
+
+    if (!testes.length) {
+      res.status(200).json({ aplicavel: false, motivo: 'sem_dados', aviso: 'Não consegui obter dados suficientes das fontes climáticas/elétricas agora. Tente novamente mais tarde.' });
+      return;
+    }
+
+    const alfaCorrigido = alfaBonferroni(testes.length);
+    const significativos = testes
+      .filter((t) => t.p !== null && t.p < alfaCorrigido)
+      .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
 
     res.status(200).json({
       aplicavel: true,
-      periodo: { inicio: dataInicioStr, fim: dataFimStr, dias: DIAS_HISTORICO },
-      cidades: top,
-      sinal,
-      aviso: sinal
+      contexto,
+      periodo: { inicio: dataInicio, fim: dataFim },
+      numTestes: testes.length,
+      alfaCorrigido: Math.round(alfaCorrigido * 10000) / 10000,
+      testes: testes.map((t) => ({ ...t, p: t.p !== null ? Math.round(t.p * 10000) / 10000 : null })),
+      sinal: significativos[0] || null,
+      aviso: significativos.length
         ? null
-        : 'Nenhuma cidade mostrou correlação estatística relevante entre clima e o histórico de preço deste ativo no período — é o esperado pra maioria dos ativos, que não têm relação direta com o clima.',
+        : `Nenhuma das ${testes.length} variáveis testadas passou no limiar estatístico corrigido (p < ${Math.round(alfaCorrigido*10000)/10000}) — não há relação com significância suficiente no período, mesmo sendo um ativo onde clima é mecanismo plausível.`,
     });
   } catch (e) {
-    console.error('[api/clima-precos]', ticker, e.message);
-    res.status(500).json({ error: 'Erro ao calcular o fator climático.' });
+    console.error('[api/clima-precos]', tickerUpper, e.message);
+    res.status(500).json({ error: 'Erro ao calcular o fator climático: ' + e.message });
   }
 };
