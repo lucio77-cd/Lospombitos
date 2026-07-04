@@ -273,6 +273,8 @@
   }
 
   // ── Polling de preço (fonte real: /api/daytrade-precos) ──
+  let falhasConsecutivas = 0;
+
   function iniciarPolling() {
     buscarPrecos();
     setInterval(buscarPrecos, 8000);
@@ -282,8 +284,11 @@
     try {
       const res = await fetch('/api/daytrade-precos');
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error);
+      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+      if (!d.precos || !Object.keys(d.precos).length) throw new Error('Resposta sem preços.');
+
       precosAtuais = d.precos;
+      falhasConsecutivas = 0;
 
       for (const ativo of Object.keys(precosAtuais)) {
         const arr = historicoPrecos[ativo];
@@ -293,8 +298,21 @@
 
       renderPrecoEChart();
       atualizarPnLPosicoes();
+
     } catch (e) {
+      falhasConsecutivas++;
       console.error('[Game Estudo] preço:', e);
+
+      // Só incomoda o usuário se falhar de forma persistente (evita toast
+      // a cada 8s por uma falha isolada/momentânea).
+      if (falhasConsecutivas === 1) {
+        document.getElementById('preco-valor').textContent = '⚠️ sem cotação';
+        document.getElementById('preco-var').textContent = e.message || 'erro ao buscar preço';
+        document.getElementById('preco-var').className = 'preco-var neg';
+      }
+      if (falhasConsecutivas >= 3) {
+        toast('⚠️ Cotação de cripto indisponível — ' + (e.message || 'tentando de novo...'));
+      }
     }
   }
 
