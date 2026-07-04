@@ -9,8 +9,8 @@
 //  negativo) — ver aviso em daytrade-abrir.js.
 // ============================================================
 
-const { verificarToken, getDb, admin } = require('./_lib/firebaseAdmin');
-const { precoAtual } = require('./_lib/precosCripto');
+const { verificarToken, getDb, admin } = require('./lib/firebaseAdmin');
+const { precoAtual } = require('./lib/precosCripto');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }

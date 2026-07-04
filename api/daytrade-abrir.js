@@ -14,8 +14,8 @@
 //  pra perder mais que o depositado.
 // ============================================================
 
-const { verificarToken, getDb, admin } = require('./_lib/firebaseAdmin');
-const { precoAtual, IDS } = require('./_lib/precosCripto');
+const { verificarToken, getDb, admin } = require('./lib/firebaseAdmin');
+const { precoAtual, IDS } = require('./lib/precosCripto');
 
 const ALAVANCAGEM_MAX = 20;
 const MARGEM_MINIMA = 10;

@@ -2,7 +2,7 @@
 //  api/daytrade-precos.js — Preço ao vivo pro Game Estudo
 // ============================================================
 
-const { precosTodos } = require('./_lib/precosCripto');
+const { precosTodos } = require('./lib/precosCripto');
 
 module.exports = async (req, res) => {
   try {

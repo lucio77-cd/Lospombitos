@@ -8,7 +8,7 @@
 //  com a Anthropic.
 // ============================================================
 
-const { buscarNoticias } = require('./_lib/noticias');
+const { buscarNoticias } = require('./lib/noticias');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {

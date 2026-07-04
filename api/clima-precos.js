@@ -19,14 +19,14 @@
 //     real de testes rodados.
 // ============================================================
 
-const ATIVOS = require('./_lib/ativos-clima');
-const MERCADOS_GLOBAIS = require('./_lib/mercados-globais');
-const { serieDiaria, acumulado30d, addDias, serieSolDiaria } = require('./_lib/clima');
-const { earHistorico } = require('./_lib/ons');
-const { oniHistorico } = require('./_lib/oni');
-const { cambioHistorico } = require('./_lib/cambio');
-const { historicoYahoo } = require('./_lib/yahoo');
-const { pearson, pValorCorrelacao, alfaBonferroni } = require('./_lib/estatistica');
+const ATIVOS = require('./lib/ativos-clima');
+const MERCADOS_GLOBAIS = require('./lib/mercados-globais');
+const { serieDiaria, acumulado30d, addDias, serieSolDiaria } = require('./lib/clima');
+const { earHistorico } = require('./lib/ons');
+const { oniHistorico } = require('./lib/oni');
+const { cambioHistorico } = require('./lib/cambio');
+const { historicoYahoo } = require('./lib/yahoo');
+const { pearson, pValorCorrelacao, alfaBonferroni } = require('./lib/estatistica');
 
 const DIAS_HISTORICO = 150; // precisa de folga pra acumulado 30d + lag 45d
 

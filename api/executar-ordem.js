@@ -14,8 +14,8 @@
 //  Opcional: BRAPI_TOKEN
 // ============================================================
 
-const { verificarToken, getDb, admin } = require('./_lib/firebaseAdmin');
-const { obterPrecoReal } = require('./_lib/precos');
+const { verificarToken, getDb, admin } = require('./lib/firebaseAdmin');
+const { obterPrecoReal } = require('./lib/precos');
 
 const TIPOS_VALIDOS = ['acoes', 'fiis', 'cripto', 'tesouro', 'cdb', 'lci'];
 const LADOS_VALIDOS = ['compra', 'venda'];
