@@ -36,21 +36,37 @@ function hoje(offsetDias = 0) {
   return d.toISOString().slice(0, 10);
 }
 
-// ── Histórico de preço (igual à v1) ──
+// ── Histórico de preço E volume ──
+// Mudou pra também trazer volume: a literatura (estudo do Shanghai Stock
+// Exchange, mercado por ordem como o B3) encontrou que clima afeta o
+// VOLUME/liquidez de negociação, não necessariamente o retorno do preço —
+// então testamos as duas variáveis-alvo agora, não só preço.
 async function precoHistorico(tipo, ticker) {
   if (tipo === 'cripto') {
     const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(ticker.toLowerCase())}/market_chart?vs_currency=brl&days=${DIAS_HISTORICO}&interval=daily`;
     const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
     const data = await res.json();
-    return (data.prices || []).map(([ts, preco]) => ({ data: new Date(ts).toISOString().slice(0, 10), preco }));
+    const precos = data.prices || [];
+    const volumes = data.total_volumes || [];
+    return precos.map(([ts, preco], i) => ({
+      data: new Date(ts).toISOString().slice(0, 10),
+      preco,
+      volume: volumes[i]?.[1] ?? null,
+    }));
   }
   const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=6mo&interval=1d&fundamental=false`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`brapi HTTP ${res.status}`);
   const data = await res.json();
   const serie = data?.results?.[0]?.historicalDataPrice || [];
-  return serie.filter((p) => p.close > 0).map((p) => ({ data: new Date(p.date * 1000).toISOString().slice(0, 10), preco: p.close }));
+  return serie
+    .filter((p) => p.close > 0)
+    .map((p) => ({
+      data: new Date(p.date * 1000).toISOString().slice(0, 10),
+      preco: p.close,
+      volume: typeof p.volume === 'number' ? p.volume : null,
+    }));
 }
 
 function variacaoDiaria(pontos) {
@@ -58,6 +74,23 @@ function variacaoDiaria(pontos) {
   for (let i = 1; i < pontos.length; i++) {
     const ant = pontos[i - 1].preco, atu = pontos[i].preco;
     if (ant > 0) porData[pontos[i].data] = ((atu - ant) / ant) * 100;
+  }
+  return porData;
+}
+
+// Volume anômalo = volume do dia ÷ média móvel de 20 dias anteriores.
+// >1 significa volume acima do normal. Essa é a métrica padrão de "volume
+// anormal" usada em estudos de evento — não usar volume bruto (tem
+// tendência própria de crescimento do mercado ao longo do tempo).
+function volumeAnomalo(pontos) {
+  const comVolume = pontos.filter((p) => typeof p.volume === 'number' && p.volume > 0);
+  if (comVolume.length < 25) return {}; // sem volume suficiente pra ter média móvel confiável
+
+  const porData = {};
+  for (let i = 20; i < comVolume.length; i++) {
+    const janela = comVolume.slice(i - 20, i).map((p) => p.volume);
+    const media = janela.reduce((a, b) => a + b, 0) / janela.length;
+    if (media > 0) porData[comVolume[i].data] = comVolume[i].volume / media;
   }
   return porData;
 }
@@ -75,12 +108,29 @@ function alinharComLag(variacaoPorData, variavelPorData, lagDias) {
   return { xs, ys };
 }
 
-function testar(nome, variavelPorData, variacaoPorData, lagDias) {
-  const { xs, ys } = alinharComLag(variacaoPorData, variavelPorData, lagDias);
+function testar(nome, variavelPorData, alvoPorData, lagDias, alvo) {
+  const { xs, ys } = alinharComLag(alvoPorData, variavelPorData, lagDias);
   const { r, n } = pearson(xs, ys);
   if (r === null) return null;
   const p = pValorCorrelacao(r, n);
-  return { nome, lagDias, r: Math.round(r * 1000) / 1000, p, n };
+  return { nome, alvo, lagDias, r: Math.round(r * 1000) / 1000, p, n };
+}
+
+// Testa a mesma variável explicativa (chuva, ONI, EAR...) contra as DUAS
+// variáveis-alvo possíveis — preço e volume — e devolve os testes que
+// deram certo. A literatura (estudo do Shanghai Stock Exchange) sugere que
+// clima tende a mexer mais com volume/liquidez do que com o preço em si;
+// testar as duas é o jeito de descobrir isso pros nossos dados, em vez de
+// assumir.
+function testarPrecoEVolume(nome, variavelPorData, variacaoPorData, volumePorData, lagDias) {
+  const resultados = [];
+  const tPreco = testar(nome, variavelPorData, variacaoPorData, lagDias, 'preço');
+  if (tPreco) resultados.push(tPreco);
+  if (Object.keys(volumePorData).length) {
+    const tVolume = testar(nome, variavelPorData, volumePorData, lagDias, 'volume');
+    if (tVolume) resultados.push(tVolume);
+  }
+  return resultados;
 }
 
 // Aceita a chave direta (IBOVESPA, DOLAR...) ou o símbolo Yahoo cru (^BVSP, USDBRL=X...)
@@ -123,10 +173,10 @@ async function analisarMercadoGlobal(chave) {
   }
 
   const variacaoPorData = variacaoDiaria(pontosPreco);
+  const volumePorData = volumeAnomalo(pontosPreco);
 
   const testes = [0, 1, 2, 3]
-    .map((lag) => testar(`Horas de sol — ${m.cidade}`, solSerie, variacaoPorData, lag))
-    .filter(Boolean);
+    .flatMap((lag) => testarPrecoEVolume(`Horas de sol — ${m.cidade}`, solSerie, variacaoPorData, volumePorData, lag));
 
   if (!testes.length) {
     return { aplicavel: false, motivo: 'sem_dados', aviso: 'Não consegui obter dados suficientes agora. Tente novamente mais tarde.' };
@@ -189,6 +239,7 @@ module.exports = async (req, res) => {
       return;
     }
     const variacaoPorData = variacaoDiaria(pontosPreco);
+    const volumePorData = volumeAnomalo(pontosPreco);
 
     const dataFim = hoje(-5);   // Open-Meteo/ONS têm alguns dias de atraso
     const dataInicio = hoje(-5 - DIAS_HISTORICO);
@@ -222,9 +273,9 @@ module.exports = async (req, res) => {
         }
       }
 
-      for (const lag of [15, 30, 45]) testes.push(testar(`Chuva acumulada 30d — ${config.regiao.nome}`, chuva30d, variacaoPorData, lag));
-      for (const lag of [15, 30, 45]) testes.push(testar('Índice ONI (El Niño/La Niña)', oniPorDia, variacaoPorData, lag));
-      testes.push(testar('Câmbio USD/BRL', cambioSerie, variacaoPorData, 0));
+      for (const lag of [15, 30, 45]) testes.push(...testarPrecoEVolume(`Chuva acumulada 30d — ${config.regiao.nome}`, chuva30d, variacaoPorData, volumePorData, lag));
+      for (const lag of [15, 30, 45]) testes.push(...testarPrecoEVolume('Índice ONI (El Niño/La Niña)', oniPorDia, variacaoPorData, volumePorData, lag));
+      testes.push(...testarPrecoEVolume('Câmbio USD/BRL', cambioSerie, variacaoPorData, volumePorData, 0));
 
       contexto = { categoria: 'agro', regiao: config.regiao.nome, ativo: config.nome };
 
@@ -239,7 +290,7 @@ module.exports = async (req, res) => {
         return;
       }
 
-      for (const lag of [0, 7, 14]) testes.push(testar(`Nível de reservatório (EAR) — ${ATIVOS.SUBSISTEMAS[config.subsistema]}`, earSerie, variacaoPorData, lag));
+      for (const lag of [0, 7, 14]) testes.push(...testarPrecoEVolume(`Nível de reservatório (EAR) — ${ATIVOS.SUBSISTEMAS[config.subsistema]}`, earSerie, variacaoPorData, volumePorData, lag));
 
       contexto = { categoria: 'hidro', subsistema: ATIVOS.SUBSISTEMAS[config.subsistema], ativo: config.nome };
     }

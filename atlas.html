@@ -96,6 +96,15 @@
     .setor-tag.gold { color: #8a6d1f; background: #f5e6c4; }
     .setor-tag.muted { color: var(--muted); background: var(--shore); }
     .setor-exp { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+
+    .sent-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
+    .sent-badge.positivo { background: #d4f5e2; color: #0f6b42; }
+    .sent-badge.negativo { background: #ffd5ce; color: #a31f1f; }
+    .sent-badge.neutro   { background: var(--shore); color: var(--muted); }
+    .sent-resumo { font-family: var(--sans); font-size: 12px; color: var(--ink); line-height: 1.6; margin-bottom: 12px; }
+    .sent-manchete { display: block; font-family: var(--sans); font-size: 11px; color: var(--muted); padding: 6px 0; border-top: 1px solid var(--shore); text-decoration: none; }
+    .sent-manchete:hover { color: var(--wave); }
+    .sent-manchete .fonte { font-family: var(--mono); font-size: 9px; color: var(--wave); letter-spacing: .5px; }
     .fatores-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 14px; color: var(--ink); }
     .fator-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .fator-nome { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; color: var(--muted); width: 120px; flex-shrink: 0; }
@@ -393,30 +402,21 @@
       </div>
     </div>
 
-    <!-- Fatores Fundamentalistas (Value/Quality/Momentum) -->
-    <div class="section-divider" id="div-fundamentos" style="display:none">FATORES QUANTITATIVOS</div>
-    <div class="fatores-card" id="fundamentos-card">
-      <div class="fatores-title">📐 VALUE · QUALITY · MOMENTUM</div>
-      <div id="fundamentos-body">
-        <span class="analise-loading"><span class="spin-dot"></span> Calculando fatores fundamentalistas...</span>
-      </div>
-    </div>
-
-    <!-- Fator Sentimento (notícias reais via IA) -->
-    <div class="section-divider" id="div-sentimento" style="display:none">SENTIMENTO DE NOTÍCIAS</div>
-    <div class="fatores-card" id="sentimento-card">
-      <div class="fatores-title">📰 SENTIMENTO × NOTÍCIAS RECENTES</div>
-      <div id="sentimento-body">
-        <span class="analise-loading"><span class="spin-dot"></span> Buscando notícias recentes...</span>
-      </div>
-    </div>
-
     <!-- Fator Climático -->
     <div class="section-divider" id="div-clima" style="display:none">FATOR CLIMÁTICO</div>
     <div class="fatores-card" id="clima-card">
       <div class="fatores-title">🌦️ CLIMA × HISTÓRICO DE PREÇO</div>
       <div id="clima-body">
         <span class="analise-loading"><span class="spin-dot"></span> Verificando se este ativo tem exposição climática conhecida...</span>
+      </div>
+    </div>
+
+    <!-- Sentimento de Notícias -->
+    <div class="section-divider" id="div-noticias" style="display:none">SENTIMENTO DE NOTÍCIAS</div>
+    <div class="fatores-card" id="noticias-card">
+      <div class="fatores-title">📰 O QUE A IMPRENSA ANDA DIZENDO</div>
+      <div id="noticias-body">
+        <span class="analise-loading"><span class="spin-dot"></span> Buscando manchetes recentes...</span>
       </div>
     </div>
 
@@ -541,11 +541,8 @@
       document.getElementById('analise-card').style.display = 'none';
       document.getElementById('div-fatores').style.display = 'none';
       document.getElementById('fatores-card').style.display = 'none';
-      document.getElementById('div-fundamentos').style.display = 'none';
-      document.getElementById('fundamentos-card').style.display = 'none';
-      document.getElementById('div-sentimento').style.display = 'none';
-      document.getElementById('sentimento-card').style.display = 'none';
       carregarFatorClimatico(ticker, 'mercado_global');
+      carregarSentimentoNoticias(ticker, ticker);
       return;
     }
 
@@ -559,7 +556,8 @@
         dadosAtivo = { ativo: cripto, detalhe: null, ticker, tipo: 'cripto' };
         renderAtivo(cripto, null);
         await gerarAnaliseCripto(ticker, cripto);
-        carregarSentimentoNoticias(ticker, cripto?.nome);
+        carregarFatorClimatico(ticker, 'cripto');
+        carregarSentimentoNoticias(ticker, `${ticker} criptomoeda`);
       } else {
         // ── Fluxo AÇÃO B3 ──
         const [ativo, detalhe] = await Promise.all([
@@ -569,8 +567,8 @@
         dadosAtivo = { ativo, detalhe, ticker, tipo: 'acao' };
         renderAtivo(ativo, detalhe);
         await gerarAnalise(ticker, ativo, detalhe);
-        carregarFatoresFundamentais(ticker, detalhe);
-        carregarSentimentoNoticias(ticker, ativo?.nome);
+        carregarFatorClimatico(ticker, 'acoes');
+        carregarSentimentoNoticias(ticker, `${ticker} ação B3`);
       }
     } catch (e) {
       console.error(e);
@@ -620,7 +618,7 @@
               <span class="clima-sinal-forca" style="color:${cor}">${seta} r=${d.sinal.r}</span>
             </div>
             <div class="clima-sinal-desc">
-              Defasagem de ${d.sinal.lagDias} dias · p=${d.sinal.p} (significativo mesmo após corrigir
+              Alvo: <strong>${d.sinal.alvo}</strong> · defasagem de ${d.sinal.lagDias} dias · p=${d.sinal.p} (significativo mesmo após corrigir
               por ${d.numTestes} testes, limiar p&lt;${d.alfaCorrigido}) · amostra de ${d.sinal.n} dias.
               Ainda é uma relação estatística histórica, não uma garantia de resultado futuro.
             </div>
@@ -639,14 +637,14 @@
       }
 
       if (d.testes?.length) {
-        html += `<div class="clima-lista-title">TODAS AS VARIÁVEIS TESTADAS (${d.testes.length})</div>`;
+        html += `<div class="clima-lista-title">TODAS AS VARIÁVEIS TESTADAS (${d.testes.length}) — PREÇO E VOLUME</div>`;
         d.testes.forEach(t => {
           const abs = Math.abs(t.r);
           const sig = t.p !== null && t.p < d.alfaCorrigido;
           const cor = !sig ? 'var(--muted)' : t.r > 0 ? '#128a55' : '#c62828';
           html += `
             <div class="fator-row">
-              <span class="fator-nome">${t.nome} · defasagem ${t.lagDias}d</span>
+              <span class="fator-nome">${t.nome} · ${t.alvo} · ${t.lagDias}d</span>
               <div class="fator-bar-wrap">
                 <div class="fator-bar" style="width:${Math.round(abs*100)}%;background:${cor}"></div>
               </div>
@@ -663,161 +661,67 @@
     }
   }
 
-  // ── Helper: faz fetch e SÓ tenta interpretar como JSON se a resposta
-  // realmente for JSON. Sem isso, se o endpoint não existir ainda no
-  // deploy (Vercel devolve uma página HTML de 404) ou cair um erro 500
-  // não tratado, o app quebrava com "Unexpected token '<'... is not
-  // valid JSON" — mensagem que não dizia nada sobre a causa real.
-  async function fetchJSON(url, options) {
-    let res;
-    try {
-      res = await fetch(url, options);
-    } catch (e) {
-      throw new Error(`Falha de rede ao chamar ${url}: ${e.message}`);
-    }
-    const ct = res.headers.get('content-type') || '';
-    if (!ct.includes('application/json')) {
-      const corpo = await res.text().catch(() => '');
-      const dica = res.status === 404
-        ? ' — endpoint não encontrado (provável: o arquivo ainda não foi enviado/deployado no Vercel).'
-        : '';
-      throw new Error(`${url} devolveu HTTP ${res.status} (não-JSON)${dica} Início da resposta: "${corpo.slice(0, 80)}"`);
-    }
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
-    return d;
-  }
-
-  // ── Fatores Fundamentalistas (Value/Quality/Momentum) — Opção 1.
-  // Reaproveita pl/pvp/roe/margem que MercadoAPI.buscarDetalhadoAtivo já
-  // buscou (mesmos números mostrados no prompt da análise IA); o backend
-  // só faz UMA chamada nova, pro histórico de preço de 1 ano (momentum),
-  // com fallback pra Yahoo Finance se a brapi falhar (ver aviso.fontes).
-  async function carregarFatoresFundamentais(ticker, detalhe) {
-    document.getElementById('div-fundamentos').style.display = 'flex';
-    document.getElementById('fundamentos-card').style.display = 'block';
-    const body = document.getElementById('fundamentos-body');
+  // ── Sentimento de Notícias: busca manchetes recentes (Google News RSS)
+  // e pede pro Claude classificar o tom geral, reaproveitando o mesmo
+  // /api/analise-ia usado na síntese dos agentes — nenhum código novo de
+  // IA, só um prompt novo.
+  async function carregarSentimentoNoticias(ticker, query) {
+    document.getElementById('div-noticias').style.display = 'flex';
+    document.getElementById('noticias-card').style.display = 'block';
+    const body = document.getElementById('noticias-body');
 
     try {
-      const d = await fetchJSON('/api/fatores-fundamentais', {
+      const resNoticias = await fetch('/api/noticias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ticker,
-          pl: detalhe?.pl, pvp: detalhe?.pvp,
-          roe: detalhe?.roe, margem: detalhe?.margem_lucro,
-        })
+        body: JSON.stringify({ query })
       });
+      const dNoticias = await resNoticias.json();
+      if (!resNoticias.ok) throw new Error(dNoticias.error || `HTTP ${resNoticias.status}`);
 
-      if (!d.aplicavel) {
-        body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
+      const manchetes = dNoticias.manchetes || [];
+      if (!manchetes.length) {
+        body.innerHTML = `<div class="clima-aviso">ℹ️ Não encontrei notícias recentes sobre ${ticker}.</div>`;
         return;
       }
 
-      let html = '';
-      if (d.geral) {
-        const cor = d.geral.score >= 60 ? '#128a55' : d.geral.score >= 40 ? '#c9962e' : '#c62828';
-        html += `
-          <div class="clima-sinal" style="border-color:${cor}">
-            <div class="clima-sinal-top">
-              <span class="clima-sinal-cidade">Score geral</span>
-              <span class="clima-sinal-forca" style="color:${cor}">${d.geral.score}/100 · ${d.geral.classificacao}</span>
-            </div>
-            <div class="clima-sinal-desc">Combinação ponderada de Value (35%), Quality (35%) e Momentum (30%). Heurística por faixas de mercado — não é comparação direta contra o setor do ativo.</div>
-          </div>`;
-      }
+      const listaManchetes = manchetes.map((m, i) => `${i+1}. [${m.fonte || 'fonte desconhecida'}] ${m.titulo}`).join('\n');
+      const prompt = `Você é um analista financeiro. Abaixo estão manchetes recentes sobre ${ticker}:
 
-      const linhas = [];
-      if (d.value)    linhas.push({ nome: `Value · P/L ${d.value.pl ?? '—'} · P/VP ${d.value.pvp ?? '—'}`, score: d.value.score, label: d.value.label });
-      if (d.quality)  linhas.push({ nome: `Quality · ROE ${d.quality.roe ?? '—'}% · margem ${d.quality.margem ?? '—'}%`, score: d.quality.score, label: d.quality.label });
-      if (d.momentum) linhas.push({ nome: `Momentum · retorno ${d.momentum.retornoPct ?? '—'}%`, score: d.momentum.score, label: d.momentum.label });
+${listaManchetes}
 
-      if (linhas.length) {
-        html += `<div class="clima-lista-title">DETALHAMENTO DOS FATORES</div>`;
-        linhas.forEach((f) => {
-          const cor = f.score >= 60 ? '#128a55' : f.score >= 40 ? '#c9962e' : '#c62828';
-          html += `
-            <div class="fator-row">
-              <span class="fator-nome">${f.nome}</span>
-              <div class="fator-bar-wrap">
-                <div class="fator-bar" style="width:${f.score}%;background:${cor}"></div>
-              </div>
-              <span class="fator-pct" style="color:${cor}">${f.score}</span>
-            </div>`;
-        });
-      }
+Classifique o sentimento geral dessas manchetes em relação a ${ticker} como investimento. Responda SOMENTE em JSON, sem texto antes ou depois, no formato exato:
+{"sentimento":"positivo|neutro|negativo","confianca":0 a 100,"resumo":"2-3 frases explicando o motivo, em português"}`;
 
-      if (d.avisoMomentum) html += `<div class="clima-aviso">ℹ️ ${d.avisoMomentum}</div>`;
-      if (d.fonteHistorico) html += `<div class="clima-aviso" style="opacity:.6">Fonte do histórico: ${d.fonteHistorico}</div>`;
-      html += `<div class="clima-aviso">${d.aviso}</div>`;
-
-      body.innerHTML = html;
-    } catch (e) {
-      console.error('[Fundamentos]', e);
-      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular os fatores fundamentalistas agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
-    }
-  }
-
-  // ── Fator Sentimento — Opção 3. Combina duas fontes: (1) Google News
-  // RSS, buscado diretamente por nós (rápido, sem custo, sem depender
-  // de nada além de uma URL pública) pra dar contexto factual com datas
-  // confiáveis; (2) o Claude com web_search pra interpretar/pontuar o
-  // sentimento. Se o Claude falhar, ainda mostramos as manchetes cruas
-  // da RSS em vez de quebrar — é a "segunda fonte" funcionando como
-  // fallback de verdade, não só enfeite.
-  async function carregarSentimentoNoticias(ticker, nomeEmpresa) {
-    document.getElementById('div-sentimento').style.display = 'flex';
-    document.getElementById('sentimento-card').style.display = 'block';
-    const body = document.getElementById('sentimento-body');
-
-    try {
-      const d = await fetchJSON('/api/sentimento-noticias', {
+      const resIA = await fetch('/api/analise-ia', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticker, nomeEmpresa })
+        body: JSON.stringify({ prompt })
       });
+      const dIA = await resIA.json();
+      if (!resIA.ok) throw new Error(dIA.error || `HTTP ${resIA.status}`);
 
-      if (!d.aplicavel) {
-        body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso || 'Não foi possível analisar sentimento agora.'}</div>`;
-        if (d.manchetesCruas?.length) {
-          body.innerHTML += `<div class="clima-lista-title">MANCHETES ENCONTRADAS (SEM ANÁLISE)</div>` +
-            d.manchetesCruas.map(h => `<div class="clima-aviso" style="padding:2px 0">• ${h.titulo}${h.data ? ` <span style="opacity:.6">(${h.data})</span>` : ''}</div>`).join('');
-        }
-        return;
-      }
+      const limpo = (dIA.texto || '').replace(/```json|```/g, '').trim();
+      const analise = JSON.parse(limpo);
 
-      const score = d.sentimento_score ?? 0;
-      const cor = score > 15 ? '#128a55' : score < -15 ? '#c62828' : '#c9962e';
-      const seta = score > 15 ? '▲' : score < -15 ? '▼' : '●';
+      const emoji = analise.sentimento === 'positivo' ? '📈' : analise.sentimento === 'negativo' ? '📉' : '➖';
 
       let html = `
-        <div class="clima-sinal" style="border-color:${cor}">
-          <div class="clima-sinal-top">
-            <span class="clima-sinal-cidade">${(d.direcao || 'neutro').toUpperCase()}</span>
-            <span class="clima-sinal-forca" style="color:${cor}">${seta} score=${score}</span>
-          </div>
-          <div class="clima-sinal-desc">
-            Confiança ${d.confianca ?? 0}% · ${d.numNoticiasEncontradas ?? 0} notícia(s) encontrada(s) nos últimos 15 dias.
-            ${d.resumo || ''}
-          </div>
-        </div>`;
+        <div class="sent-badge ${analise.sentimento}">${emoji} ${analise.sentimento.toUpperCase()} · ${analise.confianca}% confiança</div>
+        <p class="sent-resumo">${analise.resumo}</p>
+        <div class="clima-lista-title">MANCHETES USADAS NESSA ANÁLISE</div>`;
 
-      if (d.principais_eventos?.length) {
-        html += `<div class="clima-lista-title">PRINCIPAIS EVENTOS</div>`;
-        d.principais_eventos.forEach((ev) => {
-          const corEv = ev.impacto === 'positivo' ? '#128a55' : ev.impacto === 'negativo' ? '#c62828' : 'var(--muted)';
-          html += `<div class="clima-aviso" style="color:${corEv};padding:2px 0"><b>${ev.data || ''}:</b> ${ev.resumo || ''}</div>`;
-        });
-      }
-
-      if (d.aviso) html += `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
-      if (d.fontes?.length) html += `<div class="clima-aviso" style="opacity:.6">Fontes: ${d.fontes.join(' + ')}</div>`;
-      html += `<div class="clima-aviso">${d.avisoMetodologico || ''}</div>`;
+      manchetes.forEach(m => {
+        html += `<a class="sent-manchete" href="${m.link}" target="_blank" rel="noopener">
+          <span class="fonte">${m.fonte || '???'}</span> — ${m.titulo}
+        </a>`;
+      });
 
       body.innerHTML = html;
+
     } catch (e) {
-      console.error('[Sentimento]', e);
-      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível buscar sentimento de notícias agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
+      console.error('[Notícias]', e);
+      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível analisar o sentimento das notícias agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
     }
   }
 
@@ -836,10 +740,8 @@
     document.getElementById('analise-card').style.display = 'none';
     document.getElementById('div-clima').style.display = 'none';
     document.getElementById('clima-card').style.display = 'none';
-    document.getElementById('div-fundamentos').style.display = 'none';
-    document.getElementById('fundamentos-card').style.display = 'none';
-    document.getElementById('div-sentimento').style.display = 'none';
-    document.getElementById('sentimento-card').style.display = 'none';
+    document.getElementById('div-noticias').style.display = 'none';
+    document.getElementById('noticias-card').style.display = 'none';
     document.getElementById('div-cenarios').style.display = 'none';
     document.getElementById('cenarios-card').style.display = 'none';
     document.getElementById('cenario-result').classList.remove('show');

@@ -20,12 +20,18 @@ async function historicoYahoo(simbolo, dias = 60) {
   if (!resultado) throw new Error(`Yahoo Finance: sem dados pra ${simbolo}`);
 
   const timestamps = resultado.timestamp || [];
-  const closes = resultado.indicators?.quote?.[0]?.close || [];
+  const quote = resultado.indicators?.quote?.[0] || {};
+  const closes = quote.close || [];
+  const volumes = quote.volume || [];
 
   const pontos = [];
   timestamps.forEach((ts, i) => {
     if (typeof closes[i] === 'number') {
-      pontos.push({ data: new Date(ts * 1000).toISOString().slice(0, 10), preco: closes[i] });
+      pontos.push({
+        data: new Date(ts * 1000).toISOString().slice(0, 10),
+        preco: closes[i],
+        volume: typeof volumes[i] === 'number' ? volumes[i] : null,
+      });
     }
   });
   return pontos;
