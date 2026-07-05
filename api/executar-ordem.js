@@ -14,9 +14,6 @@
 //  Opcional: BRAPI_TOKEN
 // ============================================================
 
-const { verificarToken, getDb, admin } = require('./lib/firebaseAdmin');
-const { obterPrecoReal } = require('./lib/precos');
-
 const TIPOS_VALIDOS = ['acoes', 'fiis', 'cripto', 'tesouro', 'cdb', 'lci'];
 const LADOS_VALIDOS = ['compra', 'venda'];
 const ORDENS_VALIDAS = ['mercado', 'limitada', 'stop'];
@@ -24,6 +21,16 @@ const ORDENS_VALIDAS = ['mercado', 'limitada', 'stop'];
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método não permitido. Use POST.' });
+    return;
+  }
+
+  let verificarToken, getDb, admin, obterPrecoReal;
+  try {
+    ({ verificarToken, getDb, admin } = require('./_lib/firebaseAdmin'));
+    ({ obterPrecoReal } = require('./_lib/precos'));
+  } catch (e) {
+    console.error('[api/executar-ordem] Falha ao carregar módulos:', e.message);
+    res.status(500).json({ error: 'Erro interno ao carregar dependências: ' + e.message });
     return;
   }
 

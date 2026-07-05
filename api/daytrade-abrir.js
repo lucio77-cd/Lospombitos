@@ -14,14 +14,24 @@
 //  pra perder mais que o depositado.
 // ============================================================
 
-const { verificarToken, getDb, admin } = require('./lib/firebaseAdmin');
-const { precoAtual, IDS } = require('./lib/precosCripto');
-
 const ALAVANCAGEM_MAX = 20;
 const MARGEM_MINIMA = 10;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
+
+  // require() aqui dentro (não no topo do arquivo) — se faltar o pacote
+  // firebase-admin, um arquivo de _lib, ou qualquer coisa do tipo, agora
+  // vira um JSON de erro legível em vez de travar cru.
+  let verificarToken, getDb, admin, precoAtual, IDS;
+  try {
+    ({ verificarToken, getDb, admin } = require('./_lib/firebaseAdmin'));
+    ({ precoAtual, IDS } = require('./_lib/precosCripto'));
+  } catch (e) {
+    console.error('[api/daytrade-abrir] Falha ao carregar módulos:', e.message);
+    res.status(500).json({ error: 'Erro interno ao carregar dependências: ' + e.message });
+    return;
+  }
 
   let uid;
   try {

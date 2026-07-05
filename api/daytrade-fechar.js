@@ -9,11 +9,18 @@
 //  negativo) — ver aviso em daytrade-abrir.js.
 // ============================================================
 
-const { verificarToken, getDb, admin } = require('./lib/firebaseAdmin');
-const { precoAtual } = require('./lib/precosCripto');
-
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
+
+  let verificarToken, getDb, admin, precoAtual;
+  try {
+    ({ verificarToken, getDb, admin } = require('./_lib/firebaseAdmin'));
+    ({ precoAtual } = require('./_lib/precosCripto'));
+  } catch (e) {
+    console.error('[api/daytrade-fechar] Falha ao carregar módulos:', e.message);
+    res.status(500).json({ error: 'Erro interno ao carregar dependências: ' + e.message });
+    return;
+  }
 
   let uid;
   try {
