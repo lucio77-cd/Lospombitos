@@ -365,7 +365,9 @@ async function germinarEsalvarPombito(dadosFicha) {
       });
     }
 
-    window.location.href = "feed.html";
+    // Vai pro germinar.html gerar a arte/avatar do Pombito ANTES do feed
+    // (antes ia direto pro feed.html, pulando a geração do avatar)
+    window.location.href = "germinar.html";
     return true;
 
   } catch (e) {
