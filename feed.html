@@ -856,7 +856,7 @@ firebase.auth().onAuthStateChanged(async user => {
   try {
     const uSnap=await db.collection('usuarios').doc(user.uid).get();
     if(!uSnap.exists||!uSnap.data()?.perfil_completo){
-      window.location.href='setup-perfil.html';return;
+      window.location.href='germinar.html';return;
     }
     const u=uSnap.data();
     const foto=u.foto_perfil||`https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
