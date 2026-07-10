@@ -62,9 +62,32 @@ service cloud.firestore {
     }
 
     // ── carteiras/{uid} ──
-    // Só o servidor (Admin SDK) escreve. O client só lê a própria carteira.
+    // Atualizações de saldo (comprar/vender) só o servidor (Admin SDK,
+    // api/executar-ordem.js) escreve. MAS a criação inicial da carteira
+    // (germinarEsalvarPombito, em auth.js) ainda roda no client — por
+    // isso liberamos SÓ a criação, travada nos valores exatos de capital
+    // inicial, pra não travar o cadastro. Update/delete continuam só do
+    // servidor.
     match /carteiras/{uid} {
       allow read: if ehDono(uid);
+
+      allow create: if ehDono(uid) &&
+        request.resource.data.uid == uid &&
+        request.resource.data.saldo_disponivel == 500000 &&
+        request.resource.data.saldo_investido == 0 &&
+        request.resource.data.patrimonio_total == 500000 &&
+        request.resource.data.posicoes == [] &&
+        request.resource.data.historico_ordens == [];
+
+      allow update, delete: if false;
+    }
+
+    // ── posicoes_daytrade/{id} (PIT 24H) ──
+    // Faltava por completo nesta versão — o game-estudo.html não
+    // conseguia nem LER as próprias posições. Escrita continua só do
+    // servidor (api/daytrade-fechar.js, mesmo padrão de ordens).
+    match /posicoes_daytrade/{id} {
+      allow read: if logado() && resource.data.uid == request.auth.uid;
       allow write: if false;
     }
 
@@ -123,33 +146,59 @@ service cloud.firestore {
     // Deixei fechadas por padrão (allow: if false) até você confirmar
     // o fluxo real de cada uma — abrir demais aqui é o tipo de coisa
     // que vaza dado ou permite escrita indevida sem ninguém perceber.
+    // Auditado contra galeria.html e arte-semanal.js: o dono só mexe em
+    // a_venda/preco/colocada_venda_em da própria obra; a compra (feita
+    // pelo comprador) troca dono_uid/a_venda/preco/adquirida_em/historico.
+    // Continua sem validar o valor do pombcoins do lado do servidor —
+    // mesma limitação do $POMB já registrada no ANTI-CHEAT-E-REGRAS.md.
     match /galeria/{id} {
       allow read: if logado();
-      allow write: if false; // REVISAR
+
+      allow create: if logado() &&
+        request.resource.data.a_venda == false &&
+        request.resource.data.preco == 0;
+
+      allow update: if logado() && (
+        (resource.data.dono_uid == request.auth.uid &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['a_venda', 'preco', 'colocada_venda_em'])) ||
+        (resource.data.a_venda == true &&
+          request.resource.data.dono_uid == request.auth.uid &&
+          request.resource.data.a_venda == false)
+      );
+
+      allow delete: if false;
     }
 
+    // Leilão semanal (arte-semanal.js): qualquer membro pode criar o
+    // leilão da semana se não houver um ativo, e o timer de qualquer
+    // membro pode encerrá-lo/registrar lances (mesma ressalva de
+    // confiança client-side do $POMB citada acima).
     match /leiloes/{id} {
       allow read: if logado();
-      allow write: if false; // REVISAR
+      allow create: if logado() && request.resource.data.status == 'ativo';
+      allow update: if logado();
+      allow delete: if false;
 
       match /lances/{lanceId} {
         allow read: if logado();
-        allow write: if false; // REVISAR — provavelmente precisa permitir
-        // create para o dono do lance, mas o valor do lance deveria ser
-        // validado contra o pombcoins disponível — hoje isso é feito
-        // client-side em pomb-economy.js/debitar(), o que tem o mesmo
-        // problema de confiança que ordem.html tinha antes desta correção.
+        allow create: if logado() && request.resource.data.uid == request.auth.uid;
+        allow update, delete: if false;
       }
     }
 
     match /pagamentos/{id} {
       allow read: if logado() && resource.data.uid == request.auth.uid;
-      allow write: if false; // REVISAR
+      allow write: if false; // REVISAR — nenhum arquivo enviado escreve aqui ainda
     }
 
+    // Criado em galeria.html (comprarArte) dentro da mesma transação que
+    // transfere a obra.
     match /transacoes/{id} {
-      allow read: if logado() && resource.data.uid == request.auth.uid;
-      allow write: if false; // REVISAR
+      allow read: if logado() &&
+        (resource.data.comprador == request.auth.uid || resource.data.vendedor == request.auth.uid);
+      allow create: if logado() && request.resource.data.comprador == request.auth.uid;
+      allow update, delete: if false;
     }
 
     // Qualquer coisa não listada acima: fechada por padrão.
