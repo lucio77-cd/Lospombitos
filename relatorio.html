@@ -735,8 +735,8 @@
         ${TIPO !== 'cripto' && m50  > 0 ? item('Média 50 dias',  R$(m50),  preco>m50?'pos':'neg')  : ''}
         ${TIPO !== 'cripto' && m200 > 0 ? item('Média 200 dias', R$(m200), preco>m200?'pos':'neg') : ''}
         ${TIPO !== 'cripto' ? vsMedia : ''}
-        ${var6m !== 0 ? item('Variação 6 meses', pct(var6m), var6m>=0?'pos':'neg') : item('Variação 6 meses', 'Carregando...', '')}
-        ${var1y !== 0 ? item('Variação 1 ano',   pct(var1y), var1y>=0?'pos':'neg') : item('Variação 1 ano',   'Carregando...', '')}
+        ${dadosHist6m ? item('Variação 6 meses', pct(var6m), var6m>=0?'pos':'neg') : item('Variação 6 meses', 'Indisponível', '')}
+        ${dadosHist1y ? item('Variação 1 ano',   pct(var1y), var1y>=0?'pos':'neg') : item('Variação 1 ano',   'Indisponível', '')}
         ${d.volume_medio > 0 && TIPO !== 'cripto' ? item('Volume médio (3m)', Number(d.volume_medio).toLocaleString('pt-BR')) : ''}
         ${TIPO === 'cripto' && d.market_cap > 0 ? item('Market Cap', MercadoAPI.bigNum(d.market_cap)) : ''}`;
       return el;

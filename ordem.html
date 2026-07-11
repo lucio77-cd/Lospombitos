@@ -655,10 +655,13 @@
 
     const tickerSalvo = TICKER;
 
-    try {
-      const idToken = await firebase.auth().currentUser.getIdToken();
-
-      const res = await fetch('/api/executar-ordem', {
+    // Monta e envia a ordem — com refresh forçado do token e 1 retentativa
+    // automática. Antes usava getIdToken() sem forçar, e o SDK às vezes
+    // mandava o token cacheado mesmo já expirado, dando "Token de
+    // autenticação inválido ou expirado" bem na hora de confirmar.
+    async function enviarOrdem(forcarNovoToken) {
+      const idToken = await firebase.auth().currentUser.getIdToken(forcarNovoToken);
+      return fetch('/api/executar-ordem', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -675,8 +678,19 @@
           preco_limite: preco,
         }),
       });
+    }
 
-      const resultado = await res.json();
+    try {
+      let res = await enviarOrdem(true); // já força refresh na primeira tentativa
+      let resultado = await res.json();
+
+      if (!res.ok && res.status === 401) {
+        // Retentativa única com token 100% novo, caso o primeiro já tenha
+        // expirado entre o clique e a resposta do servidor.
+        res = await enviarOrdem(true);
+        resultado = await res.json();
+      }
+
       if (!res.ok) {
         throw new Error(resultado.error || `Erro HTTP ${res.status}`);
       }

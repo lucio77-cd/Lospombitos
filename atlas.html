@@ -1130,14 +1130,15 @@ Seja específico e direto. Não use bullet points, use parágrafos curtos.`;
         body: JSON.stringify({ prompt })
       });
 
-      if (!res.ok) throw new Error(`Erro no proxy da IA: ${res.status}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Erro no proxy da IA: ${res.status}`);
 
-      const data = await res.json();
       const text = data.texto || 'Sem resposta.';
       resultEl.textContent = `📌 CENÁRIO: ${cenario.toUpperCase()}\n\n${text}`;
 
     } catch (e) {
-      resultEl.textContent = '⚠️ Erro ao simular cenário. Tente novamente.';
+      console.error('[simularCenario]', e);
+      resultEl.textContent = `⚠️ Erro ao simular cenário: ${e.message}`;
     }
 
     btn.disabled = false; btn.textContent = 'SIMULAR';

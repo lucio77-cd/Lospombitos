@@ -400,20 +400,23 @@
       }
       saldoDispGlobal = Math.max(0, saldoRecalc);
 
-      // Cotações — inclui cripto também (antes só ações/FIIs pegavam
-      // cotação ao vivo; cripto ficava sem preço atual e por isso nunca
-      // mostrava ganho/perda na carteira)
-      const tickers = posicoes
-        .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || p.tipo === 'cripto' || !p.tipo)
+      // Cotações — separadas por tipo porque cripto é comprada em
+      // ordem.html/relatorio.html usando o ID do CoinGecko como ticker
+      // (ex: posições salvas como "ETHEREUM", não o símbolo "ETH"), então
+      // não bate com a lista de símbolos curtos que buscarMultiplos usa
+      // pra cripto. Buscamos cripto direto por MercadoAPI.buscarCripto().
+      const tickersAcoesFiis = posicoes
+        .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
         .map(p => p.ticker);
+      const posicoesCripto = posicoes.filter(p => p.tipo === 'cripto');
 
-      if (tickers.length) {
+      if (tickersAcoesFiis.length) {
         try {
-          const dados = await MercadoAPI.buscarMultiplos(tickers);
+          const dados = await MercadoAPI.buscarMultiplos(tickersAcoesFiis);
           dados.forEach(d => { if (d.preco > 0) cotacoes[d.ticker] = d.preco; });
         } catch (e) { console.warn('buscarMultiplos:', e); }
 
-        const faltam = tickers.filter(t => !cotacoes[t]);
+        const faltam = tickersAcoesFiis.filter(t => !cotacoes[t]);
         if (faltam.length) {
           await Promise.allSettled(faltam.map(async ticker => {
             try {
@@ -422,6 +425,15 @@
             } catch (_) {}
           }));
         }
+      }
+
+      if (posicoesCripto.length) {
+        await Promise.allSettled(posicoesCripto.map(async p => {
+          try {
+            const d = await MercadoAPI.buscarCripto(p.ticker.toLowerCase());
+            if (d?.preco > 0) cotacoes[p.ticker] = d.preco;
+          } catch (_) {}
+        }));
       }
 
       // Patrimônio

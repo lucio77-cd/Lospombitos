@@ -141,42 +141,45 @@ const MercadoAPI = {
 
     let resultado = [];
 
-    // ── Tenta brapi para todas as ações de uma vez ──
+    // ── Busca ações/FIIs, UM TICKER POR VEZ ──
+    // O plano gratuito da brapi.dev só aceita 1 ticker por requisição
+    // (Startup: 10, Pro: 20 — ver brapi.dev/faq). O código antigo mandava
+    // todos de uma vez em /quote/A,B,C,..., o que o plano atual rejeita
+    // por inteiro — e como o erro era engolido em silêncio, a lista
+    // inteira ficava travada em "carregando" pra sempre.
     if (acoes.length) {
-      try {
-        const data = await this._fetch(
-          this._url(`/quote/${acoes.join(',')}`, { fundamental: 'false' }),
-          8000
-        );
+      const respostas = await Promise.allSettled(
+        acoes.map(t => this._fetch(this._url(`/quote/${t}`, { fundamental: 'false' }), 8000))
+      );
 
-        if (data.results?.length) {
-          for (const q of data.results) {
-            if (q.regularMarketPrice && q.regularMarketPrice > 0) {
-              resultado.push({
-                ticker:       q.symbol,
-                nome:         q.longName || q.shortName || q.symbol,
-                preco:        q.regularMarketPrice,
-                variacao_pct: q.regularMarketChangePercent || 0,
-                variacao:     q.regularMarketChange || 0,
-                volume:       q.regularMarketVolume || 0,
-                market_cap:   q.marketCap || 0,
-                pl:           q.priceEarnings || 0,
-                dy:           (q.dividendYield || 0) * 100,
-                max_52s:      q.fiftyTwoWeekHigh || 0,
-                min_52s:      q.fiftyTwoWeekLow  || 0,
-                _fonte:       'brapi',
-              });
-            } else {
-              // Brapi retornou o ticker mas com preço 0 — loga para debug
-              console.warn(`[API] buscarMultiplos: ${q.symbol} veio com preço 0 da brapi`);
-            }
-          }
+      respostas.forEach((r, i) => {
+        const t = acoes[i];
+        if (r.status !== 'fulfilled') {
+          console.warn(`[API] buscarMultiplos: ${t} falhou —`, r.reason?.message);
+          return;
         }
+        const q = r.value?.results?.[0];
+        if (q?.regularMarketPrice > 0) {
+          resultado.push({
+            ticker:       q.symbol,
+            nome:         q.longName || q.shortName || q.symbol,
+            preco:        q.regularMarketPrice,
+            variacao_pct: q.regularMarketChangePercent || 0,
+            variacao:     q.regularMarketChange || 0,
+            volume:       q.regularMarketVolume || 0,
+            market_cap:   q.marketCap || 0,
+            pl:           q.priceEarnings || 0,
+            dy:           (q.dividendYield || 0) * 100,
+            max_52s:      q.fiftyTwoWeekHigh || 0,
+            min_52s:      q.fiftyTwoWeekLow  || 0,
+            _fonte:       'brapi',
+          });
+        } else {
+          console.warn(`[API] buscarMultiplos: ${t} veio com preço 0 ou vazio da brapi`);
+        }
+      });
 
-        console.log(`[API] brapi ok: ${resultado.map(r => r.ticker + ' R$' + r.preco).join(', ')}`);
-      } catch (e) {
-        console.warn('[API] brapi falhou em buscarMultiplos:', e.message);
-      }
+      console.log(`[API] brapi ok: ${resultado.map(r => r.ticker + ' R$' + r.preco).join(', ')}`);
     }
 
     // ── Fallback Firestore para tickers que não vieram ou vieram com preço 0 ──
