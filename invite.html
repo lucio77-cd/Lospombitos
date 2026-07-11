@@ -3,241 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Soldo — Simulador de Investimentos</title>
+  <title>Los Pombitos — Convite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:#f5f2fb; --surface:#ffffff; --surface-2:#ece0fa;
-      --border:rgba(91,42,153,0.12); --border-hi:rgba(91,42,153,0.28);
-      --silver:#4a4356; --silver-hi:#170f28; --silver-lo:#918aa0;
-      --gold:#c9962e; --gold-hi:#ad7f1f; --gold-lo:#8a6d1f;
-      --display:'Playfair Display',Georgia,serif;
-      --body:'Inter',system-ui,sans-serif;
-      --mono:'DM Mono',monospace;
+      --bg:#f5f2fb; --bg2:#ffffff; --bg4:#ece0fa;
+      --line:#e3d9f5; --line2:#d4c5ec;
+      --txt:#170f28; --txt2:#756c86; --txt3:#a89fb5;
+      --blue:#5b2a99; --blue-lt:#8b5fc4; --blue-dim:#ece0fa;
+      --gold:#c9962e; --gold-dim:#f5e6c4;
+      --green:#128a55; --green-dim:#d4f5e2;
+      --red:#c62828; --red-dim:#ffd5ce;
+      --mono:'DM Mono',monospace; --serif:'Fraunces',serif; --display:'Bebas Neue',sans-serif;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100dvh;background:var(--bg);color:var(--silver);font-family:var(--body)}
-    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(201,150,46,.08) 0%,transparent 60%);pointer-events:none;z-index:0}
-    body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(91,42,153,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(91,42,153,.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+    html,body{min-height:100dvh;background:var(--bg);color:var(--txt);font-family:var(--mono)}
 
-    .page{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
-    .wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;animation:entrada .9s cubic-bezier(.22,1,.36,1) both}
-    @keyframes entrada{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .page{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+    .wrap{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
-    .moeda-wrap{position:relative;width:96px;height:96px;margin-bottom:36px}
-    .moeda-anel{position:absolute;inset:0;border-radius:50%;border:1px solid transparent;border-top-color:var(--gold);border-bottom-color:rgba(201,150,46,.3);animation:girar 18s linear infinite}
-    .moeda-anel-2{position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(91,42,153,.08);border-left-color:rgba(91,42,153,.22);animation:girar 28s linear infinite reverse}
-    @keyframes girar{to{transform:rotate(360deg)}}
-    .moeda-face{position:absolute;inset:12px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#241a35,#150e22);border:1px solid var(--border-hi);display:flex;align-items:center;justify-content:center}
-    .moeda-s{font-family:var(--display);font-size:36px;font-weight:900;color:transparent;background:linear-gradient(150deg,var(--silver-hi) 0%,var(--gold-hi) 50%,var(--silver) 100%);-webkit-background-clip:text;background-clip:text;line-height:1;animation:brilhar 4s ease-in-out infinite}
-    @keyframes brilhar{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+    .logo{font-family:var(--display);font-size:34px;letter-spacing:5px;display:flex;align-items:center;gap:8px;color:var(--txt);margin-bottom:4px}
+    .logo-gem{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+    .tagline{font-size:10px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;margin-bottom:32px}
 
-    .marca{text-align:center;margin-bottom:8px}
-    .marca-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:5px;color:var(--gold);opacity:.7;margin-bottom:10px}
-    .marca-nome{font-family:var(--display);font-size:clamp(42px,11vw,56px);font-weight:700;letter-spacing:-1px;line-height:1;color:var(--silver-hi)}
-    .marca-nome em{font-style:normal;color:var(--gold-hi)}
-    .marca-tagline{font-family:var(--body);font-size:11px;font-weight:300;letter-spacing:3px;color:var(--silver-lo);margin-top:10px;text-transform:uppercase}
+    .card{width:100%;border:1px solid var(--line);border-radius:14px;background:var(--bg2);padding:28px 24px;box-shadow:0 8px 48px rgba(23,15,40,.08)}
+    .card-titulo{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--txt);margin-bottom:6px}
+    .card-desc{font-size:11.5px;color:var(--txt2);line-height:1.7;margin-bottom:22px}
+    .card-desc strong{color:var(--gold);font-weight:500}
 
-    .divider{width:100%;display:flex;align-items:center;gap:12px;margin:28px 0}
-    .divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border-hi),transparent)}
-    .divider-mark{width:4px;height:4px;background:var(--gold);transform:rotate(45deg);opacity:.6}
+    label{display:block;font-size:9px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;margin-bottom:8px}
+    #input-convite{width:100%;height:48px;border:1px solid var(--line2);border-radius:9px;background:var(--bg4);color:var(--txt);font-family:var(--mono);font-size:14px;letter-spacing:2px;text-align:center;text-transform:uppercase;padding:0 12px;margin-bottom:16px}
+    #input-convite:focus{outline:none;border-color:var(--blue)}
+    #input-convite::placeholder{color:var(--txt3);letter-spacing:1px;text-transform:none}
 
-    .card{width:100%;border:1px solid var(--border);border-radius:2px;background:var(--surface);padding:32px 28px;position:relative}
-    .card::before,.card::after{content:'';position:absolute;width:16px;height:16px;border-color:var(--gold-lo);border-style:solid}
-    .card::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
-    .card::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+    #btn-principal{width:100%;height:50px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:2.5px;cursor:pointer;transition:background .2s,opacity .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+    #btn-principal:hover:not(:disabled){background:var(--blue-lt)}
+    #btn-principal:disabled{opacity:.5;cursor:not-allowed}
+    #btn-principal img{width:15px;height:15px;background:#fff;border-radius:50%;padding:2px}
 
-    .card-titulo{font-family:var(--display);font-size:20px;font-weight:600;color:var(--silver-hi);margin-bottom:6px}
-    .card-desc{font-size:12px;font-weight:300;color:var(--silver-lo);line-height:1.75;margin-bottom:24px}
-    .card-desc strong{color:var(--gold-hi);font-weight:500}
+    .card-nota{font-size:10px;color:var(--txt3);line-height:1.7;text-align:center;margin-top:16px}
 
-    .ativos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:28px}
-    .ativo-tag{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--silver-lo);border:1px solid var(--border);border-radius:2px;padding:4px 8px;background:var(--surface-2)}
+    .msg-feedback{display:none;width:100%;max-width:380px;margin-top:14px;padding:12px 16px;border-radius:9px;font-family:var(--mono);font-size:10.5px;line-height:1.6;text-align:center}
+    .msg-ok  {display:block;background:var(--green-dim);color:var(--green);border:1px solid rgba(18,138,85,.25)}
+    .msg-erro{display:block;background:var(--red-dim);color:var(--red);border:1px solid rgba(198,40,40,.25)}
+    .msg-info{display:block;background:var(--gold-dim);color:#8a6d1f;border:1px solid rgba(201,150,46,.25)}
 
-    .btn-google{width:100%;height:52px;display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid var(--border-hi);border-radius:2px;background:transparent;color:var(--silver-hi);font-family:var(--mono);font-size:11px;letter-spacing:3px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-    .btn-google:hover:not(:disabled){border-color:var(--gold);box-shadow:0 0 24px rgba(201,150,46,.12)}
-    .btn-google:disabled{opacity:.35;cursor:not-allowed}
-    .btn-google img{width:16px;height:16px}
-
-    .sep{display:flex;align-items:center;gap:10px;margin:14px 0}
-    .sep-line{flex:1;height:1px;background:var(--border)}
-    .sep-txt{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--silver-lo)}
-    .card-nota{font-size:11px;font-weight:300;color:var(--silver-lo);line-height:1.7;text-align:center}
-
-    .msg{display:none;width:100%;margin-top:12px;padding:12px 16px;border-radius:2px;font-family:var(--mono);font-size:10px;line-height:1.6;text-align:center}
-    .msg-ok  {display:block;background:#d4f5e2;color:#0f6b42;border:1px solid rgba(18,138,85,.3)}
-    .msg-erro{display:block;background:#ffd5ce;color:#a31f1f;border:1px solid rgba(198,40,40,.3)}
-    .msg-info{display:block;background:rgba(201,150,46,.1);color:var(--gold-hi);border:1px solid rgba(201,150,46,.25)}
-
-    .rodape{margin-top:32px;text-align:center;display:flex;flex-direction:column;gap:6px}
-    .rodape-lema{font-family:var(--display);font-size:10px;font-style:italic;color:var(--gold);opacity:.5}
-    .rodape-meta{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--silver-lo);opacity:.35}
+    .rodape{margin-top:28px;font-size:9px;letter-spacing:2px;color:var(--txt3);opacity:.5}
   </style>
 </head>
 <body>
 <div class="page">
   <div class="wrap">
 
-    <div class="moeda-wrap">
-      <div class="moeda-anel"></div>
-      <div class="moeda-anel-2"></div>
-      <div class="moeda-face"><span class="moeda-s">S</span></div>
-    </div>
-
-    <div class="marca">
-      <p class="marca-eyebrow">PLATAFORMA DE INVESTIMENTOS</p>
-      <h1 class="marca-nome">Sol<em>do</em></h1>
-      <p class="marca-tagline">Simulador Educacional · Gratuito</p>
-    </div>
-
-    <div class="divider">
-      <div class="divider-line"></div>
-      <div class="divider-mark"></div>
-      <div class="divider-line"></div>
-    </div>
+    <div class="logo">POMB<span style="color:var(--blue)">ITOS</span><span class="logo-gem"></span></div>
+    <p class="tagline">Simulador de investimentos</p>
 
     <div class="card">
-      <p class="card-titulo">Acesse sua conta</p>
+      <p class="card-titulo">Bem-vindo, Pombito 🪶</p>
       <p class="card-desc">
-        Crie seu perfil gratuitamente e receba
-        <strong>R$ 500.000</strong> em capital virtual para operar
-        nos principais mercados brasileiros sem nenhum risco.
+        Entre com sua conta Google e receba <strong>R$ 500.000</strong>
+        em capital virtual para operar nos principais mercados
+        brasileiros sem nenhum risco.
       </p>
-      <div class="ativos">
-        <span class="ativo-tag">AÇÕES</span>
-        <span class="ativo-tag">FIIs</span>
-        <span class="ativo-tag">TESOURO DIRETO</span>
-        <span class="ativo-tag">CRIPTO</span>
-        <span class="ativo-tag">RENDA FIXA</span>
-      </div>
 
-      <button class="btn-google" id="btn-google" onclick="entrarOuCriar()">
+      <button id="btn-principal" onclick="entrarComGoogle()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
         ENTRAR COM GOOGLE
       </button>
 
-      <div class="sep">
-        <div class="sep-line"></div>
-        <span class="sep-txt">CONTA NOVA OU EXISTENTE</span>
-        <div class="sep-line"></div>
-      </div>
-
       <p class="card-nota">
         Primeiro acesso? Seu perfil será criado em seguida.<br>
-        Já tem conta? Você entra direto.
+        Já tem conta? Você entra direto no feed.
       </p>
     </div>
 
-    <div class="msg" id="msg"></div>
+    <div class="msg-feedback" id="msg-feedback"></div>
 
-    <div class="rodape">
-      <p class="rodape-lema">"Capital é disciplina aplicada no tempo."</p>
-      <p class="rodape-meta">SOLDO · EDUCAÇÃO FINANCEIRA · © 2025</p>
-    </div>
-
+    <p class="rodape">LOS POMBITOS · SIMULADOR DE INVESTIMENTOS</p>
   </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<script src="firebase.js"></script>
+<script src="auth.js"></script>
 
-<script>
-  function showMsg(texto, tipo) {
-    const el = document.getElementById('msg');
-    el.textContent = texto;
-    el.className = 'msg msg-' + tipo;
-  }
-
-  function setBtnLoading(label) {
-    const b = document.getElementById('btn-google');
-    b.disabled = true;
-    b.innerHTML = `<span style="font-family:var(--mono);font-size:11px;letter-spacing:2px">${label}</span>`;
-  }
-
-  function resetBtn() {
-    const b = document.getElementById('btn-google');
-    b.disabled = false;
-    b.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="16"> ENTRAR COM GOOGLE';
-  }
-
-  async function processarUsuario(user) {
-    try {
-      showMsg('Verificando conta...', 'info');
-      const snap = await db.collection('usuarios').doc(user.uid).get();
-
-      if (snap.exists && snap.data().perfil_completo === true) {
-        showMsg('Bem-vindo de volta!', 'ok');
-        setTimeout(() => window.location.replace('feed.html'), 600);
-
-      } else if (snap.exists) {
-        showMsg('Continuando seu perfil...', 'info');
-        setTimeout(() => window.location.replace('setup-perfil.html'), 600);
-
-      } else {
-        await db.collection('usuarios').doc(user.uid).set({
-          uid:             user.uid,
-          email:           user.email,
-          nome:            user.displayName || '',
-          foto_google:     user.photoURL || null,
-          saldo_disponivel: 500000,
-          saldo_investido:  0,
-          patrimonio_total: 500000,
-          perfil_completo:  false,
-          data_adesao:      firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        showMsg('Conta criada! Configurando perfil...', 'ok');
-        setTimeout(() => window.location.replace('setup-perfil.html'), 600);
-      }
-    } catch(e) {
-      console.error('processarUsuario:', e);
-      showMsg('Erro: ' + e.message, 'erro');
-      resetBtn();
-    }
-  }
-
-  async function entrarOuCriar() {
-    setBtnLoading('AGUARDE...');
-    try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-
-      // Usa sempre signInWithPopup — mais confiável no mobile com domínio customizado
-      const result = await firebase.auth().signInWithPopup(provider);
-      await processarUsuario(result.user);
-
-    } catch(e) {
-      console.error('login erro:', e);
-      if (e.code === 'auth/popup-blocked') {
-        // Popup bloqueado pelo browser — tenta redirect como fallback
-        showMsg('Popup bloqueado. Tentando redirecionamento...', 'info');
-        try {
-          const provider = new firebase.auth.GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: 'select_account' });
-          await firebase.auth().signInWithRedirect(provider);
-        } catch(e2) {
-          showMsg('Erro ao redirecionar: ' + e2.message, 'erro');
-          resetBtn();
-        }
-      } else if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
-        showMsg('Login cancelado. Tente novamente.', 'info');
-        resetBtn();
-      } else {
-        showMsg('Erro: ' + e.message, 'erro');
-        resetBtn();
-      }
-    }
-  }
-
-  // Verifica se já estava logado ao abrir a página
-  firebase.auth().onAuthStateChanged(async user => {
-    if (!user) return;
-    // Já logado — redireciona direto sem mostrar botão
-    setBtnLoading('CARREGANDO...');
-    await processarUsuario(user);
-  });
-</script>
 </body>
 </html>
