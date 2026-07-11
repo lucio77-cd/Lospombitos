@@ -13,6 +13,12 @@
 // (variável de ambiente GEMINI_API_KEY na Vercel). O client chama
 // o endpoint /api/gemini, que faz a chamada real por trás.
 
+// storage só é usado aqui (upload do avatar gerado) — por isso não
+// fica no firebase.js/auth.js compartilhado. Precisa do SDK
+// firebase-storage-compat.js carregado em germinar.html ANTES deste
+// arquivo (senão firebase.storage não existe e isso quebra).
+const storage = firebase.storage();
+
 // ----------------------------------------------------------
 // ENTRADA PRINCIPAL
 // ----------------------------------------------------------
@@ -53,7 +59,8 @@ async function iniciarProcessoDeArte(dadosUsuario) {
       dna_visual:    dnaVisual,
       parametros_arte: parametros,
       foto_gerada:   true,
-      status_perfil: "VIVO"
+      status_perfil: "VIVO",
+      perfil_completo: true
     });
 
     setStatus("Alçando voo... 🕊️");
@@ -72,7 +79,8 @@ async function iniciarProcessoDeArte(dadosUsuario) {
       await db.collection("usuarios").doc(dadosUsuario.uid).update({
         foto_perfil:   fotoFallback,
         foto_gerada:   true,
-        status_perfil: "VIVO"
+        status_perfil: "VIVO",
+        perfil_completo: true
       });
 
       return fotoFallback;
