@@ -147,12 +147,24 @@ const MercadoAPI = {
     // todos de uma vez em /quote/A,B,C,..., o que o plano atual rejeita
     // por inteiro — e como o erro era engolido em silêncio, a lista
     // inteira ficava travada em "carregando" pra sempre.
+    //
+    // Um pequeno espaçamento (80ms) entre cada chamada evita estourar o
+    // limite de requisições simultâneas do plano gratuito quando a lista
+    // tem várias ações/FIIs de uma vez (ex: 10 FIIs disparados juntos —
+    // o último as vezes falhava mesmo com token válido).
     if (acoes.length) {
-      const respostas = await Promise.allSettled(
-        acoes.map(t => this._fetch(this._url(`/quote/${t}`, { fundamental: 'false' }), 8000))
-      );
+      const respostas = [];
+      for (let i = 0; i < acoes.length; i++) {
+        respostas.push(
+          this._fetch(this._url(`/quote/${acoes[i]}`, { fundamental: 'false' }), 8000)
+            .then(v => ({ status: 'fulfilled', value: v }))
+            .catch(e => ({ status: 'rejected', reason: e }))
+        );
+        if (i < acoes.length - 1) await new Promise(r => setTimeout(r, 80));
+      }
+      const resolvidas = await Promise.all(respostas);
 
-      respostas.forEach((r, i) => {
+      resolvidas.forEach((r, i) => {
         const t = acoes[i];
         if (r.status !== 'fulfilled') {
           console.warn(`[API] buscarMultiplos: ${t} falhou —`, r.reason?.message);
