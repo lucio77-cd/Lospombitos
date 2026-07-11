@@ -1,14 +1,21 @@
 // ============================================================
-//  api/noticias.js — Busca manchetes recentes de um ticker/empresa
+//  api/noticias.js — Endpoint real chamado por atlas.html
 //
-//  Fica separado do /api/analise-ia de propósito: este endpoint só
-//  busca dados (Google News RSS); quem monta o prompt e pede o
-//  sentimento pro Claude é o próprio atlas.html, reaproveitando o
-//  /api/analise-ia que já existe — sem duplicar o código que fala
-//  com a Anthropic.
+//  ⚠️ IMPORTANTE — ESTE ARQUIVO VAI EM api/noticias.js
+//  O outro "noticias.js" que você já tem é a LIB (api/_lib/noticias.js,
+//  só exporta a função buscarNoticias, não é um handler do Vercel).
+//  Os dois se chamam "noticias.js" mas são coisas diferentes — se
+//  salvar os dois no mesmo lugar, um sobrescreve o outro.
+//
+//  O atlas.html chama fetch('/api/noticias', {method:'POST', body:{query}})
+//  esperando { manchetes: [...] } de volta. Sem este arquivo em
+//  api/noticias.js, essa rota nem existe — a Vercel devolve a página
+//  de erro genérica em HTML ("A server error has occurred..."), que
+//  quebra o JSON.parse no client (é o erro "Unexpected token 'A'...
+//  is not valid JSON" que aparece no Atlas).
 // ============================================================
 
-const { buscarNoticias } = require('./lib/noticias');
+const { buscarNoticias } = require('./_lib/noticias');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
