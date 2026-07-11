@@ -194,6 +194,7 @@
   </style>
 </head>
 <body>
+  <div id="chart-tooltip" style="display:none;position:fixed;z-index:999;background:#170f28;color:#fff;font-family:'DM Mono',monospace;font-size:10.5px;line-height:1.6;padding:8px 11px;border-radius:8px;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.25);white-space:nowrap"></div>
   <aside class="sidebar">
     <div class="sidebar-brand">POMBITOS</div>
     <nav class="sidebar-nav">
@@ -260,6 +261,25 @@
 
     </div>
 
+    <!-- Linha do tempo -->
+    <div class="chart-card" id="chart-timeline" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <p class="chart-title" style="margin:0">📈 LINHA DO TEMPO</p>
+        <select id="timeline-select" style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--line2,#d4c5ec);background:var(--bg4,#ece0fa);color:var(--txt,#170f28)">
+          <option value="__todos__">Toda a carteira</option>
+        </select>
+      </div>
+      <canvas id="timeline-chart" style="margin-top:10px"></canvas>
+      <div class="chart-legend" style="margin-top:8px;font-size:9px;line-height:1.6">
+        <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#8b5fc4"></div>CUSTO INVESTIDO (reconstruído das ordens)</div>
+        <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#128a55"></div>PATRIMÔNIO REAL (a partir de hoje, snapshot diário)</div>
+      </div>
+      <p id="timeline-empty" style="display:none;font-size:10.5px;color:var(--txt3,#a89fb5);text-align:center;padding:20px 8px">
+        Ainda não há snapshots diários suficientes pra essa curva real —
+        ela vai aparecendo dia a dia a partir de hoje.
+      </p>
+    </div>
+
     <!-- Tabs + listas — vira uma única área do dashboard no desktop -->
     <div class="positions-block">
     <div class="tabs">
@@ -306,6 +326,7 @@
   const CAPITAL = 500000;
   let db, meuUID;
   let posicoes = [], cotacoes = {}, ordensValidas = [];
+  let historicoValorSnaps = []; // snapshots reais de carteiras/{uid}/historico_valor
   let saldoDispGlobal = 0;
 
   const CORES_DONUT = ['#5b2a99','#128a55','#c9962e','#c62828','#756c86','#ece0fa','#8b5fc4','#3d1a70'];
@@ -353,12 +374,16 @@
 
   async function carregar() {
     try {
-      const [uS, cS, ordSnap] = await Promise.all([
+      const [uS, cS, ordSnap, histValSnap] = await Promise.all([
         db.collection('usuarios').doc(meuUID).get(),
         db.collection('carteiras').doc(meuUID).get(),
         db.collection('ordens').where('uid', '==', meuUID).get()
-          .catch(() => db.collection('ordens').where('uid', '==', meuUID).limit(200).get())
+          .catch(() => db.collection('ordens').where('uid', '==', meuUID).limit(200).get()),
+        db.collection('carteiras').doc(meuUID).collection('historico_valor').orderBy('data').get()
+          .catch(() => ({ docs: [] })) // subcoleção pode ainda não existir (snapshot diário é feature nova)
       ]);
+
+      historicoValorSnaps = histValSnap.docs.map(d => d.data());
 
       const u = uS.data() || {};
       const c = cS.exists ? cS.data() : {};
@@ -484,6 +509,8 @@
     document.getElementById('charts-row').style.display = 'grid';
     renderBarras();
     renderDonut();
+    document.getElementById('chart-timeline').style.display = 'block';
+    renderLinhaTempo();
   }
 
   // ── Barras horizontais: custo vs valor atual ──
@@ -523,12 +550,16 @@
 
     ctx.clearRect(0, 0, W, H_TOTAL);
 
+    const hitboxesBarras = []; // usado pelo tooltip interativo
+
     ativos.forEach((a, i) => {
       const y     = PAD.t + i * H_ROW;
       const bH    = 11;
       const gap   = 3;
       const isP   = a.valorAtual >= a.custo;
       const cor   = a.temCotacao ? (isP ? '#128a55' : '#c62828') : '#8a8278';
+
+      hitboxesBarras.push({ y0: y, y1: y + H_ROW, ativo: a });
 
       // Ticker
       ctx.fillStyle = '#5b2a99';
@@ -586,6 +617,37 @@
         ctx.stroke();
       }
     });
+
+    ligarTooltipBarras(canvas, hitboxesBarras);
+  }
+
+  // ── Interatividade do gráfico de barras: hover mostra detalhes,
+  //    clique leva pro relatório do ativo ──
+  function ligarTooltipBarras(canvas, hitboxes) {
+    const tip = document.getElementById('chart-tooltip');
+
+    function acharHit(clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const y = clientY - rect.top;
+      return hitboxes.find(h => y >= h.y0 && y <= h.y1);
+    }
+
+    canvas.onmousemove = (e) => {
+      const hit = acharHit(e.clientY);
+      if (!hit) { tip.style.display = 'none'; canvas.style.cursor = 'default'; return; }
+      canvas.style.cursor = 'pointer';
+      const a = hit.ativo;
+      const ganho = a.custo > 0 ? ((a.valorAtual - a.custo) / a.custo) * 100 : 0;
+      tip.innerHTML = `<b>${a.ticker}</b><br>Custo: R$${a.custo.toLocaleString('pt-BR',{minimumFractionDigits:2})}<br>Hoje: R$${a.valorAtual.toLocaleString('pt-BR',{minimumFractionDigits:2})}<br>${a.temCotacao ? (ganho>=0?'+':'')+ganho.toFixed(2)+'%' : 'sem cotação'}`;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top  = (e.clientY - 10) + 'px';
+    };
+    canvas.onmouseleave = () => { tip.style.display = 'none'; };
+    canvas.onclick = (e) => {
+      const hit = acharHit(e.clientY);
+      if (hit) location.href = `relatorio.html?ticker=${encodeURIComponent(hit.ativo.ticker)}`;
+    };
   }
 
   // ── Donut: alocação ──
@@ -617,6 +679,7 @@
 
     const cx = SIZE / 2, cy = SIZE / 2, R = 54, r = 30;
     let ang = -Math.PI / 2;
+    const hitboxesDonut = [];
 
     fatias.forEach(f => {
       const slice = (f.valor / total) * Math.PI * 2;
@@ -629,6 +692,7 @@
       ctx.strokeStyle = '#faf8f5';
       ctx.lineWidth = 2;
       ctx.stroke();
+      hitboxesDonut.push({ a0: ang, a1: ang + slice, fatia: f, pct: (f.valor / total) * 100 });
       ang += slice;
     });
 
@@ -656,11 +720,189 @@
         </div>`;
       }).join('');
     }
+
+    ligarTooltipDonut(canvas, hitboxesDonut, cx, cy, r, R);
+  }
+
+  // ── Interatividade do donut: hover mostra ticker/valor/% ──
+  function ligarTooltipDonut(canvas, hitboxes, cx, cy, r, R) {
+    const tip = document.getElementById('chart-tooltip');
+
+    function acharHit(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      // canvas.style.width é SIZE em CSS px — mapeia direto, sem DPR
+      const x = clientX - rect.left - cx;
+      const y = clientY - rect.top - cy;
+      const dist = Math.sqrt(x * x + y * y);
+      if (dist < r || dist > R) return null;
+      let a = Math.atan2(y, x);
+      if (a < -Math.PI / 2) a += Math.PI * 2; // mesma origem do -90° usado no render
+      return hitboxes.find(h => a >= h.a0 && a <= h.a1);
+    }
+
+    canvas.onmousemove = (e) => {
+      const hit = acharHit(e.clientX, e.clientY);
+      if (!hit) { tip.style.display = 'none'; canvas.style.cursor = 'default'; return; }
+      canvas.style.cursor = 'pointer';
+      tip.innerHTML = `<b>${hit.fatia.label}</b><br>R$${hit.fatia.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}<br>${hit.pct.toFixed(1)}% da carteira`;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top  = (e.clientY - 10) + 'px';
+    };
+    canvas.onmouseleave = () => { tip.style.display = 'none'; };
+    canvas.onclick = (e) => {
+      const hit = acharHit(e.clientX, e.clientY);
+      if (hit && hit.fatia.label !== 'CASH') location.href = `relatorio.html?ticker=${encodeURIComponent(hit.fatia.label)}`;
+    };
   }
 
   // ═══════════════════════════════════════
-  //  POSIÇÕES
+  //  LINHA DO TEMPO
   // ═══════════════════════════════════════
+  let _timelineSelectPronto = false;
+
+  function popularSeletorLinhaTempo() {
+    const sel = document.getElementById('timeline-select');
+    if (!sel || _timelineSelectPronto) return;
+    const tickers = [...new Set(ordensValidas.map(o => o.ticker))].sort();
+    for (const t of tickers) {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', () => renderLinhaTempo(sel.value));
+    _timelineSelectPronto = true;
+  }
+
+  function renderLinhaTempo(filtro) {
+    popularSeletorLinhaTempo();
+    filtro = filtro || document.getElementById('timeline-select')?.value || '__todos__';
+
+    const canvas = document.getElementById('timeline-chart');
+    if (!canvas) return;
+    const vazio = document.getElementById('timeline-empty');
+
+    // ── 1) Reconstrói o CUSTO acumulado (staircase) a partir das ordens ──
+    const ordensFiltradas = filtro === '__todos__'
+      ? ordensValidas
+      : ordensValidas.filter(o => o.ticker === filtro);
+
+    const custoPontos = [];
+    let custoAcum = 0;
+    for (const o of ordensFiltradas) {
+      const d = parseData(o.data);
+      if (!d || isNaN(d.getTime())) continue;
+      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+      custoAcum += o.lado === 'venda' ? -total : total;
+      custoPontos.push({ t: d.getTime(), y: Math.max(custoAcum, 0) });
+    }
+    // Estica o último ponto até agora, pra linha não parecer que "acabou"
+    if (custoPontos.length) {
+      custoPontos.push({ t: Date.now(), y: custoPontos[custoPontos.length - 1].y });
+    }
+
+    // ── 2) Snapshots reais de valor de mercado (a partir de hoje) ──
+    const snapPontos = historicoValorSnaps
+      .map(s => {
+        const t = new Date(s.data + 'T12:00:00').getTime();
+        const valor = filtro === '__todos__'
+          ? (s.valor_investido || 0)
+          : (s.por_ativo?.[filtro]?.valor || 0);
+        return { t, y: valor };
+      })
+      .filter(p => !isNaN(p.t));
+
+    if (!custoPontos.length && !snapPontos.length) {
+      canvas.style.display = 'none';
+      vazio.style.display = 'block';
+      return;
+    }
+    canvas.style.display = 'block';
+    vazio.style.display = snapPontos.length ? 'none' : 'block';
+
+    // ── 3) Desenha ──
+    const ctx  = canvas.getContext('2d');
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const W_CSS = rect.width, H_CSS = 190;
+    canvas.width  = W_CSS * dpr;
+    canvas.height = H_CSS * dpr;
+    canvas.style.width  = W_CSS + 'px';
+    canvas.style.height = H_CSS + 'px';
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W_CSS, H_CSS);
+
+    const PAD = { l: 54, r: 12, t: 10, b: 20 };
+    const plotW = W_CSS - PAD.l - PAD.r;
+    const plotH = H_CSS - PAD.t - PAD.b;
+
+    const todosPontos = [...custoPontos, ...snapPontos];
+    const minT = Math.min(...todosPontos.map(p => p.t));
+    const maxT = Math.max(Date.now(), ...todosPontos.map(p => p.t));
+    const maxY = Math.max(1, ...todosPontos.map(p => p.y)) * 1.08;
+
+    const xOf = t => PAD.l + ((t - minT) / Math.max(1, maxT - minT)) * plotW;
+    const yOf = y => PAD.t + plotH - (y / maxY) * plotH;
+
+    // Grade horizontal (4 linhas)
+    ctx.strokeStyle = '#ece7df';
+    ctx.lineWidth = 1;
+    ctx.font = '8px DM Mono,monospace';
+    ctx.fillStyle = '#a89fb5';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 3; i++) {
+      const y = PAD.t + (plotH / 3) * i;
+      ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W_CSS - PAD.r, y); ctx.stroke();
+      const val = maxY * (1 - i / 3);
+      ctx.fillText('R$' + (val / 1000).toFixed(0) + 'K', PAD.l - 6, y + 3);
+    }
+
+    // Linha de custo (staircase, roxo)
+    if (custoPontos.length) {
+      ctx.strokeStyle = '#8b5fc4';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      custoPontos.forEach((p, i) => {
+        const x = xOf(p.t), y = yOf(p.y);
+        if (i === 0) { ctx.moveTo(x, y); }
+        else {
+          const xPrev = xOf(custoPontos[i - 1].t);
+          ctx.lineTo(x, yOf(custoPontos[i - 1].y)); // degrau: mantém Y anterior até o novo X
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+    }
+
+    // Linha de valor real (snapshots, verde)
+    if (snapPontos.length) {
+      ctx.strokeStyle = '#128a55';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      snapPontos.forEach((p, i) => {
+        const x = xOf(p.t), y = yOf(p.y);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      snapPontos.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(xOf(p.t), yOf(p.y), 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#128a55';
+        ctx.fill();
+      });
+    }
+
+    // Eixo X: início e fim
+    ctx.fillStyle = '#a89fb5';
+    ctx.font = '8px DM Mono,monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(new Date(minT).toLocaleDateString('pt-BR'), PAD.l, H_CSS - 4);
+    ctx.textAlign = 'right';
+    ctx.fillText(new Date(maxT).toLocaleDateString('pt-BR'), W_CSS - PAD.r, H_CSS - 4);
+  }
+
+
   function renderPosicoes() {
     document.getElementById('pos-loading').style.display = 'none';
     const list = document.getElementById('pos-list');
