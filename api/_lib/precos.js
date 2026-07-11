@@ -34,8 +34,21 @@ async function precoAcaoOuFii(ticker) {
   return { preco: q.regularMarketPrice, mercado_aberto: q.marketState === 'REGULAR' };
 }
 
-async function precoCripto(id) {
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(id)}&vs_currencies=brl`;
+// Mesmo mapa símbolo → id do CoinGecko usado em precosCripto.js (Game
+// Estudo). Antes esta função fazia só ticker.toLowerCase() e mandava
+// isso como "id" pro CoinGecko — só que "btc"/"eth" não são ids válidos
+// lá (o id de Bitcoin é "bitcoin", não "btc"), então TODA compra/venda
+// de cripto por ordem a mercado falhava com 502 "não foi possível
+// confirmar a cotação real".
+const CRIPTO_IDS = {
+  btc: 'bitcoin', eth: 'ethereum', bnb: 'binancecoin',
+  sol: 'solana',  ada: 'cardano',  dot: 'polkadot', avax: 'avalanche-2',
+};
+
+async function precoCripto(ticker) {
+  const chave = String(ticker).toLowerCase().trim();
+  const id = CRIPTO_IDS[chave] || chave; // fallback: caso já venha um id válido
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=brl`;
   const data = await _fetchJson(url);
   const preco = data?.[id]?.brl;
   if (!preco || preco <= 0) return null;
@@ -45,7 +58,7 @@ async function precoCripto(id) {
 // Retorna { preco, mercado_aberto } ou null se não foi possível confirmar o preço real.
 async function obterPrecoReal(tipo, ticker) {
   try {
-    if (tipo === 'cripto') return await precoCripto(ticker.toLowerCase());
+    if (tipo === 'cripto') return await precoCripto(ticker);
     if (tipo === 'acoes' || tipo === 'fiis') return await precoAcaoOuFii(ticker);
     return null; // tesouro/cdb/lci — não validado aqui ainda (ver TODO acima)
   } catch (e) {
