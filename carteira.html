@@ -400,9 +400,11 @@
       }
       saldoDispGlobal = Math.max(0, saldoRecalc);
 
-      // Cotações
+      // Cotações — inclui cripto também (antes só ações/FIIs pegavam
+      // cotação ao vivo; cripto ficava sem preço atual e por isso nunca
+      // mostrava ganho/perda na carteira)
       const tickers = posicoes
-        .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
+        .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || p.tipo === 'cripto' || !p.tipo)
         .map(p => p.ticker);
 
       if (tickers.length) {
