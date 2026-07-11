@@ -1,7 +1,7 @@
 // ============================================================
 //  LOS POMBITOS — auth.js  (versão corrigida e segura)
 //  Rede social + Simuladora de Corretora
-//  Comunidade fechada por convite · Capital inicial R$ 500.000
+//  Login direto com Google · Capital inicial R$ 500.000
 // ============================================================
 
 // ----------------------------------------------------------
@@ -35,13 +35,13 @@ const auth = firebase.auth();
 //    Páginas permitidas por perfil:
 //    - Sem sessão        → apenas index.html e invite.html
 //    - Perfil completo   → feed, investir, carteira, relatorio, ordem
-//    - Perfil incompleto → apenas setup-perfil.html
+//    - Perfil incompleto → apenas germinar.html
 // ----------------------------------------------------------
 
 const PAGINAS_PUBLICAS = ["index.html", "invite.html", "", "/"];
 const PAGINAS_MEMBRO   = [
   "feed.html", "investir.html", "carteira.html",
-  "relatorio.html", "ordem.html", "setup-perfil.html"
+  "relatorio.html", "ordem.html", "germinar.html"
 ];
 
 auth.onAuthStateChanged(async (user) => {
@@ -68,8 +68,8 @@ auth.onAuthStateChanged(async (user) => {
       // Nas páginas de membro não redireciona — deixa carregar normalmente
     } else {
       // Perfil incompleto → só pode estar no setup
-      if (paginaAtual !== "setup-perfil.html") {
-        window.location.href = "setup-perfil.html";
+      if (paginaAtual !== "germinar.html") {
+        window.location.href = "germinar.html";
       }
     }
   } catch (e) {
@@ -108,108 +108,19 @@ function setBotaoCarregando(carregando, textoPadrao = "Entrar") {
 }
 
 // ----------------------------------------------------------
-// 5. GERADOR DE CÓDIGO ÚNICO
-//    6 caracteres aleatórios + verificação de colisão.
-// ----------------------------------------------------------
-async function gerarCodigoUnico() {
-  const MAX_TENTATIVAS = 10;
-
-  for (let tentativa = 0; tentativa < MAX_TENTATIVAS; tentativa++) {
-    const sufixo = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const codigo = `POMB-${sufixo}`;
-
-    const snap = await db.collection("convites").doc(codigo).get();
-    if (!snap.exists) {
-      return codigo; // código disponível ✅
-    }
-  }
-
-  throw new Error("Não foi possível gerar um código único. Tente novamente.");
-}
-
-// ----------------------------------------------------------
-// 6. CADASTRO DE NOVOS MEMBROS
-//    Cria os 3 códigos do novo membro em lote (batch).
-// ----------------------------------------------------------
-async function criarCodigos(uid) {
-  const batch  = db.batch();
-  const codigos = [];
-
-  for (let i = 0; i < 3; i++) {
-    const codigo  = await gerarCodigoUnico();
-    const docRef  = db.collection("convites").doc(codigo);
-
-    batch.set(docRef, {
-      gerado_por:   uid,
-      usado:        false,
-      data_criacao: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    codigos.push(codigo);
-  }
-
-  await batch.commit();
-  return codigos;
-}
-
-// ----------------------------------------------------------
-// 7. FLUXO PRINCIPAL: VALIDAR CONVITE → LOGIN GOOGLE → CADASTRO
+// 5. LOGIN DIRETO COM GOOGLE (sem código de convite)
 //
-//    ORDEM CORRETA:
-//    1. Valida o código no Firestore (sem logar ninguém ainda)
-//    2. Abre o Google para o usuário criar/usar a conta dele
-//    3. Verifica se essa conta Google já é membro (acesso direto)
-//    4. Consome o código atomicamente e salva o novo membro
-//
-//    O código SÓ é marcado como usado depois que a conta
-//    Google foi criada com sucesso.
+//    1. Abre o Google para o usuário criar/usar a conta dele
+//    2. Se já é membro com perfil completo → feed direto
+//    3. Se é conta nova (ou perfil incompleto) → finaliza cadastro
 // ----------------------------------------------------------
-async function validarEEntrar() {
-  const input = document.getElementById("input-convite");
-  if (!input) return;
-
-  const codigoInput = input.value.trim().toUpperCase();
-
-  if (!codigoInput) {
-    exibirMensagem("Insira um código de convite válido.", "erro");
-    return;
-  }
-
+async function entrarComGoogle() {
   setBotaoCarregando(true, "Entrar");
-
-  // ── PASSO 1: Validar o código ANTES de qualquer login
-  //    O usuário ainda não está logado aqui.
-  exibirMensagem("Verificando sua semente...", "info");
-
-  try {
-    const conviteRef  = db.collection("convites").doc(codigoInput);
-    const conviteSnap = await conviteRef.get();
-
-    if (!conviteSnap.exists) {
-      exibirMensagem("Este código não existe na linhagem.", "erro");
-      setBotaoCarregando(false, "Entrar");
-      return;
-    }
-
-    if (conviteSnap.data().usado === true) {
-      exibirMensagem("Este código já foi utilizado por outro Pombito.", "erro");
-      setBotaoCarregando(false, "Entrar");
-      return;
-    }
-  } catch (e) {
-    console.error("Erro ao verificar convite:", e);
-    exibirMensagem("Erro ao verificar o código. Tente novamente.", "erro");
-    setBotaoCarregando(false, "Entrar");
-    return;
-  }
-
-  // ── PASSO 2: Código válido! Agora abre o Google para criar a conta
-  exibirMensagem("Código válido! Conectando com o Google...", "info");
+  exibirMensagem("Conectando com o Google...", "info");
 
   let user;
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    // Força o Google a mostrar a tela de escolha de conta sempre
     provider.setCustomParameters({ prompt: "select_account" });
 
     const resultado = await auth.signInWithPopup(provider);
@@ -218,66 +129,35 @@ async function validarEEntrar() {
   } catch (e) {
     setBotaoCarregando(false, "Entrar");
     if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") {
-      exibirMensagem("Login cancelado. Seu código continua válido, tente novamente.", "info");
+      exibirMensagem("Login cancelado. Tente novamente.", "info");
     } else {
       exibirMensagem("Erro no Google: " + e.message, "erro");
     }
     return;
   }
 
-  // ── PASSO 3: Conta Google criada — verificar se já é membro
-  //    Se já tem perfil completo, vai direto ao feed (sem consumir código).
   try {
     const usuarioSnap = await db.collection("usuarios").doc(user.uid).get();
+
     if (usuarioSnap.exists && usuarioSnap.data().perfil_completo === true) {
       exibirMensagem("Bem-vindo de volta, Pombito! 🪶", "ok");
       window.location.href = "feed.html";
       return;
     }
-  } catch (e) {
-    console.error("Erro ao verificar membro existente:", e);
-  }
 
-  // ── PASSO 4: Conta nova confirmada — agora consome o código atomicamente
-  //    Só chegamos aqui se:
-  //    - o código era válido (passo 1)
-  //    - a conta Google foi criada (passo 2)
-  //    - o usuário não era membro (passo 3)
-  try {
-    exibirMensagem("Registrando na linhagem...", "info");
-
-    await db.runTransaction(async (transaction) => {
-      const conviteRef  = db.collection("convites").doc(codigoInput);
-      const conviteSnap = await transaction.get(conviteRef);
-
-      // Verifica de novo dentro da transação — proteção contra race condition
-      if (!conviteSnap.exists || conviteSnap.data().usado === true) {
-        throw new Error("Este código foi usado por outra pessoa agora mesmo. Peça um novo convite.");
-      }
-
-      // Marca como usado atomicamente — só agora, após conta criada
-      transaction.update(conviteRef, {
-        usado:     true,
-        quem_usou: user.uid,
-        data_uso:  firebase.firestore.FieldValue.serverTimestamp()
-      });
-    });
-
-    // ── PASSO 5: Salvar o novo membro e gerar seus 3 códigos
+    // Conta nova ou perfil incompleto — finaliza/continua o cadastro
     await finalizarCadastroPombito(user);
 
   } catch (e) {
-    console.error("Erro ao registrar na linhagem:", e);
+    console.error("Erro ao entrar:", e);
     exibirMensagem(e.message || "Erro inesperado. Tente novamente.", "erro");
-    // Desloga para não deixar o usuário num estado inconsistente
-    await auth.signOut();
     setBotaoCarregando(false, "Entrar");
   }
 }
 
 // ----------------------------------------------------------
 // 8. FINALIZAR CADASTRO DO NOVO POMBITO
-//    Salva dados iniciais + gera os 3 novos códigos do membro.
+//    Salva dados iniciais do membro no Firestore.
 // ----------------------------------------------------------
 async function finalizarCadastroPombito(user) {
   try {
@@ -290,18 +170,12 @@ async function finalizarCadastroPombito(user) {
       return;
     }
 
-    exibirMensagem("Gerando seus códigos de convite...", "info");
-
-    // Gera os 3 códigos exclusivos deste membro
-    const novosCodigos = await criarCodigos(user.uid);
-
     // Salva dados iniciais do membro (sem sobrescrever campos existentes)
     await docRef.set({
       uid:                user.uid,
       nome:               user.displayName || "Pombito",
       email:              user.email,
       foto_google:        user.photoURL || null,
-      meus_codigos:       novosCodigos,
       // Capital inicial da corretora simulada
       saldo_disponivel:   500000.00,
       saldo_investido:    0,
@@ -314,7 +188,7 @@ async function finalizarCadastroPombito(user) {
       data_adesao:        firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
-    window.location.href = "setup-perfil.html";
+    window.location.href = "germinar.html";
 
   } catch (e) {
     console.error("Erro ao finalizar cadastro:", e);
@@ -324,7 +198,7 @@ async function finalizarCadastroPombito(user) {
 }
 
 // ----------------------------------------------------------
-// 9. COMPLETAR PERFIL (setup-perfil.html)
+// 9. COMPLETAR PERFIL (germinar.html)
 //    Chamada quando o usuário salva username + foto.
 // ----------------------------------------------------------
 async function germinarEsalvarPombito(dadosFicha) {
