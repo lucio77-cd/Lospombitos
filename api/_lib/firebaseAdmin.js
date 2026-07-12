@@ -53,12 +53,33 @@ async function verificarToken(req) {
     throw err;
   }
 
+  // getAdminApp() fica FORA do try de verifyIdToken de propósito — se as
+  // credenciais do servidor (env vars) estiverem erradas/ausentes, isso
+  // é um problema de CONFIGURAÇÃO (500), não do token do usuário (401).
+  // Antes os dois caíam no mesmo catch e viravam sempre "token inválido
+  // ou expirado" — mensagem enganosa que fazia parecer que o problema
+  // era no navegador do usuário quando na real era a Vercel sem as
+  // credenciais certas.
+  let app;
   try {
-    const app = getAdminApp();
+    app = getAdminApp();
+  } catch (e) {
+    console.error('[firebaseAdmin] Falha ao inicializar credenciais do servidor:', e.message);
+    const err = new Error('Erro de configuração do servidor: ' + e.message);
+    err.status = 500;
+    throw err;
+  }
+
+  try {
     const decoded = await admin.auth(app).verifyIdToken(token);
     return decoded.uid;
   } catch (e) {
-    const err = new Error('Token de autenticação inválido ou expirado.');
+    // Loga o motivo REAL nos logs da Vercel — "token inválido ou
+    // expirado" genérico só vai pro usuário, mas aqui a gente sabe
+    // exatamente o que o Admin SDK reclamou (audience errado, projeto
+    // errado, assinatura inválida, expirado de verdade, etc.)
+    console.error('[firebaseAdmin] verifyIdToken falhou:', e.code || e.message);
+    const err = new Error('Token de autenticação inválido ou expirado. (' + (e.code || 'erro desconhecido') + ')');
     err.status = 401;
     throw err;
   }
