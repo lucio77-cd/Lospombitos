@@ -134,12 +134,46 @@
   <script>
     let db, meuUID;
 
-    firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) return; // auth.js já cuida do redirect pra invite.html
-      meuUID = user.uid;
-      db = firebase.firestore();
-      await carregarTrilha();
+    // Sem DevTools no celular = sem console pra olhar. Qualquer erro
+    // que escape dos try/catch normais (erro de sintaxe em outro trecho,
+    // exceção fora de uma promise tratada, etc.) aparece aqui na tela
+    // em vez de travar tudo em silêncio no esqueleto de carregamento.
+    window.addEventListener('error', (e) => {
+      mostrarErroFatal(e.message);
     });
+    window.addEventListener('unhandledrejection', (e) => {
+      mostrarErroFatal(e.reason?.message || String(e.reason));
+    });
+
+    function mostrarErroFatal(msg) {
+      const el = document.getElementById('trilha-loading');
+      if (el) {
+        el.innerHTML = `<div class="skel">⚠️ Erro ao carregar a página.<br><span style="opacity:.6">${msg}</span></div>`;
+        el.style.display = 'block';
+      }
+    }
+
+    // Se depois de 8s nada resolveu (nem sucesso, nem erro capturado),
+    // mostra um aviso em vez de deixar o esqueleto girando pra sempre.
+    const timeoutCarregamento = setTimeout(() => {
+      mostrarErroFatal('Demorou demais pra carregar. Verifique sua conexão ou tente recarregar a página.');
+    }, 8000);
+
+    try {
+      firebase.auth().onAuthStateChanged(async (user) => {
+        try {
+          clearTimeout(timeoutCarregamento);
+          if (!user) return; // auth.js já cuida do redirect pra invite.html
+          meuUID = user.uid;
+          db = firebase.firestore();
+          await carregarTrilha();
+        } catch (e) {
+          mostrarErroFatal(e.message);
+        }
+      });
+    } catch (e) {
+      mostrarErroFatal('Falha ao iniciar o Firebase: ' + e.message);
+    }
 
     const NOMES_META = {
       retorno_pct: (v) => `Termine com retorno ≥ ${v}%`,
