@@ -211,7 +211,6 @@
       <a class="sni" href="investir.html"><span class="sni-ico">📈</span>INVESTIR</a>
       <a class="sni on" href="atlas.html"><span class="sni-ico">🔭</span>ATLAS</a>
       <a class="sni" href="carteira.html"><span class="sni-ico">💼</span>CARTEIRA</a>
-      <a class="sni" href="game-estudo.html"><span class="sni-ico">🎮</span>GAME ESTUDO</a>
       <a class="sni" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
     </nav>
   </aside>
@@ -412,6 +411,15 @@
       </div>
     </div>
 
+    <!-- Fatores Quantitativos (Value/Quality/Momentum) -->
+    <div class="section-divider" id="div-quant" style="display:none">FATORES QUANTITATIVOS</div>
+    <div class="fatores-card" id="quant-card">
+      <div class="fatores-title">📊 VALUE · QUALITY · MOMENTUM</div>
+      <div id="quant-body">
+        <span class="analise-loading"><span class="spin-dot"></span> Calculando fatores quantitativos...</span>
+      </div>
+    </div>
+
     <!-- Sentimento de Notícias -->
     <div class="section-divider" id="div-noticias" style="display:none">SENTIMENTO DE NOTÍCIAS</div>
     <div class="fatores-card" id="noticias-card">
@@ -445,14 +453,22 @@
     <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
     <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
     <a class="ni on" href="atlas.html"><span class="ni-ico">🔭</span><span class="ni-lbl">ATLAS</span></a>
-    <a class="ni" href="game-estudo.html"><span class="ni-ico">🎮</span><span class="ni-lbl">GAME</span></a>
     <a class="ni" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
   </nav>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>
   'use strict';
+
+  // ── Guard de sessão: sem login, não acessa o Atlas ──
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) { location.href = 'login.html'; return; }
+  });
 
   const R$ = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
@@ -543,6 +559,8 @@
       document.getElementById('analise-card').style.display = 'none';
       document.getElementById('div-fatores').style.display = 'none';
       document.getElementById('fatores-card').style.display = 'none';
+      document.getElementById('div-quant').style.display = 'none';
+      document.getElementById('quant-card').style.display = 'none';
       carregarFatorClimatico(ticker, 'mercado_global');
       carregarSentimentoNoticias(ticker, ticker);
       return;
@@ -570,6 +588,7 @@
         renderAtivo(ativo, detalhe);
         await gerarAnalise(ticker, ativo, detalhe);
         carregarFatorClimatico(ticker, 'acoes');
+        carregarFatoresQuant(ticker, detalhe?.pl, detalhe?.pvp, detalhe?.roe, detalhe?.margem_lucro);
         carregarSentimentoNoticias(ticker, `${ticker} ação B3`);
       }
     } catch (e) {
@@ -663,6 +682,69 @@
     }
   }
 
+  // ── Fatores Quantitativos (Value/Quality/Momentum): reaproveita os
+  // fundamentos (pl, pvp, roe, margem) que buscarDetalhadoAtivo já
+  // trouxe, e só busca de novo o histórico de preço de ~1 ano pro
+  // cálculo de momentum — ver api/fatores-fundamentais.js.
+  async function carregarFatoresQuant(ticker, pl, pvp, roe, margem) {
+    document.getElementById('div-quant').style.display = 'flex';
+    document.getElementById('quant-card').style.display = 'block';
+    const body = document.getElementById('quant-body');
+
+    try {
+      const res = await fetch('/api/fatores-fundamentais', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, pl, pvp, roe, margem })
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+
+      if (!d.aplicavel) {
+        body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
+        return;
+      }
+
+      const cor = d.geral.score >= 60 ? '#128a55' : d.geral.score >= 40 ? '#c9962e' : '#c62828';
+      let html = `
+        <div class="clima-sinal" style="border-color:${cor}">
+          <div class="clima-sinal-top">
+            <span class="clima-sinal-cidade">Score geral</span>
+            <span class="clima-sinal-forca" style="color:${cor}">${d.geral.score} · ${d.geral.classificacao}</span>
+          </div>
+          <div class="clima-sinal-desc">${d.aviso}</div>
+        </div>`;
+
+      const linha = (nome, dados, corBase) => {
+        if (!dados) return '';
+        return `
+          <div class="fator-row">
+            <span class="fator-nome">${nome} · ${dados.label}</span>
+            <div class="fator-bar-wrap">
+              <div class="fator-bar" style="width:${dados.score}%;background:${corBase}"></div>
+            </div>
+            <span class="fator-pct" style="color:${corBase}">${dados.score}</span>
+          </div>`;
+      };
+
+      html += linha('Value', d.value, '#5b2a99');
+      html += linha('Quality', d.quality, '#128a55');
+      html += linha('Momentum', d.momentum, '#c9962e');
+
+      if (d.avisoMomentum) {
+        html += `<div class="clima-aviso">ℹ️ ${d.avisoMomentum}</div>`;
+      } else if (d.fonteHistorico) {
+        html += `<div class="clima-lista-title">HISTÓRICO DE PREÇO VIA ${d.fonteHistorico.toUpperCase()}</div>`;
+      }
+
+      body.innerHTML = html;
+
+    } catch (e) {
+      console.error('[FatoresQuant]', e);
+      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular os fatores quantitativos agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
+    }
+  }
+
   // ── Sentimento de Notícias: busca manchetes recentes (Google News RSS)
   // e pede pro Claude classificar o tom geral, reaproveitando o mesmo
   // /api/analise-ia usado na síntese dos agentes — nenhum código novo de
@@ -742,6 +824,8 @@ Classifique o sentimento geral dessas manchetes em relação a ${ticker} como in
     document.getElementById('analise-card').style.display = 'none';
     document.getElementById('div-clima').style.display = 'none';
     document.getElementById('clima-card').style.display = 'none';
+    document.getElementById('div-quant').style.display = 'none';
+    document.getElementById('quant-card').style.display = 'none';
     document.getElementById('div-noticias').style.display = 'none';
     document.getElementById('noticias-card').style.display = 'none';
     document.getElementById('div-cenarios').style.display = 'none';
