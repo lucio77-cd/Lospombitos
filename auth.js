@@ -40,7 +40,7 @@ const auth = firebase.auth();
 
 const PAGINAS_PUBLICAS = ["index.html", "login.html", "", "/"];
 const PAGINAS_MEMBRO   = [
-  "feed.html", "investir.html", "carteira.html",
+  "feed.html", "investir.html", "carteira.html", "atlas.html",
   "relatorio.html", "ordem.html", "germinar.html"
 ];
 
