@@ -306,6 +306,10 @@
     renderPosts();
   }
 
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   function corPombito() {
     const m = {
       'azul':'#5b2a99','azul celeste':'#87ceeb','azul mar':'#006994',
@@ -635,36 +639,36 @@
           card.innerHTML = `
             <div class="post-hdr">
               <div class="post-av" style="background:${avBg}">
-                <img src="${foto}" alt="" onerror="this.style.display='none'">
+                <img src="${escHtml(foto)}" alt="" onerror="this.style.display='none'">
               </div>
               <div>
-                <p class="post-nome">@${userData.username || 'pombito'}</p>
+                <p class="post-nome">@${escHtml(userData.username || 'pombito')}</p>
                 <p class="post-data">${data}</p>
               </div>
               <span class="trade-pill ${isC ? 'c' : 'v'}" style="margin-left:auto">
                 ${isC ? '📈 COMPRA' : '📉 VENDA'}
               </span>
             </div>
-            <p class="ticker-big">${ticker}</p>
+            <p class="ticker-big">${escHtml(ticker)}</p>
             <div class="trade-grid">
               <div class="tc"><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${qtd}</p></div>
               <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toFixed(2)}</p></div>
               <div class="tc"><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(total)}</p></div>
             </div>
-            ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${p.texto}</p>` : ''}
+            ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${escHtml(p.texto)}</p>` : ''}
             <p class="post-likes">❤️ ${p.likes || 0}</p>`;
         } else {
           card.innerHTML = `
             <div class="post-hdr">
               <div class="post-av" style="background:${avBg}">
-                <img src="${foto}" alt="" onerror="this.style.display='none'">
+                <img src="${escHtml(foto)}" alt="" onerror="this.style.display='none'">
               </div>
               <div>
-                <p class="post-nome">@${userData.username || 'pombito'}</p>
+                <p class="post-nome">@${escHtml(userData.username || 'pombito')}</p>
                 <p class="post-data">${data}</p>
               </div>
             </div>
-            <p class="post-txt">${p.texto || '—'}</p>
+            <p class="post-txt">${escHtml(p.texto || '—')}</p>
             <p class="post-likes">❤️ ${p.likes || 0}</p>`;
         }
 
