@@ -157,3 +157,4 @@ function scoreGeral(value, quality, momentum) {
 }
 
 module.exports = { scoreValue, scoreQuality, scoreMomentum, scoreGeral };
+
