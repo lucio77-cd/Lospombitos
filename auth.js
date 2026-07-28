@@ -33,12 +33,12 @@ const auth = firebase.auth();
 // ----------------------------------------------------------
 // 3. VERIFICAÇÃO DE SESSÃO ATIVA
 //    Páginas permitidas por perfil:
-//    - Sem sessão        → apenas index.html e invite.html
+//    - Sem sessão        → apenas index.html e login.html
 //    - Perfil completo   → feed, investir, carteira, relatorio, ordem
 //    - Perfil incompleto → apenas germinar.html
 // ----------------------------------------------------------
 
-const PAGINAS_PUBLICAS = ["index.html", "invite.html", "", "/"];
+const PAGINAS_PUBLICAS = ["index.html", "login.html", "", "/"];
 const PAGINAS_MEMBRO   = [
   "feed.html", "investir.html", "carteira.html",
   "relatorio.html", "ordem.html", "germinar.html"
@@ -48,9 +48,9 @@ auth.onAuthStateChanged(async (user) => {
   const paginaAtual = window.location.pathname.split("/").pop() || "index.html";
 
   if (!user) {
-    // Sem sessão: redireciona para invite se tentar acessar página protegida
+    // Sem sessão: redireciona para login se tentar acessar página protegida
     if (!PAGINAS_PUBLICAS.includes(paginaAtual)) {
-      window.location.href = "invite.html";
+      window.location.href = "login.html";
     }
     return;
   }
@@ -108,7 +108,7 @@ function setBotaoCarregando(carregando, textoPadrao = "Entrar") {
 }
 
 // ----------------------------------------------------------
-// 5. LOGIN DIRETO COM GOOGLE (sem código de convite)
+// 5. LOGIN DIRETO COM GOOGLE (app aberto — qualquer conta Google entra)
 //
 //    1. Abre o Google para o usuário criar/usar a conta dele
 //    2. Se já é membro com perfil completo → feed direto
@@ -206,7 +206,7 @@ async function germinarEsalvarPombito(dadosFicha) {
 
   if (!user) {
     exibirMensagem("Sessão expirada. Faça login novamente.", "erro");
-    window.location.href = "invite.html";
+    window.location.href = "login.html";
     return false;
   }
 
@@ -261,8 +261,8 @@ async function sairDaOrdem() {
 
   try {
     await auth.signOut();
-    // Redireciona para login (invite.html), não para setup
-    window.location.href = "invite.html";
+    // Redireciona para login, não para setup
+    window.location.href = "login.html";
   } catch (e) {
     console.error("Erro ao sair:", e);
     exibirMensagem("Erro ao sair. Tente novamente.", "erro");
