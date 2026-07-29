@@ -1,506 +1,333 @@
 // ============================================================
-//  germinador.js — A Câmara de Arte da Ordem
-//  
-//  FLUXO:
-//  1. Gemini analisa música + filme + cor → gera DNA visual
-//  2. DNA é interpretado → paleta + personalidade únicas
-//  3. SVG pixel art do Pombito é gerado programaticamente
-//  4. SVG → PNG → Firebase Storage
-//  5. URL salva no Firestore como foto_perfil
+//  api/clima-precos.js — "Fator Climático" do Atlas (v2)
+//
+//  Reescrita completa. A versão anterior testava 35 cidades × 2
+//  variáveis (70 testes) contra QUALQUER ticker, o que gera
+//  "sinal" falso em ~99% das buscas só por acaso estatístico
+//  (problema de comparações múltiplas). Esta versão:
+//
+//  1. Só roda pra ativos com mecanismo causal conhecido
+//     (api/_lib/ativos-clima.js) — pra todo o resto, não testa
+//     nada e diz isso claramente.
+//  2. Usa variáveis com sentido causal: chuva ACUMULADA em 30
+//     dias (não ponto diário), índice ONI (regime climático),
+//     e câmbio USD/BRL como controle — não "qualquer cidade".
+//  3. Testa poucas combinações de defasagem (o preço reage com
+//     atraso à safra, não no mesmo dia) — 7 testes pra agro, 3
+//     pra hidrelétricas, não 70.
+//  4. Calcula p-valor de verdade e aplica Bonferroni pro número
+//     real de testes rodados.
 // ============================================================
 
-// A chave da API Gemini NÃO fica mais aqui — vive só no servidor
-// (variável de ambiente GEMINI_API_KEY na Vercel). O client chama
-// o endpoint /api/gemini, que faz a chamada real por trás.
+const ATIVOS = require('./_lib/ativos-clima');
+const MERCADOS_GLOBAIS = require('./_lib/mercados-globais');
+const { serieDiaria, acumulado30d, addDias, serieSolDiaria } = require('./_lib/clima');
+const { earHistorico } = require('./_lib/ons');
+const { oniHistorico } = require('./_lib/oni');
+const { cambioHistorico } = require('./_lib/cambio');
+const { historicoYahoo } = require('./_lib/yahoo');
+const { pearson, pValorCorrelacao, alfaBonferroni } = require('./_lib/estatistica');
 
-// storage só é usado aqui (upload do avatar gerado) — por isso não
-// fica no firebase.js/auth.js compartilhado. Precisa do SDK
-// firebase-storage-compat.js carregado em germinar.html ANTES deste
-// arquivo (senão firebase.storage não existe e isso quebra).
-const storage = firebase.storage();
+const DIAS_HISTORICO = 150; // precisa de folga pra acumulado 30d + lag 45d
 
-// ----------------------------------------------------------
-// ENTRADA PRINCIPAL
-// ----------------------------------------------------------
-async function iniciarProcessoDeArte(dadosUsuario) {
-  const statusEl = document.getElementById('status');
+function hoje(offsetDias = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDias);
+  return d.toISOString().slice(0, 10);
+}
 
-  const setStatus = (msg) => {
-    console.log("[Germinador]", msg);
-    if (statusEl) statusEl.innerText = msg;
+// ── Histórico de preço E volume ──
+// Mudou pra também trazer volume: a literatura (estudo do Shanghai Stock
+// Exchange, mercado por ordem como o B3) encontrou que clima afeta o
+// VOLUME/liquidez de negociação, não necessariamente o retorno do preço —
+// então testamos as duas variáveis-alvo agora, não só preço.
+async function precoHistorico(tipo, ticker) {
+  if (tipo === 'cripto') {
+    const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(ticker.toLowerCase())}/market_chart?vs_currency=brl&days=${DIAS_HISTORICO}&interval=daily`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
+    const data = await res.json();
+    const precos = data.prices || [];
+    const volumes = data.total_volumes || [];
+    return precos.map(([ts, preco], i) => ({
+      data: new Date(ts).toISOString().slice(0, 10),
+      preco,
+      volume: volumes[i]?.[1] ?? null,
+    }));
+  }
+  const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=6mo&interval=1d&fundamental=false`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error(`brapi HTTP ${res.status}`);
+  const data = await res.json();
+  const serie = data?.results?.[0]?.historicalDataPrice || [];
+  return serie
+    .filter((p) => p.close > 0)
+    .map((p) => ({
+      data: new Date(p.date * 1000).toISOString().slice(0, 10),
+      preco: p.close,
+      volume: typeof p.volume === 'number' ? p.volume : null,
+    }));
+}
+
+function variacaoDiaria(pontos) {
+  const porData = {};
+  for (let i = 1; i < pontos.length; i++) {
+    const ant = pontos[i - 1].preco, atu = pontos[i].preco;
+    if (ant > 0) porData[pontos[i].data] = ((atu - ant) / ant) * 100;
+  }
+  return porData;
+}
+
+// Volume anômalo = volume do dia ÷ média móvel de 20 dias anteriores.
+// >1 significa volume acima do normal. Essa é a métrica padrão de "volume
+// anormal" usada em estudos de evento — não usar volume bruto (tem
+// tendência própria de crescimento do mercado ao longo do tempo).
+function volumeAnomalo(pontos) {
+  const comVolume = pontos.filter((p) => typeof p.volume === 'number' && p.volume > 0);
+  if (comVolume.length < 25) return {}; // sem volume suficiente pra ter média móvel confiável
+
+  const porData = {};
+  for (let i = 20; i < comVolume.length; i++) {
+    const janela = comVolume.slice(i - 20, i).map((p) => p.volume);
+    const media = janela.reduce((a, b) => a + b, 0) / janela.length;
+    if (media > 0) porData[comVolume[i].data] = comVolume[i].volume / media;
+  }
+  return porData;
+}
+
+// Junta duas séries {data: valor} deslocando a variável explicativa
+// `lagDias` pra trás (ex.: lag=30 compara preço de hoje com clima de
+// 30 dias atrás) e devolve arrays alinhados prontos pra correlação.
+function alinharComLag(variacaoPorData, variavelPorData, lagDias) {
+  const xs = [], ys = [];
+  for (const data of Object.keys(variacaoPorData)) {
+    const dataDefasada = addDias(data, -lagDias);
+    const v = variavelPorData[dataDefasada];
+    if (typeof v === 'number') { xs.push(v); ys.push(variacaoPorData[data]); }
+  }
+  return { xs, ys };
+}
+
+function testar(nome, variavelPorData, alvoPorData, lagDias, alvo) {
+  const { xs, ys } = alinharComLag(alvoPorData, variavelPorData, lagDias);
+  const { r, n } = pearson(xs, ys);
+  if (r === null) return null;
+  const p = pValorCorrelacao(r, n);
+  return { nome, alvo, lagDias, r: Math.round(r * 1000) / 1000, p, n };
+}
+
+// Testa a mesma variável explicativa (chuva, ONI, EAR...) contra as DUAS
+// variáveis-alvo possíveis — preço e volume — e devolve os testes que
+// deram certo. A literatura (estudo do Shanghai Stock Exchange) sugere que
+// clima tende a mexer mais com volume/liquidez do que com o preço em si;
+// testar as duas é o jeito de descobrir isso pros nossos dados, em vez de
+// assumir.
+function testarPrecoEVolume(nome, variavelPorData, variacaoPorData, volumePorData, lagDias) {
+  const resultados = [];
+  const tPreco = testar(nome, variavelPorData, variacaoPorData, lagDias, 'preço');
+  if (tPreco) resultados.push(tPreco);
+  if (Object.keys(volumePorData).length) {
+    const tVolume = testar(nome, variavelPorData, volumePorData, lagDias, 'volume');
+    if (tVolume) resultados.push(tVolume);
+  }
+  return resultados;
+}
+
+// Aceita a chave direta (IBOVESPA, DOLAR...) ou o símbolo Yahoo cru (^BVSP, USDBRL=X...)
+function resolverMercadoGlobal(tickerUpper) {
+  if (MERCADOS_GLOBAIS[tickerUpper]) return tickerUpper;
+  const semAcento = tickerUpper.replace(/[^A-Z0-9]/g, '');
+  const chave = Object.keys(MERCADOS_GLOBAIS).find((k) => {
+    const s = MERCADOS_GLOBAIS[k].simboloYahoo.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return s === semAcento || k === semAcento;
+  });
+  return chave || null;
+}
+
+// Fator comportamental: sol na cidade da bolsa × retorno do índice/câmbio,
+// testando defasagem de 0 a 3 dias (efeito de humor é rápido, não semanas).
+async function analisarMercadoGlobal(chave) {
+  const m = MERCADOS_GLOBAIS[chave];
+  const dataFim = hoje(-3);
+  const dataInicio = hoje(-3 - DIAS_HISTORICO);
+
+  const [precoResult, solResult] = await Promise.allSettled([
+    historicoYahoo(m.simboloYahoo, DIAS_HISTORICO + 10),
+    serieSolDiaria(m.lat, m.lon, dataInicio, dataFim),
+  ]);
+
+  if (precoResult.status === 'rejected') {
+    console.error('[clima-precos:global] Yahoo falhou:', chave, precoResult.reason?.message);
+    return { aplicavel: false, motivo: 'fonte_preco_falhou', aviso: `Não consegui buscar o histórico de preço de ${m.nome} agora (Yahoo Finance instável ou bloqueado). Tente de novo em alguns minutos.` };
+  }
+  if (solResult.status === 'rejected') {
+    console.error('[clima-precos:global] Open-Meteo falhou:', chave, solResult.reason?.message);
+    return { aplicavel: false, motivo: 'fonte_clima_falhou', aviso: `Não consegui buscar o histórico de sol em ${m.cidade} agora (Open-Meteo instável). Tente de novo em alguns minutos.` };
+  }
+
+  const pontosPreco = precoResult.value;
+  const solSerie = solResult.value;
+
+  if (pontosPreco.length < 30) {
+    return { aplicavel: false, motivo: 'historico_curto', aviso: 'Histórico de preço curto demais pra este índice/câmbio ainda.' };
+  }
+
+  const variacaoPorData = variacaoDiaria(pontosPreco);
+  const volumePorData = volumeAnomalo(pontosPreco);
+
+  const testes = [0, 1, 2, 3]
+    .flatMap((lag) => testarPrecoEVolume(`Horas de sol — ${m.cidade}`, solSerie, variacaoPorData, volumePorData, lag));
+
+  if (!testes.length) {
+    return { aplicavel: false, motivo: 'sem_dados', aviso: 'Não consegui obter dados suficientes agora. Tente novamente mais tarde.' };
+  }
+
+  const alfaCorrigido = alfaBonferroni(testes.length);
+  const significativos = testes
+    .filter((t) => t.p !== null && t.p < alfaCorrigido)
+    .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+
+  return {
+    aplicavel: true,
+    mecanismo: 'comportamental',
+    contexto: { categoria: 'mercado_global', ativo: m.nome, cidade: m.cidade },
+    periodo: { inicio: dataInicio, fim: dataFim },
+    numTestes: testes.length,
+    alfaCorrigido: Math.round(alfaCorrigido * 10000) / 10000,
+    testes: testes.map((t) => ({ ...t, p: t.p !== null ? Math.round(t.p * 10000) / 10000 : null })),
+    sinal: significativos[0] || null,
+    aviso: significativos.length
+      ? null
+      : `As horas de sol em ${m.cidade} não passaram no limiar estatístico corrigido (p < ${Math.round(alfaCorrigido*10000)/10000}) — sem efeito de humor detectável no período. Isso é o mais comum: a literatura acadêmica descreve esse efeito como pequeno e nem sempre presente.`,
   };
+}
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
 
   try {
-    setStatus("Sintonizando sua alma nos pixels...");
+    await require('./_lib/firebaseAdmin').verificarToken(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
+    return;
+  }
 
-    // ── PASSO 1: Gemini gera o DNA visual ──
-    const dnaVisual = await gerarDNAvisual(dadosUsuario);
-    console.log("DNA Visual:", dnaVisual);
+  const { ticker, tipo } = req.body || {};
+  if (!ticker) { res.status(400).json({ error: 'Informe o ticker.' }); return; }
 
-    setStatus("Decodificando sua essência...");
+  const tickerUpper = ticker.toUpperCase().trim();
+  const aliasGlobal = resolverMercadoGlobal(tickerUpper);
+  const config = ATIVOS[tickerUpper];
 
-    // ── PASSO 2: Interpreta o DNA em parâmetros visuais ──
-    const parametros = await interpretarDNA(dnaVisual, dadosUsuario);
-    console.log("Parâmetros visuais:", parametros);
-
-    setStatus("Germinando sua forma única...");
-
-    // ── PASSO 3: Gera o SVG pixel art do Pombito ──
-    const svgString = gerarPombitoSVG(parametros);
-
-    setStatus("Revelando nos archivos da Ordem...");
-
-    // ── PASSO 4: SVG → PNG → Firebase Storage ──
-    const fotoUrl = await salvarArteNoStorage(svgString, dadosUsuario.uid);
-
-    // ── PASSO 5: Atualiza o Firestore ──
-    await db.collection("usuarios").doc(dadosUsuario.uid).update({
-      foto_perfil:   fotoUrl,
-      dna_visual:    dnaVisual,
-      parametros_arte: parametros,
-      foto_gerada:   true,
-      status_perfil: "VIVO",
-      perfil_completo: true
-    });
-
-    setStatus("Alçando voo... 🕊️");
-    return fotoUrl;
-
-  } catch (error) {
-    console.error("[Germinador] Erro:", error);
-    if (statusEl) statusEl.innerText = "Erro na germinação. Usando arte padrão...";
-
-    // Fallback: gera um pombito padrão sem Gemini
+  if (aliasGlobal) {
     try {
-      const parametrosPadrao = gerarParametrosPadrao(dadosUsuario);
-      const svgFallback      = gerarPombitoSVG(parametrosPadrao);
-      const fotoFallback     = await salvarArteNoStorage(svgFallback, dadosUsuario.uid);
+      const resultado = await analisarMercadoGlobal(aliasGlobal);
+      res.status(200).json(resultado);
+    } catch (e) {
+      console.error('[api/clima-precos:global]', tickerUpper, e.message);
+      res.status(500).json({ error: 'Erro ao calcular o fator comportamental: ' + e.message });
+    }
+    return;
+  }
 
-      await db.collection("usuarios").doc(dadosUsuario.uid).update({
-        foto_perfil:   fotoFallback,
-        foto_gerada:   true,
-        status_perfil: "VIVO",
-        perfil_completo: true
+  if (!config) {
+    res.status(200).json({
+      aplicavel: false,
+      motivo: 'sem_mecanismo',
+      aviso: `${tickerUpper} não tem uma cadeia causal conhecida com clima (não é agro nem geração hidrelétrica), então o app não testa nada — testar sem motivo é o principal jeito de gerar um "sinal" que na verdade é só coincidência estatística.`,
+    });
+    return;
+  }
+
+  try {
+    const pontosPreco = await precoHistorico(tipo, tickerUpper);
+    if (pontosPreco.length < 40) {
+      res.status(200).json({ aplicavel: false, motivo: 'historico_curto', aviso: 'Histórico de preço curto demais pra testar com defasagem de até 45 dias.' });
+      return;
+    }
+    const variacaoPorData = variacaoDiaria(pontosPreco);
+    const volumePorData = volumeAnomalo(pontosPreco);
+
+    const dataFim = hoje(-5);   // Open-Meteo/ONS têm alguns dias de atraso
+    const dataInicio = hoje(-5 - DIAS_HISTORICO);
+
+    let testes = [];
+    let contexto = {};
+
+    if (config.categoria === 'agro') {
+      const [climaSerie, oniSerie, cambioSerie] = await Promise.all([
+        serieDiaria(config.regiao.lat, config.regiao.lon, dataInicio, dataFim).catch((e) => {
+          console.error('[clima-precos:agro] Open-Meteo falhou:', tickerUpper, e.message);
+          return null;
+        }),
+        oniHistorico(8).catch((e) => { console.warn('[clima-precos:agro] NOAA ONI falhou:', e.message); return []; }),
+        cambioHistorico(DIAS_HISTORICO + 10).catch((e) => { console.warn('[clima-precos:agro] AwesomeAPI falhou:', e.message); return {}; }),
+      ]);
+
+      if (climaSerie === null) {
+        res.status(200).json({ aplicavel: false, motivo: 'fonte_clima_falhou', aviso: `Não consegui buscar o histórico de chuva de ${config.regiao.nome} agora (Open-Meteo instável). Tente de novo em alguns minutos.` });
+        return;
+      }
+
+      const chuva30d = acumulado30d(climaSerie);
+
+      // ONI é mensal — replica o valor do mês pra cada dia daquele mês
+      const oniPorDia = {};
+      for (const p of oniSerie) {
+        const prefixo = `${p.ano}-${String(p.mes).padStart(2, '0')}`;
+        for (const data of Object.keys(variacaoPorData)) {
+          if (data.startsWith(prefixo)) oniPorDia[data] = p.anomalia;
+        }
+      }
+
+      for (const lag of [15, 30, 45]) testes.push(...testarPrecoEVolume(`Chuva acumulada 30d — ${config.regiao.nome}`, chuva30d, variacaoPorData, volumePorData, lag));
+      for (const lag of [15, 30, 45]) testes.push(...testarPrecoEVolume('Índice ONI (El Niño/La Niña)', oniPorDia, variacaoPorData, volumePorData, lag));
+      testes.push(...testarPrecoEVolume('Câmbio USD/BRL', cambioSerie, variacaoPorData, volumePorData, 0));
+
+      contexto = { categoria: 'agro', regiao: config.regiao.nome, ativo: config.nome };
+
+    } else if (config.categoria === 'hidro') {
+      const earSerie = await earHistorico(config.subsistema, dataInicio, dataFim).catch((e) => {
+        console.error('[clima-precos:hidro] ONS falhou:', tickerUpper, e.message);
+        return null;
       });
 
-      return fotoFallback;
-    } catch(e2) {
-      console.error("[Germinador] Falhou até o fallback:", e2);
-      return null;
-    }
-  }
-}
-
-// ----------------------------------------------------------
-// PASSO 1: GEMINI → DNA VISUAL
-// ----------------------------------------------------------
-async function gerarDNAvisual(dadosUsuario) {
-  const prompt = `
-You are an art director for a secret pigeon brotherhood called "Los Pombitos".
-Analyze this member's profile and return ONLY a valid JSON object (no markdown, no explanation):
-
-Member data:
-- Favorite music: "${dadosUsuario.musica}"
-- Favorite movie: "${dadosUsuario.filme}"
-- Chosen color: "${dadosUsuario.cor}"
-- Name: "${dadosUsuario.nome}"
-
-Return this exact JSON structure with your analysis:
-{
-  "mood": "one word: heroic | melancholic | playful | mystical | rebellious | serene | fierce | dreamy",
-  "energy": "one word: calm | electric | burning | flowing | explosive | gentle",
-  "era": "one word: ancient | medieval | futuristic | retro | timeless | cyberpunk",
-  "pattern": "one word describing feather pattern: striped | dotted | gradient | solid | speckled | cosmic",
-  "expression": "one word: wise | defiant | curious | proud | mysterious | joyful | intense",
-  "halo": true or false (true if the music/movie has spiritual or legendary themes),
-  "accessories": "none | crown | eyepatch | scarf | glasses | medal",
-  "color_mood": "dark | vibrant | pastel | neon | muted | golden"
-}`;
-
-  const resposta = await consultarGemini(prompt);
-
-  // Limpa possível markdown e faz parse do JSON
-  const limpo = resposta.replace(/```json|```/g, '').trim();
-  try {
-    return JSON.parse(limpo);
-  } catch(e) {
-    console.warn("Gemini não retornou JSON limpo, usando defaults:", resposta);
-    return gerarParametrosPadrao(dadosUsuario);
-  }
-}
-
-// ----------------------------------------------------------
-// PASSO 2: INTERPRETAR DNA → PALETA + PARÂMETROS VISUAIS
-// ----------------------------------------------------------
-async function interpretarDNA(dna, dadosUsuario) {
-  // Mapeia a cor escolhida pelo usuário para um hex
-  const corHex = resolverCor(dadosUsuario.cor);
-
-  // Paletas por mood
-  const paletasMood = {
-    heroic:      { corpo: '#d4bc84', asa: '#8b6914', bico: '#f5b800', olho: '#1a0a00' },
-    melancholic: { corpo: '#b8c4d4', asa: '#4a6080', bico: '#7a9ab0', olho: '#0a0a1a' },
-    playful:     { corpo: '#f0c8a0', asa: '#e07840', bico: '#ff9800', olho: '#1a0800' },
-    mystical:    { corpo: '#c8a8d8', asa: '#6a3090', bico: '#9c60c0', olho: '#0a001a' },
-    rebellious:  { corpo: '#d0a898', asa: '#802010', bico: '#c03020', olho: '#0a0000' },
-    serene:      { corpo: '#a8d0b8', asa: '#306850', bico: '#50a878', olho: '#001a08' },
-    fierce:      { corpo: '#d8b090', asa: '#a04010', bico: '#d86020', olho: '#1a0400' },
-    dreamy:      { corpo: '#d0b8e8', asa: '#806098', bico: '#b090d0', olho: '#08000a' },
-  };
-
-  const paleta = paletasMood[dna.mood] || paletasMood.heroic;
-
-  // Mescla a cor do usuário no fundo
-  const fundo = corHex;
-
-  // Acessório → coordenadas e forma
-  const acessorioMap = {
-    none:     null,
-    crown:    { tipo: 'crown' },
-    eyepatch: { tipo: 'eyepatch' },
-    scarf:    { tipo: 'scarf' },
-    glasses:  { tipo: 'glasses' },
-    medal:    { tipo: 'medal' },
-  };
-
-  return {
-    fundo,
-    corpo:       paleta.corpo,
-    asa:         paleta.asa,
-    bico:        paleta.bico,
-    olho:        paleta.olho,
-    halo:        dna.halo === true,
-    acessorio:   acessorioMap[dna.accessories] || null,
-    pattern:     dna.pattern || 'solid',
-    expression:  dna.expression || 'proud',
-    mood:        dna.mood || 'heroic',
-    energy:      dna.energy || 'calm',
-    era:         dna.era || 'timeless',
-    color_mood:  dna.color_mood || 'golden',
-    corUsuario:  corHex,
-  };
-}
-
-// ----------------------------------------------------------
-// PASSO 3: GERAR SVG PIXEL ART DO POMBITO
-// Cada parâmetro influencia a aparência final
-// ----------------------------------------------------------
-function gerarPombitoSVG(p) {
-  const W = 200, H = 200;
-  const px = 8; // tamanho de cada "pixel"
-
-  // Grade pixel: cada número é um bloco px×px
-  // 0 = fundo, 1 = corpo, 2 = asa, 3 = bico, 4 = olho, 5 = pupila/brilho, 6 = halo, 7 = detalhe
-  const grade = [
-    [0,0,0,0,6,6,6,6,6,6,6,6,6,6,0,0,0,0,0,0],
-    [0,0,0,6,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0],
-    [0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-    [0,1,1,1,1,1,1,1,1,1,4,4,1,1,1,3,3,3,0,0],
-    [0,1,1,1,1,1,1,1,1,1,4,5,1,1,1,3,3,0,0,0],
-    [0,0,1,1,1,7,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-    [0,2,2,1,1,1,1,1,1,1,1,1,1,1,2,2,2,0,0,0],
-    [2,2,2,2,1,1,1,1,1,1,1,1,1,2,2,2,2,2,0,0],
-    [2,2,2,2,2,1,1,1,1,1,1,1,2,2,2,2,2,2,0,0],
-    [0,2,2,2,2,2,2,1,1,1,1,2,2,2,2,2,2,0,0,0],
-    [0,0,2,2,2,2,2,2,1,1,2,2,2,2,2,2,0,0,0,0],
-    [0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0],
-    [0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0],
-    [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-    [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
-    [0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
-    [0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
-  ];
-
-  // Expressão altera o pixel do olho e sobrancelha
-  const expressaoDetalhe = {
-    wise:       '#ffffff',
-    defiant:    '#ff4400',
-    curious:    '#00ccff',
-    proud:      '#f0d080',
-    mysterious: '#cc00ff',
-    joyful:     '#ffffff',
-    intense:    '#ff0000',
-  };
-  const corDetalhe = expressaoDetalhe[p.expression] || '#ffffff';
-
-  // Padrão nas asas
-  const padroesAsa = {
-    striped:   (x, y) => (y % 2 === 0) ? ajustarBrilho(p.asa, 20) : p.asa,
-    dotted:    (x, y) => (x % 3 === 0 && y % 3 === 0) ? ajustarBrilho(p.asa, 30) : p.asa,
-    gradient:  (x, y) => ajustarBrilho(p.asa, Math.floor((x / 20) * 40) - 20),
-    solid:     ()     => p.asa,
-    speckled:  (x, y) => ((x + y) % 4 === 0) ? ajustarBrilho(p.asa, 25) : p.asa,
-    cosmic:    (x, y) => (x % 2 === 0) ? ajustarBrilho(p.asa, -10) : ajustarBrilho(p.asa, 30),
-  };
-  const getCorAsa = padroesAsa[p.pattern] || padroesAsa.solid;
-
-  // Mapa de cores por código
-  const corMap = (codigo, x, y) => {
-    switch(codigo) {
-      case 0: return null;           // transparente (fundo)
-      case 1: return p.corpo;
-      case 2: return getCorAsa(x, y);
-      case 3: return p.bico;
-      case 4: return p.olho;
-      case 5: return corDetalhe;     // pupila/brilho varia com expressão
-      case 6: return p.halo ? '#f0d080' : null;  // halo só se true
-      case 7: return ajustarBrilho(p.corpo, -20); // sombra no pescoço
-      default: return null;
-    }
-  };
-
-  // Constrói os blocos pixel
-  let blocos = '';
-  grade.forEach((linha, row) => {
-    linha.forEach((codigo, col) => {
-      const cor = corMap(codigo, col, row);
-      if (cor) {
-        const x = col * px;
-        const y = row * px;
-        const opacity = (codigo === 6) ? '0.7' : '1';
-        blocos += `<rect x="${x}" y="${y}" width="${px}" height="${px}" fill="${cor}" opacity="${opacity}"/>`;
+      if (earSerie === null) {
+        res.status(200).json({ aplicavel: false, motivo: 'fonte_clima_falhou', aviso: `Não consegui buscar o nível de reservatório do ONS agora (fonte instável, ou CSV muito grande pro tempo limite da função). Tente de novo em alguns minutos.` });
+        return;
       }
+
+      for (const lag of [0, 7, 14]) testes.push(...testarPrecoEVolume(`Nível de reservatório (EAR) — ${ATIVOS.SUBSISTEMAS[config.subsistema]}`, earSerie, variacaoPorData, volumePorData, lag));
+
+      contexto = { categoria: 'hidro', subsistema: ATIVOS.SUBSISTEMAS[config.subsistema], ativo: config.nome };
+    }
+
+    testes = testes.filter(Boolean);
+
+    if (!testes.length) {
+      res.status(200).json({ aplicavel: false, motivo: 'sem_dados', aviso: 'Não consegui obter dados suficientes das fontes climáticas/elétricas agora. Tente novamente mais tarde.' });
+      return;
+    }
+
+    const alfaCorrigido = alfaBonferroni(testes.length);
+    const significativos = testes
+      .filter((t) => t.p !== null && t.p < alfaCorrigido)
+      .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+
+    res.status(200).json({
+      aplicavel: true,
+      contexto,
+      periodo: { inicio: dataInicio, fim: dataFim },
+      numTestes: testes.length,
+      alfaCorrigido: Math.round(alfaCorrigido * 10000) / 10000,
+      testes: testes.map((t) => ({ ...t, p: t.p !== null ? Math.round(t.p * 10000) / 10000 : null })),
+      sinal: significativos[0] || null,
+      aviso: significativos.length
+        ? null
+        : `Nenhuma das ${testes.length} variáveis testadas passou no limiar estatístico corrigido (p < ${Math.round(alfaCorrigido*10000)/10000}) — não há relação com significância suficiente no período, mesmo sendo um ativo onde clima é mecanismo plausível.`,
     });
-  });
-
-  // Acessório
-  let acessorioSVG = '';
-  if (p.acessorio) {
-    acessorioSVG = gerarAcessorio(p.acessorio.tipo, px, p);
+  } catch (e) {
+    console.error('[api/clima-precos]', tickerUpper, e.message);
+    res.status(500).json({ error: 'Erro ao calcular o fator climático: ' + e.message });
   }
-
-  // Partículas de energia (mood)
-  let particulas = '';
-  if (p.energy === 'electric' || p.energy === 'explosive') {
-    particulas = `
-      <circle cx="170" cy="30" r="3" fill="#f0d080" opacity="0.8"/>
-      <circle cx="185" cy="50" r="2" fill="#f0d080" opacity="0.6"/>
-      <circle cx="160" cy="55" r="2" fill="#f0d080" opacity="0.5"/>
-      <circle cx="20" cy="40" r="3" fill="#f0d080" opacity="0.7"/>
-      <circle cx="10" cy="60" r="2" fill="#f0d080" opacity="0.5"/>`;
-  }
-
-  // Brilho no canto (era futurista)
-  let brilho = '';
-  if (p.era === 'futuristic' || p.era === 'cyberpunk') {
-    brilho = `<rect x="0" y="0" width="${W}" height="4" fill="#00ffcc" opacity="0.3"/>
-              <rect x="0" y="0" width="4" height="${H}" fill="#00ffcc" opacity="0.2"/>`;
-  }
-
-  // Monta o SVG final
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges">
-  <!-- Fundo -->
-  <rect width="${W}" height="${H}" fill="${p.fundo}"/>
-  
-  <!-- Efeito de fundo por era -->
-  ${p.era === 'ancient' ? `<rect width="${W}" height="${H}" fill="url(#ancient)" opacity="0.15"/>` : ''}
-  ${p.era === 'cosmic'  ? `<rect width="${W}" height="${H}" fill="url(#cosmic)"  opacity="0.2"/>` : ''}
-  
-  <!-- Definições de gradientes -->
-  <defs>
-    <radialGradient id="ancient" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#c9a84c" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#0a0a0f" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="cosmic" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#6a0dad" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#00ccff" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  
-  ${brilho}
-  ${particulas}
-  
-  <!-- Corpo pixel art -->
-  ${blocos}
-  
-  <!-- Acessório -->
-  ${acessorioSVG}
-  
-  <!-- Borda pixel -->
-  <rect width="${W}" height="${H}" fill="none" stroke="${ajustarBrilho(p.fundo, -30)}" stroke-width="4"/>
-  
-  <!-- Assinatura da Ordem -->
-  <text x="${W - 4}" y="${H - 4}" 
-    font-family="monospace" font-size="6" 
-    fill="${ajustarBrilho(p.fundo, -20)}" 
-    text-anchor="end" opacity="0.5">LOS POMBITOS</text>
-</svg>`;
-}
-
-// ----------------------------------------------------------
-// ACESSÓRIOS
-// ----------------------------------------------------------
-function gerarAcessorio(tipo, px, p) {
-  switch(tipo) {
-    case 'crown':
-      return `
-        <rect x="${4*px}" y="${1*px}" width="${px}" height="${2*px}" fill="#f0d080"/>
-        <rect x="${6*px}" y="${0}"    width="${px}" height="${2*px}" fill="#f0d080"/>
-        <rect x="${8*px}" y="${1*px}" width="${px}" height="${2*px}" fill="#f0d080"/>
-        <rect x="${4*px}" y="${2*px}" width="${6*px}" height="${px}" fill="#f0d080"/>
-        <rect x="${5*px}" y="${1*px}" width="${px}"  height="${px}"  fill="#ff4444"/>
-        <rect x="${7*px}" y="${0}"    width="${px}"  height="${px}"  fill="#4444ff"/>`;
-
-    case 'eyepatch':
-      return `
-        <rect x="${9*px}" y="${4*px}" width="${3*px}" height="${2*px}" fill="#0a0a0f"/>
-        <rect x="${8*px}" y="${4*px}" width="${px}"   height="${px}"   fill="#0a0a0f"/>
-        <rect x="${12*px}" y="${4*px}" width="${px}"  height="${px}"   fill="#0a0a0f"/>`;
-
-    case 'glasses':
-      return `
-        <rect x="${8*px}"  y="${4*px}" width="${3*px}" height="${2*px}" fill="none" stroke="#c9a84c" stroke-width="2"/>
-        <rect x="${12*px}" y="${4*px}" width="${3*px}" height="${2*px}" fill="none" stroke="#c9a84c" stroke-width="2"/>
-        <rect x="${11*px}" y="${4*px}" width="${px}"   height="${px}"   fill="#c9a84c"/>`;
-
-    case 'scarf':
-      return `
-        <rect x="${2*px}" y="${7*px}" width="${14*px}" height="${2*px}" fill="#cc2200"/>
-        <rect x="${2*px}" y="${8*px}" width="${3*px}"  height="${4*px}" fill="#cc2200"/>
-        <rect x="${3*px}" y="${9*px}" width="${2*px}"  height="${2*px}" fill="#ff4422"/>`;
-
-    case 'medal':
-      return `
-        <rect x="${7*px}" y="${8*px}" width="${px}"  height="${3*px}" fill="#c9a84c"/>
-        <circle cx="${7*px + 4}" cy="${8*px + 3*px + 4}" r="6" fill="#f0d080"/>
-        <circle cx="${7*px + 4}" cy="${8*px + 3*px + 4}" r="4" fill="#c9a84c"/>`;
-
-    default:
-      return '';
-  }
-}
-
-// ----------------------------------------------------------
-// PASSO 4: SVG → PNG → FIREBASE STORAGE
-// ----------------------------------------------------------
-async function salvarArteNoStorage(svgString, uid) {
-  return new Promise((resolve, reject) => {
-    // Converte SVG para Blob
-    const blob    = new Blob([svgString], { type: 'image/svg+xml' });
-    const url     = URL.createObjectURL(blob);
-    const img     = new Image();
-
-    img.onload = async () => {
-      try {
-        // Desenha em canvas para exportar como PNG
-        const canvas  = document.createElement('canvas');
-        canvas.width  = 200;
-        canvas.height = 200;
-        const ctx     = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-
-        // Canvas → Blob PNG
-        canvas.toBlob(async (pngBlob) => {
-          try {
-            const storageRef = storage.ref(`pombitos/${uid}/perfil.png`);
-
-            const metadata   = {
-              contentType: 'image/png',
-              customMetadata: { gerado_por: 'germinador-v2', uid }
-            };
-
-            const snapshot = await storageRef.put(pngBlob, metadata);
-            const downloadUrl = await snapshot.ref.getDownloadURL();
-            resolve(downloadUrl);
-          } catch(e) {
-            reject(e);
-          }
-        }, 'image/png', 1.0);
-
-      } catch(e) {
-        URL.revokeObjectURL(url);
-        reject(e);
-      }
-    };
-
-    img.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Falha ao carregar SVG para canvas: ' + e));
-    };
-
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
-  });
-}
-
-// ----------------------------------------------------------
-// CONSULTA AO GEMINI
-// ----------------------------------------------------------
-async function consultarGemini(prompt) {
-  const response = await fetch('/api/gemini', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, temperature: 0.9, maxOutputTokens: 300 })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erro no proxy da IA: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.texto;
-}
-
-// ----------------------------------------------------------
-// UTILITÁRIOS
-// ----------------------------------------------------------
-
-// Parâmetros padrão quando Gemini falha
-function gerarParametrosPadrao(dadosUsuario) {
-  const cor = resolverCor(dadosUsuario.cor || 'azul');
-  return {
-    fundo:      cor,
-    corpo:      '#e8d4a0',
-    asa:        '#c9a84c',
-    bico:       '#f5b800',
-    olho:       '#0a0a0f',
-    halo:       true,
-    acessorio:  null,
-    pattern:    'solid',
-    expression: 'proud',
-    mood:       'heroic',
-    energy:     'calm',
-    era:        'timeless',
-    color_mood: 'golden',
-    corUsuario: cor,
-  };
-}
-
-// Converte nome de cor em português para hex
-function resolverCor(nomeCor) {
-  const mapa = {
-    'azul':         '#1a4fff', 'azul celeste':  '#87ceeb', 'azul mar':    '#006994',
-    'verde':        '#2d8a4e', 'verde mar':     '#2e8b57',  'verde limão': '#9acd32',
-    'vermelho':     '#cc2200', 'rosa':          '#e75480',  'roxo':        '#6a0dad',
-    'laranja':      '#e86a1a', 'amarelo':       '#f5b800',  'preto':       '#1a1a2e',
-    'branco':       '#f2ead8', 'dourado':       '#c9a84c',  'cinza':       '#4a4a5a',
-    'marrom':       '#7a4e2d', 'bege':          '#d4b896',  'ciano':       '#00b4d8',
-    'violeta':      '#7c3aed', 'turquesa':      '#40e0d0',  'coral':       '#ff6b6b',
-    'lilás':        '#b09ac0', 'vinho':         '#722f37',  'salmão':      '#fa8072',
-    'azul noite':   '#191970', 'verde escuro':  '#1a4a2e',  'azul royal':  '#4169e1',
-    'blue':         '#1a4fff', 'green':         '#2d8a4e',  'red':         '#cc2200',
-    'yellow':       '#f5b800', 'purple':        '#6a0dad',  'orange':      '#e86a1a',
-    'pink':         '#e75480', 'black':         '#1a1a2e',  'white':       '#f2ead8',
-    'gold':         '#c9a84c', 'gray':          '#4a4a5a',  'grey':        '#4a4a5a',
-  };
-
-  const chave = (nomeCor || '').toLowerCase().trim();
-  return mapa[chave] || '#1a4fff'; // padrão azul
-}
-
-// Ajusta brilho de um hex (+pos = mais claro, -neg = mais escuro)
-function ajustarBrilho(hex, delta) {
-  if (!hex || hex.length < 7) return hex;
-  const r = Math.min(255, Math.max(0, parseInt(hex.slice(1,3), 16) + delta));
-  const g = Math.min(255, Math.max(0, parseInt(hex.slice(3,5), 16) + delta));
-  const b = Math.min(255, Math.max(0, parseInt(hex.slice(5,7), 16) + delta));
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-}
+};
