@@ -497,6 +497,10 @@
 
   function ehCripto(ticker) { return !!CRIPTO_MAP[ticker.toUpperCase()]; }
 
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   async function buscarDadosCripto(ticker) {
     const id = CRIPTO_MAP[ticker.toUpperCase()];
     if (!id) return null;
@@ -765,7 +769,7 @@
 
       const manchetes = dNoticias.manchetes || [];
       if (!manchetes.length) {
-        body.innerHTML = `<div class="clima-aviso">ℹ️ Não encontrei notícias recentes sobre ${ticker}.</div>`;
+        body.innerHTML = `<div class="clima-aviso">ℹ️ Não encontrei notícias recentes sobre ${escHtml(ticker)}.</div>`;
         return;
       }
 
@@ -791,13 +795,13 @@ Classifique o sentimento geral dessas manchetes em relação a ${ticker} como in
       const emoji = analise.sentimento === 'positivo' ? '📈' : analise.sentimento === 'negativo' ? '📉' : '➖';
 
       let html = `
-        <div class="sent-badge ${analise.sentimento}">${emoji} ${analise.sentimento.toUpperCase()} · ${analise.confianca}% confiança</div>
-        <p class="sent-resumo">${analise.resumo}</p>
+        <div class="sent-badge ${escHtml(analise.sentimento)}">${emoji} ${escHtml(String(analise.sentimento).toUpperCase())} · ${escHtml(analise.confianca)}% confiança</div>
+        <p class="sent-resumo">${escHtml(analise.resumo)}</p>
         <div class="clima-lista-title">MANCHETES USADAS NESSA ANÁLISE</div>`;
 
       manchetes.forEach(m => {
-        html += `<a class="sent-manchete" href="${m.link}" target="_blank" rel="noopener">
-          <span class="fonte">${m.fonte || '???'}</span> — ${m.titulo}
+        html += `<a class="sent-manchete" href="${escHtml(m.link)}" target="_blank" rel="noopener">
+          <span class="fonte">${escHtml(m.fonte || '???')}</span> — ${escHtml(m.titulo)}
         </a>`;
       });
 
@@ -1230,3 +1234,4 @@ Seja específico e direto. Não use bullet points, use parágrafos curtos.`;
   </script>
 </body>
 </html>
+
