@@ -55,7 +55,8 @@ async function precoHistorico(tipo, ticker) {
       volume: volumes[i]?.[1] ?? null,
     }));
   }
-  const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=6mo&interval=1d&fundamental=false`;
+  const tokenParte = process.env.BRAPI_TOKEN ? `&token=${encodeURIComponent(process.env.BRAPI_TOKEN)}` : '';
+  const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker.toUpperCase())}?range=6mo&interval=1d&fundamental=false${tokenParte}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`brapi HTTP ${res.status}`);
   const data = await res.json();
