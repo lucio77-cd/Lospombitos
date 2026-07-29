@@ -1,21 +1,29 @@
 // ============================================================
-//  /api/analise-ia.js — Proxy serverless para a API Anthropic
+//  /api/analise-ia.js — Proxy serverless para a API Gemini
 //
 //  Por que isso existe:
-//  relatorio.html chamava https://api.anthropic.com direto do
-//  navegador, SEM chave — isso sempre resultava em 401 e caía
-//  no fallback estático. Além disso, mesmo com chave, ela nunca
-//  deve ficar no client. Este endpoint resolve os dois problemas.
+//  relatorio.html chamava a API de IA direto do navegador, SEM
+//  chave — isso sempre resultava em erro e caía no fallback
+//  estático. Além disso, mesmo com chave, ela nunca deve ficar
+//  no client. Este endpoint resolve os dois problemas.
 //
-//  Configuração necessária na Vercel:
+//  Trocado de Anthropic pra Gemini: mesma GEMINI_API_KEY que já
+//  é usada em api/gemini.js (germinador.js) — não precisa de
+//  chave nova nem de variável de ambiente nova. O contrato de
+//  resposta continua { texto: "..." }, então atlas.html não
+//  precisou mudar nada na forma de consumir este endpoint.
+//
+//  Configuração necessária na Vercel (se ainda não tiver):
 //  Project Settings → Environment Variables →
-//    ANTHROPIC_API_KEY = <sua chave da API da Anthropic>
+//    GEMINI_API_KEY = <sua chave da API do Gemini>
 //
-//  ⚠️ Exige login (verificarToken) desde [correção]: antes deste
-//  endpoint aceitava qualquer POST, sem checar quem chamava — ou
-//  seja, qualquer pessoa na internet podia gastar sua cota de
-//  API da Anthropic sem nem ter conta no app.
+//  ⚠️ Exige login (verificarToken): antes deste endpoint aceitava
+//  qualquer POST, sem checar quem chamava — ou seja, qualquer
+//  pessoa na internet podia gastar sua cota de API sem nem ter
+//  conta no app.
 // ============================================================
+
+const MODEL = 'gemini-1.5-flash';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -23,17 +31,16 @@ module.exports = async (req, res) => {
     return;
   }
 
-  let uid;
   try {
-    uid = await require('./_lib/firebaseAdmin').verificarToken(req);
+    await require('./_lib/firebaseAdmin').verificarToken(req);
   } catch (e) {
     res.status(e.status || 401).json({ error: e.message });
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error('[api/analise-ia] ANTHROPIC_API_KEY não configurada no ambiente da Vercel.');
+    console.error('[api/analise-ia] GEMINI_API_KEY não configurada no ambiente da Vercel.');
     res.status(500).json({ error: 'Serviço de análise temporariamente indisponível.' });
     return;
   }
@@ -51,33 +58,38 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+
+    const geminiRes = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2500,
-        messages: [{ role: 'user', content: prompt }],
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 3000, // prompts do Atlas pedem JSON longo (agentes + síntese)
+        },
       }),
+      signal: AbortSignal.timeout(25000),
     });
 
-    if (!anthropicRes.ok) {
-      const errBody = await anthropicRes.text().catch(() => '');
-      console.error('[api/analise-ia] Erro upstream:', anthropicRes.status, errBody);
+    if (!geminiRes.ok) {
+      const errBody = await geminiRes.text().catch(() => '');
+      console.error('[api/analise-ia] Erro upstream:', geminiRes.status, errBody);
       res.status(502).json({ error: 'Erro ao consultar o serviço de análise.' });
       return;
     }
 
-    const data = await anthropicRes.json();
-    const texto = (data.content || [])
-      .map((b) => (b.type === 'text' ? b.text : ''))
-      .join('');
+    const data = await geminiRes.json();
+    const candidato = data?.candidates?.[0];
+
+    // Gemini pode cortar a resposta por segurança ou por limite de
+    // tokens — nesses casos não vem texto, e o motivo fica em
+    // finishReason (SAFETY, MAX_TOKENS, RECITATION etc.)
+    const texto = candidato?.content?.parts?.map((p) => p.text || '').join('') || '';
 
     if (!texto) {
+      console.error('[api/analise-ia] Resposta vazia do Gemini. finishReason:', candidato?.finishReason);
       res.status(502).json({ error: 'Resposta vazia do serviço de análise.' });
       return;
     }
