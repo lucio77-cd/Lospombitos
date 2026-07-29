@@ -10,11 +10,24 @@
 //  Configuração necessária na Vercel:
 //  Project Settings → Environment Variables →
 //    ANTHROPIC_API_KEY = <sua chave da API da Anthropic>
+//
+//  ⚠️ Exige login (verificarToken) desde [correção]: antes deste
+//  endpoint aceitava qualquer POST, sem checar quem chamava — ou
+//  seja, qualquer pessoa na internet podia gastar sua cota de
+//  API da Anthropic sem nem ter conta no app.
 // ============================================================
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método não permitido. Use POST.' });
+    return;
+  }
+
+  let uid;
+  try {
+    uid = await require('./_lib/firebaseAdmin').verificarToken(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
     return;
   }
 
