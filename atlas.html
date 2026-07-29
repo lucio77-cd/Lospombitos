@@ -470,6 +470,19 @@
     if (!user) { location.href = 'login.html'; return; }
   });
 
+  // Todas as chamadas pro backend agora exigem login (ver correção de
+  // segurança nos endpoints) — este helper busca o token atual e monta
+  // os headers padrão. `forcarNovoToken` força refresh (usa true se um
+  // fetch anterior já tiver voltado 401).
+  async function authHeaders(forcarNovoToken = false) {
+    const user = firebase.auth().currentUser;
+    const idToken = user ? await user.getIdToken(forcarNovoToken) : null;
+    return {
+      'Content-Type': 'application/json',
+      ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {}),
+    };
+  }
+
   const R$ = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
 
@@ -616,7 +629,7 @@
     try {
       const res = await fetch('/api/clima-precos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ ticker, tipo })
       });
       const d = await res.json();
@@ -698,7 +711,7 @@
     try {
       const res = await fetch('/api/fatores-fundamentais', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ ticker, pl, pvp, roe, margem })
       });
       const d = await res.json();
@@ -761,7 +774,7 @@
     try {
       const resNoticias = await fetch('/api/noticias', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ query })
       });
       const dNoticias = await resNoticias.json();
@@ -783,7 +796,7 @@ Classifique o sentimento geral dessas manchetes em relação a ${ticker} como in
 
       const resIA = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ prompt })
       });
       const dIA = await resIA.json();
@@ -939,7 +952,7 @@ Retorne este JSON (com valores reais calculados, não os exemplos):
     try {
       const res = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ prompt })
       });
 
@@ -1032,7 +1045,7 @@ Retorne este JSON:
     try {
       const res = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ prompt })
       });
 
@@ -1214,7 +1227,7 @@ Seja específico e direto. Não use bullet points, use parágrafos curtos.`;
 
       const res = await fetch('/api/analise-ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ prompt })
       });
 
@@ -1234,4 +1247,3 @@ Seja específico e direto. Não use bullet points, use parágrafos curtos.`;
   </script>
 </body>
 </html>
-
