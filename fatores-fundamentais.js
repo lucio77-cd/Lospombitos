@@ -47,6 +47,13 @@ async function historicoComFallback(ticker) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
 
+  try {
+    await require('./_lib/firebaseAdmin').verificarToken(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
+    return;
+  }
+
   const { ticker, pl, pvp, roe, margem } = req.body || {};
   if (!ticker) { res.status(400).json({ error: 'Informe o ticker.' }); return; }
 
@@ -100,4 +107,3 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Erro ao calcular fatores fundamentalistas: ' + e.message });
   }
 };
-
