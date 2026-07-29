@@ -205,6 +205,13 @@ async function analisarMercadoGlobal(chave) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método não permitido. Use POST.' }); return; }
 
+  try {
+    await require('./_lib/firebaseAdmin').verificarToken(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
+    return;
+  }
+
   const { ticker, tipo } = req.body || {};
   if (!ticker) { res.status(400).json({ error: 'Informe o ticker.' }); return; }
 
