@@ -20,6 +20,13 @@ module.exports = async (req, res) => {
     return;
   }
 
+  try {
+    await require('./_lib/firebaseAdmin').verificarToken(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
+    return;
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error('[api/gemini] GEMINI_API_KEY não configurada no ambiente da Vercel.');
