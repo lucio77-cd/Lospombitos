@@ -346,7 +346,15 @@
       const conteudo = document.getElementById('conteudo');
 
       if (TIPO === 'cdb' || TIPO === 'lci') {
-        renderizarRendaFixaInfo(conteudo); esconderSkeleton(); return;
+        // FIX: antes, a simulação usava 14.65% fixo no código (mercado-api.js)
+        // e a legenda mostrava um número diferente e também fixo (13,65%) —
+        // nenhum dos dois vinha da Selic/CDI real. Agora busca a taxa real
+        // do Banco Central, igual já era feito na aba de Tesouro Direto.
+        let taxas = null;
+        try { taxas = await MercadoAPI.buscarTaxasBacen(); } catch (_) { /* usa fallback do próprio simularRendaFixa */ }
+        renderizarRendaFixaInfo(conteudo, taxas);
+        esconderSkeleton();
+        return;
       }
       if (TIPO === 'tesouro') {
         esconderSkeleton();
@@ -587,10 +595,13 @@
       const range52   = max52 - min52 || 1;
       const posRange  = min52 > 0 ? Math.min(100, Math.max(0, ((preco - min52) / range52) * 100)) : 50;
 
-      const hist1m  = hist1y.slice(-22);
-      const var1m   = hist1m.length > 1 ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco) / hist1m[0].preco) * 100 : 0;
-      const var1y   = dadosHist1y?.variacao_periodo || 0;
-      const var6m   = dadosHist6m?.variacao_periodo || 0;
+      const hist1m   = hist1y.slice(-22);
+      const temVar1m = hist1m.length > 1;
+      const var1m    = temVar1m ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco) / hist1m[0].preco) * 100 : 0;
+      const temVar1y = !!dadosHist1y;
+      const temVar6m = !!dadosHist6m;
+      const var1y    = dadosHist1y?.variacao_periodo ?? 0;
+      const var6m    = dadosHist6m?.variacao_periodo ?? 0;
 
       // Para cripto, variação do dia
       const varLabel = TIPO === 'cripto' ? '24H' : 'HOJE';
@@ -636,15 +647,15 @@
         <div class="stats-grid">
           <div class="stat-bloco">
             <span class="stat-label">${TIPO==='cripto'?'24H':'1 MÊS'}</span>
-            <span class="stat-valor ${(TIPO==='cripto'?varpct:var1m)>=0?'pos':'neg'}">${pct(TIPO==='cripto'?varpct:var1m)}</span>
+            <span class="stat-valor ${(TIPO==='cripto'?varpct:var1m)>=0?'pos':'neg'}">${(TIPO==='cripto'||temVar1m) ? pct(TIPO==='cripto'?varpct:var1m) : '—'}</span>
           </div>
           <div class="stat-bloco">
             <span class="stat-label">6 MESES</span>
-            <span class="stat-valor ${var6m>=0?'pos':'neg'}">${pct(var6m)}</span>
+            <span class="stat-valor ${var6m>=0?'pos':'neg'}">${temVar6m ? pct(var6m) : '—'}</span>
           </div>
           <div class="stat-bloco">
             <span class="stat-label">1 ANO</span>
-            <span class="stat-valor ${var1y>=0?'pos':'neg'}">${pct(var1y)}</span>
+            <span class="stat-valor ${var1y>=0?'pos':'neg'}">${temVar1y ? pct(var1y) : '—'}</span>
           </div>
         </div>`;
 
@@ -834,21 +845,92 @@
       return el;
     }
 
+    // ── Riscos por SETOR (ações) — usa o mesmo mapa de concorrentes, que
+    // é local (sem chamada de API) e por isso nunca fica indisponível.
+    // Cobertura parcial (os setores/tickers já mapeados em MercadoAPI.SETORES);
+    // fora dessa lista cai no fallback genérico, igual ao comportamento antigo.
+    const RISCOS_SETOR = {
+      'Petróleo & Gás':         ['Preço do petróleo no mercado internacional foge do controle da empresa','Receita e parte dos custos são dolarizados — câmbio afeta diretamente o resultado','Risco regulatório e ambiental (licenciamento, marco legal do setor)'],
+      'Bancos':                 ['Inadimplência da carteira de crédito sobe em cenários de juros altos e desemprego','Exigências de capital regulatório (Basileia) podem limitar dividendos','Resultado historicamente sensível ao ciclo de crédito e à Selic'],
+      'Varejo':                 ['Consumo das famílias é sensível a juros, inflação e desemprego','Margem pressionada por concorrência e inadimplência do crediário próprio','Sazonalidade forte em torno de datas comemorativas'],
+      'Energia Elétrica':       ['Receita depende de revisões tarifárias definidas pela Aneel','Risco hidrológico (regime de chuvas) afeta custo e geração de energia','Setor de capital intensivo, tipicamente com endividamento alto'],
+      'Mineração & Siderurgia': ['Preço de commodities definido no mercado internacional, fora do controle da empresa','Receita parcialmente dolarizada — câmbio afeta diretamente o resultado','Risco ambiental e de licenciamento (mineração, barragens)'],
+      'Saúde':                  ['Reajustes de planos de saúde são regulados pela ANS, o que pode pressionar receita','Custos médico-hospitalares historicamente sobem acima da inflação geral','Consolidação do setor aumenta a concorrência entre operadoras/hospitais'],
+      'Tecnologia':             ['Valuation costuma ser mais sensível a mudanças na taxa de juros','Ciclo de adoção do produto pode ser mais lento que o projetado','Concorrência inclui empresas globais, não só brasileiras'],
+      'Transporte':             ['Combustível é um dos principais custos operacionais do setor','Aeronaves e peças são dolarizadas — câmbio afeta custos diretamente','Forte regulação de tarifas e rotas'],
+      'Bens Industriais':       ['Demanda ligada ao ciclo de investimento das empresas (CAPEX)','Parte da receita pode vir de exportação, expondo a empresa ao câmbio','Custo de matéria-prima pode pressionar margem'],
+      'Consumo':                ['Custo de insumos importados sensível ao câmbio, mesmo com receita majoritariamente doméstica','Consumo discricionário sensível ao poder de compra e à inflação','Concorrência de marcas próprias e produtos importados'],
+    };
+    const RISCOS_SETOR_FALLBACK = ['Volatilidade pode causar perdas significativas','Resultados podem frustrar expectativas','Mudanças regulatórias podem afetar o setor'];
+
+    // ── Riscos por SEGMENTO de FII — cobertura parcial (tickers mais
+    // conhecidos de cada segmento); fora da lista cai no fallback genérico.
+    const RISCOS_FII_SEGMENTO = {
+      papel:  ['Risco de crédito dos devedores dos CRIs que compõem a carteira','Marcação a mercado sensível a mudanças na curva de juros (IPCA/CDI)','Concentração em poucos devedores amplia o impacto de uma inadimplência'],
+      tijolo: ['Vacância dos imóveis reduz a distribuição de dividendos','Concentração geográfica ou setorial dos imóveis do fundo','Liquidez do imóvel físico é menor que a liquidez da cota em bolsa'],
+      fallback: ['Vacância reduz os dividendos','Alta de juros pressiona as cotas','Concentração em poucos imóveis','Risco do setor imobiliário específico'],
+    };
+    const FII_SEGMENTO_TICKERS = {
+      papel:  ['MXRF11','KNCR11','KNIP11','IRDM11','RECR11','VGIP11','KNSC11','RBRR11'],
+      tijolo: ['HGLG11','KNRI11','XPLG11','VISC11','HGRE11','BRCO11','VILG11','BTLG11'],
+    };
+
+    // ── Camada dinâmica: usa números REAIS deste ativo (quando disponíveis)
+    // pra acrescentar riscos específicos, além do template do setor.
+    function riscosDinamicos(d, var6m, var1y) {
+      const extras = [];
+      if (d?.pl) {
+        if (d.pl > 30) extras.push(`Negocia a múltiplo de lucro elevado (P/L de ${d.pl.toFixed(1)}x) — mais sensível a frustração de resultados.`);
+        else if (d.pl < 0) extras.push('Empresa reportou prejuízo no período mais recente (P/L negativo).');
+      }
+      if (d?.roe && d.roe > 0 && d.roe < 5) {
+        extras.push(`Retorno sobre patrimônio (ROE) de ${d.roe.toFixed(1)}% está abaixo da média histórica do mercado brasileiro (~15%).`);
+      }
+      const maiorVar = Math.max(Math.abs(var6m || 0), Math.abs(var1y || 0));
+      if (maiorVar > 30) {
+        extras.push(`Alta volatilidade recente: variação de ${maiorVar.toFixed(1)}% no período analisado.`);
+      }
+      return extras;
+    }
+
     function renderizarRiscos() {
-      const mapa = {
-        acoes:  ['Volatilidade pode causar perdas significativas','Resultados podem frustrar expectativas','Mudanças regulatórias afetam o setor','Risco cambial para exportadoras/importadoras'],
-        fiis:   ['Vacância reduz os dividendos','Alta de juros pressiona as cotas','Concentração em poucos imóveis','Risco do setor imobiliário específico'],
+      const d     = dadosDetalhe || {};
+      const var6m = dadosHist6m?.variacao_periodo || 0;
+      const var1y = dadosHist1y?.variacao_periodo || 0;
+
+      const mapaFixo = {
         cdb:    ['Risco de crédito do emissor (FGC até R$ 250k)','Risco de liquidez sem resgate antecipado','Inflação corrói ganhos em prazos longos','IR regressivo impacta curto prazo'],
         lci:    ['Carência mínima obrigatória','Risco de crédito do emissor','Rentabilidade menor que CDB bruto','Poucos produtos disponíveis'],
         tesouro:['Marcação a mercado em prefixados','Risco político/fiscal','Prazo longo pode não adequar ao objetivo','Risco de inflação para Tesouro Selic'],
         cripto: ['Altíssima volatilidade — quedas de 50%+ em semanas são comuns','Risco regulatório — governos podem proibir ou restringir','Risco de custódia nas exchanges — sem FGC','Mercado 24h com variações noturnas sem liquidez imediata'],
       };
-      const riscos = mapa[TIPO] || mapa.acoes;
+
+      let riscos, nota = '';
+
+      if (TIPO === 'acoes') {
+        const { setor } = MercadoAPI.obterConcorrentes(TICKER);
+        riscos = [...(RISCOS_SETOR[setor] || RISCOS_SETOR_FALLBACK)];
+        const extras = riscosDinamicos(d, var6m, var1y);
+        riscos.push(...extras);
+        nota = extras.length
+          ? 'Os 3 primeiros riscos são do setor; os demais usam dados deste ativo específico.'
+          : 'Riscos do setor deste ativo.';
+      } else if (TIPO === 'fiis') {
+        const seg = FII_SEGMENTO_TICKERS.papel.includes(TICKER) ? 'papel'
+                  : FII_SEGMENTO_TICKERS.tijolo.includes(TICKER) ? 'tijolo'
+                  : null;
+        riscos = seg ? RISCOS_FII_SEGMENTO[seg] : RISCOS_FII_SEGMENTO.fallback;
+        nota = seg ? `Riscos do segmento "${seg}" de FIIs.` : 'Segmento deste FII não identificado — riscos genéricos de FIIs.';
+      } else {
+        riscos = mapaFixo[TIPO] || mapaFixo.cdb;
+      }
+
       const el = document.createElement('div');
       el.className = 'relatorio-secao';
       el.innerHTML = `
         <p class="secao-titulo">⚠️ RISCOS</p>
-        ${riscos.map(r=>`<div class="risco-item"><span>⚠️</span><span>${r}</span></div>`).join('')}`;
+        ${riscos.map(r=>`<div class="risco-item"><span>⚠️</span><span>${r}</span></div>`).join('')}
+        ${nota ? `<p style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">${nota}</p>` : ''}`;
       return el;
     }
 
@@ -888,9 +970,15 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         // A chamada à Anthropic agora passa pelo proxy serverless /api/analise-ia,
         // que guarda a chave no servidor (variável de ambiente ANTHROPIC_API_KEY
         // na Vercel). O client nunca vê a chave nem fala direto com api.anthropic.com.
+        // Esse endpoint agora exige login — manda o token do Firebase Auth.
+        const userAtual = firebase.auth().currentUser;
+        const idToken   = userAtual ? await userAtual.getIdToken() : null;
         const res = await fetch('/api/analise-ia', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {}),
+          },
           body: JSON.stringify({ prompt })
         });
 
@@ -920,8 +1008,13 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
       } catch(e) {
         console.error('[IA]', e);
         // Fallback com dados reais disponíveis
-        const var1yVal  = dadosHist1y?.variacao_periodo || 0;
-        const var6mVal  = dadosHist6m?.variacao_periodo || 0;
+        // FIX: antes, "sem dado" virava 0.00% (var || 0), o que é uma
+        // afirmação diferente (e falsa) de "não sei". Agora distingue
+        // "sem dado" (mostra Indisponível) de "variação foi zero de fato".
+        const temVar1y  = !!dadosHist1y;
+        const temVar6m  = !!dadosHist6m;
+        const var1yVal  = dadosHist1y?.variacao_periodo ?? 0;
+        const var6mVal  = dadosHist6m?.variacao_periodo ?? 0;
         const pl        = dadosDetalhe?.pl || 0;
         const dy        = dadosDetalhe?.dy || 0;
         const posRange  = min52 > 0 ? ((preco-min52)/(max52-min52||1)*100).toFixed(0) : null;
@@ -929,13 +1022,13 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         el.innerHTML = `
           <div class="ia-header"><span class="ia-badge">ANÁLISE</span><p class="ia-titulo">DADOS DO ATIVO</p></div>
           <p class="ia-texto">
-            ${TICKER_DISPLAY} negocia a R$ ${preco.toFixed(2)}${var1yVal !== 0 ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses` : ''}.
+            ${TICKER_DISPLAY} negocia a R$ ${preco.toFixed(2)}${(temVar1y && var1yVal !== 0) ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses${temVar6m?` e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses`:''}` : ''}.
             ${posRange !== null ? `Está a ${posRange}% da sua faixa de preços recente (mín R$ ${min52.toFixed(2)}, máx R$ ${max52.toFixed(2)}).` : ''}
             ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl<15?' indica valuation atrativo':pl>30?' está elevado':' está em linha com o setor'}.` : ''}
             ${dy > 4 ? `Dividend Yield de ${dy.toFixed(1)}% é um ponto positivo para renda passiva.` : ''}
           </p>
-          ${item('Variação 6 meses', pct(var6mVal), var6mVal>=0?'pos':'neg')}
-          ${item('Variação 1 ano', pct(var1yVal), var1yVal>=0?'pos':'neg')}
+          ${temVar6m ? item('Variação 6 meses', pct(var6mVal), var6mVal>=0?'pos':'neg') : item('Variação 6 meses', 'Indisponível', '')}
+          ${temVar1y ? item('Variação 1 ano', pct(var1yVal), var1yVal>=0?'pos':'neg') : item('Variação 1 ano', 'Indisponível', '')}
           ${posRange !== null ? item('Posição na faixa', posRange + '%') : ''}
           <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Os dados acima foram calculados do histórico de preços.</p>`;
       }
@@ -955,8 +1048,8 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         titulos.map(t => {
           const tipo = t.tipo==='selic'?'cdi_pct':t.tipo==='ipca'?'ipca_mais':'prefixado';
           const taxa = t.tipo==='selic'?100:t.taxa_compra;
-          const s12 = MercadoAPI.simularRendaFixa({valor:10000,tipo,taxa,prazoMeses:12});
-          const s24 = MercadoAPI.simularRendaFixa({valor:10000,tipo,taxa,prazoMeses:24});
+          const s12 = MercadoAPI.simularRendaFixa({valor:10000,tipo,taxa,prazoMeses:12,cdiAnual:taxas.cdi_anual_aprox,ipcaAnual:taxas.ipca_12m});
+          const s24 = MercadoAPI.simularRendaFixa({valor:10000,tipo,taxa,prazoMeses:24,cdiAnual:taxas.cdi_anual_aprox,ipcaAnual:taxas.ipca_12m});
           return `
             <div class="relatorio-secao">
               <p class="secao-titulo">${t.tipo==='selic'?'📈':t.tipo==='ipca'?'🏛️':'🔒'} ${t.nome}</p>
@@ -996,10 +1089,11 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
           </div>`).join('');
     }
 
-    function renderizarRendaFixaInfo(conteudo) {
+    function renderizarRendaFixaInfo(conteudo, taxas) {
       const isCDB = TIPO === 'cdb';
+      const cdiAnual = taxas?.cdi_anual_aprox || 14.65; // mesmo fallback que já existia em simularRendaFixa
       const sim = [12,24,36].map(m => {
-        const s = MercadoAPI.simularRendaFixa({valor:10000,tipo:'cdi_pct',taxa:isCDB?110:90,prazoMeses:m});
+        const s = MercadoAPI.simularRendaFixa({valor:10000,tipo:'cdi_pct',taxa:isCDB?110:90,prazoMeses:m,cdiAnual});
         return `<div class="sim-item"><p class="sim-prazo">${m} MESES</p><p class="sim-valor">${MercadoAPI.R$(s.montante_liquido)}</p><p class="sim-rend">+${MercadoAPI.R$(s.renda_liquida)}</p></div>`;
       }).join('');
       conteudo.innerHTML = `
@@ -1016,7 +1110,7 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         <div class="relatorio-secao">
           <p class="secao-titulo">🧮 SIMULAÇÃO — R$ 10.000,00</p>
           <div class="sim-grid">${sim}</div>
-          <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px">Simulação a ${isCDB?'110%':'90%'} do CDI · CDI aprox. 13,65% a.a.</p>
+          <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px">Simulação a ${isCDB?'110%':'90%'} do CDI · CDI aprox. ${cdiAnual.toFixed(2)}% a.a.${taxas?.cdi_anual_aprox?' (Selic atual)':' (estimativa — Selic indisponível no momento)'}</p>
         </div>`;
     }
   </script>
