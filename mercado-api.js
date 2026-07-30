@@ -633,11 +633,18 @@ const MercadoAPI = {
   // ────────────────────────────────────────────
   //  SIMULAÇÃO RENDA FIXA
   // ────────────────────────────────────────────
-  simularRendaFixa({ valor, tipo, taxa, prazoMeses }) {
+  simularRendaFixa({ valor, tipo, taxa, prazoMeses, cdiAnual, ipcaAnual }) {
+    // FIX: antes usava 14.65 e 5.06 fixos no código sempre, mesmo quando o
+    // chamador já tinha a Selic/IPCA reais do BCB em mãos (buscarTaxasBacen).
+    // Agora aceita a taxa real como parâmetro opcional; se não vier nada,
+    // cai nos mesmos valores fixos de antes (nenhum comportamento antigo quebra).
+    const cdi  = (typeof cdiAnual  === 'number' && cdiAnual  > 0) ? cdiAnual  : 14.65;
+    const ipca = (typeof ipcaAnual === 'number' && ipcaAnual > 0) ? ipcaAnual : 5.06;
+
     const anos = prazoMeses / 12;
     let montante;
-    if (tipo === 'cdi_pct')    montante = valor * Math.pow(1 + (taxa / 100 * 14.65 / 100), anos);
-    else if (tipo === 'ipca_mais') montante = valor * Math.pow(1 + (5.06 + taxa) / 100, anos);
+    if (tipo === 'cdi_pct')    montante = valor * Math.pow(1 + (taxa / 100 * cdi / 100), anos);
+    else if (tipo === 'ipca_mais') montante = valor * Math.pow(1 + (ipca + taxa) / 100, anos);
     else                       montante = valor * Math.pow(1 + taxa / 100, anos);
 
     const rendaBruta = montante - valor;
@@ -690,3 +697,4 @@ const MercadoAPI = {
   // Limpa todo o cache manualmente (útil após execução de ordem)
   limparCache() { this._cache = {}; this._usdCache = null; },
 };
+
