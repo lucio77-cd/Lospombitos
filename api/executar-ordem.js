@@ -68,7 +68,11 @@ module.exports = async (req, res) => {
     res.status(400).json({ error: 'Tipo de ordem inválido.' });
     return;
   }
-  const qtd = parseInt(quantidade, 10);
+
+  // FIX: quantidade de cripto aceita fração (ex: 0.5 BTC) — parseInt
+  // truncava isso pra 0 e derrubava a ordem. Ações/FIIs/renda fixa
+  // continuam só em unidades inteiras (não existe 0.5 cota).
+  const qtd = tipo === 'cripto' ? parseFloat(quantidade) : parseInt(quantidade, 10);
   if (!Number.isFinite(qtd) || qtd <= 0 || qtd > 1_000_000) {
     res.status(400).json({ error: 'Quantidade inválida.' });
     return;
@@ -144,7 +148,7 @@ module.exports = async (req, res) => {
         if (posicoes[idx].quantidade < qtd) throw new Error('Quantidade insuficiente.');
         saldo += total;
         posicoes[idx].quantidade -= qtd;
-        if (posicoes[idx].quantidade === 0) posicoes.splice(idx, 1);
+        if (posicoes[idx].quantidade <= 0) posicoes.splice(idx, 1);
       }
 
       const investido = posicoes.reduce((a, p) => a + p.quantidade * p.preco_medio, 0);
@@ -192,7 +196,12 @@ module.exports = async (req, res) => {
         data_post: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      t.update(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio });
+      // FIX: t.update() exige que o doc já exista — se por algum motivo
+      // usuarios/{uid} ainda não tiver sido criado quando a primeira ordem
+      // chega, a transação inteira quebrava com "No document to update".
+      // t.set(...,{merge:true}) faz a mesma coisa quando o doc já existe,
+      // e não quebra quando não existe.
+      t.set(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio }, { merge: true });
 
       return { saldo, patrimonio, preco, status };
     });
