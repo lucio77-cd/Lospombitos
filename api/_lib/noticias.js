@@ -1,37 +1,49 @@
 // ============================================================
-//  api/_lib/noticias.js — Manchetes recentes via Google News RSS
+//  api/noticias.js — Manchetes recentes via Google News RSS
 //
-//  Sem chave, sem API oficial — Google News expõe um feed RSS
-//  público pra qualquer busca. Não tem SLA nem documentação
-//  oficial (é um formato estável há anos, mas pode mudar sem
-//  aviso). Retorna título, fonte e data de cada manchete.
+//  FIX: faltava verificarToken — era o único endpoint do projeto
+//  aberto sem login, então qualquer um na internet podia bater
+//  aqui e consumir a fonte de notícias sem estar logado.
 // ============================================================
 
-function extrairTag(bloco, tag) {
-  const m = bloco.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
-  if (!m) return '';
-  return m[1]
-    .replace('<![CDATA[', '').replace(']]>', '')
-    .replace(/<[^>]+>/g, '')
-    .trim();
-}
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Método não permitido. Use POST.' });
+    return;
+  }
 
-async function buscarNoticias(query, maxItens = 8) {
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=pt-BR&gl=BR&ceid=BR:pt-BR`;
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SoldoBot/1.0)' },
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!res.ok) throw new Error(`Google News RSS HTTP ${res.status}`);
-  const xml = await res.text();
+  let verificarToken, buscarNoticias;
+  try {
+    ({ verificarToken } = require('./_lib/firebaseAdmin'));
+    ({ buscarNoticias } = require('./_lib/noticias'));
+  } catch (e) {
+    console.error('[api/noticias] Falha ao carregar módulos:', e.message);
+    res.status(500).json({ error: 'Erro interno ao carregar dependências: ' + e.message });
+    return;
+  }
 
-  const itens = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-  return itens.slice(0, maxItens).map((bloco) => ({
-    titulo: extrairTag(bloco, 'title'),
-    fonte: extrairTag(bloco, 'source'),
-    data: extrairTag(bloco, 'pubDate'),
-    link: extrairTag(bloco, 'link'),
-  })).filter((n) => n.titulo);
-}
+  try {
+    await verificarToken(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
+    return;
+  }
 
-module.exports = { buscarNoticias };
+  const { query, maxItens } = req.body || {};
+  if (!query || typeof query !== 'string' || !query.trim()) {
+    res.status(400).json({ error: 'Informe a busca (query).' });
+    return;
+  }
+
+  const limite = Number.isFinite(parseInt(maxItens, 10))
+    ? Math.min(Math.max(parseInt(maxItens, 10), 1), 20)
+    : 8;
+
+  try {
+    const noticias = await buscarNoticias(query.trim(), limite);
+    res.status(200).json({ noticias });
+  } catch (e) {
+    console.error('[api/noticias]', query, e.message);
+    res.status(502).json({ error: 'Erro ao buscar notícias: ' + e.message });
+  }
+};
