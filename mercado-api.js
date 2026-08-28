@@ -1,10 +1,15 @@
 // ============================================================
-//  LOS POMBITOS — mercado-api.js v3
-//  APIs: brapi.dev (B3) + CoinGecko (cripto) + BACEN (taxas)
+//  SOLDO — mercado-api.js v4
+//  APIs: brapi.dev (B3, via proxy /api/brapi-proxy) + CoinGecko (cripto) + BACEN (taxas)
 //
-//  FIXES v3:
+//  FIXES v4:
+//  - Token da brapi removido do client — todas as chamadas agora
+//    passam por /api/brapi-proxy, que guarda o token no servidor.
+//  - buscarMultiplos: cripto agora busca direto em BRL no CoinGecko
+//    (vs_currencies=brl), sem o passo intermediário via USD/awesomeapi.
+//
+//  FIXES v3 (mantidos):
 //  - Bug 1: _PRECOS_FALLBACK removido — nunca sobrescreve cotação real
-//  - Bug 2: awesomeapi removido (era API de câmbio, inútil pra B3)
 //  - Bug 3: brapi aceita preço 0 com fallback só de última cotação salva
 //  - Bug 4: cache inválido é invalidado imediatamente se preço = 0
 //  - Bug 5: CONSENSO_FALLBACK com VALE3 duplicado corrigido
@@ -14,8 +19,7 @@
 
 const MercadoAPI = {
 
-  BRAPI:    'https://brapi.dev/api',
-  TOKEN:    'dxg6v14WGQmfM1t9Hdms17',
+  PROXY:    '/api/brapi-proxy',
   _cache:   {},
   _cacheTTL: 5 * 60 * 1000,
 
@@ -24,35 +28,22 @@ const MercadoAPI = {
   // Ex: MercadoAPI.onPrecioFallback = async (t) => { const doc = await db....; return doc.preco; }
   onPrecioFallback: null,
 
+  // Monta a URL pro proxy — path e params vão como querystring,
+  // o token é adicionado só do lado do servidor.
   _url(path, params = {}) {
-    const u = new URL(this.BRAPI + path);
+    const u = new URL(this.PROXY, window.location.origin);
+    u.searchParams.set('path', path);
     Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
-    if (this.TOKEN) u.searchParams.set('token', this.TOKEN);
     return u.toString();
   },
 
   // ────────────────────────────────────────────
-  //  FETCH COM TIMEOUT + RETRY SEM TOKEN
+  //  FETCH COM TIMEOUT
   // ────────────────────────────────────────────
   async _fetch(url, timeoutMs = 8000) {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (e) {
-      // Retry sem token se falhou (pode ser limite do plano)
-      if (url.includes('token=')) {
-        const urlSemToken = url.replace(/[&?]token=[^&]+/, '').replace(/\?&/, '?');
-        try {
-          const res2 = await fetch(urlSemToken, { signal: AbortSignal.timeout(timeoutMs) });
-          if (!res2.ok) throw new Error(`HTTP ${res2.status} (sem token)`);
-          return await res2.json();
-        } catch (e2) {
-          throw e2;
-        }
-      }
-      throw e;
-    }
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   },
 
   // ────────────────────────────────────────────
@@ -70,12 +61,10 @@ const MercadoAPI = {
 
       const q = data.results[0];
 
-      // Se brapi retornar preço 0, não cacheia e tenta fallback Firestore
       if (!q.regularMarketPrice || q.regularMarketPrice === 0) {
         console.warn(`[API] buscarAtivo ${t}: preço 0 retornado pela brapi — tentando fallback`);
         const precoFb = await this._fallbackFirestore(t);
         if (!precoFb) return null;
-        // Retorna objeto parcial com preço do Firestore, sem cachear
         return {
           ticker: t, nome: q.longName || q.shortName || t,
           preco: precoFb, fechamento_ant: precoFb,
@@ -108,7 +97,6 @@ const MercadoAPI = {
       return r;
     } catch (e) {
       console.error(`[API] buscarAtivo ${t}:`, e.message);
-      // Tenta fallback Firestore antes de retornar null
       const precoFb = await this._fallbackFirestore(t);
       if (precoFb) {
         return {
@@ -125,7 +113,7 @@ const MercadoAPI = {
   },
 
   // ────────────────────────────────────────────
-  //  MÚLTIPLOS — sem awesomeapi (era câmbio, não B3)
+  //  MÚLTIPLOS
   // ────────────────────────────────────────────
   async buscarMultiplos(tickers) {
     if (!tickers?.length) return [];
@@ -134,24 +122,13 @@ const MercadoAPI = {
     const cached = this._fromCache(cacheKey);
     if (cached) return cached;
 
-    // Separa ações/FIIs de cripto
     const CRIPTOS = ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'DOT', 'AVAX'];
     const acoes   = lista.filter(t => !CRIPTOS.includes(t));
     const criptos = lista.filter(t =>  CRIPTOS.includes(t));
 
     let resultado = [];
 
-    // ── Busca ações/FIIs, UM TICKER POR VEZ ──
-    // O plano gratuito da brapi.dev só aceita 1 ticker por requisição
-    // (Startup: 10, Pro: 20 — ver brapi.dev/faq). O código antigo mandava
-    // todos de uma vez em /quote/A,B,C,..., o que o plano atual rejeita
-    // por inteiro — e como o erro era engolido em silêncio, a lista
-    // inteira ficava travada em "carregando" pra sempre.
-    //
-    // Um pequeno espaçamento (80ms) entre cada chamada evita estourar o
-    // limite de requisições simultâneas do plano gratuito quando a lista
-    // tem várias ações/FIIs de uma vez (ex: 10 FIIs disparados juntos —
-    // o último as vezes falhava mesmo com token válido).
+    // ── Busca ações/FIIs, UM TICKER POR VEZ (limite do plano da brapi) ──
     if (acoes.length) {
       const respostas = [];
       for (let i = 0; i < acoes.length; i++) {
@@ -190,11 +167,9 @@ const MercadoAPI = {
           console.warn(`[API] buscarMultiplos: ${t} veio com preço 0 ou vazio da brapi`);
         }
       });
-
-      console.log(`[API] brapi ok: ${resultado.map(r => r.ticker + ' R$' + r.preco).join(', ')}`);
     }
 
-    // ── Fallback Firestore para tickers que não vieram ou vieram com preço 0 ──
+    // ── Fallback Firestore ──
     const jaTem  = new Set(resultado.map(r => r.ticker));
     const faltam = acoes.filter(t => !jaTem.has(t));
 
@@ -203,7 +178,6 @@ const MercadoAPI = {
       for (const ticker of faltam) {
         const precoFb = await this._fallbackFirestore(ticker);
         if (precoFb) {
-          console.warn(`[API] Fallback Firestore ok para ${ticker}: R$${precoFb}`);
           resultado.push({
             ticker, nome: ticker,
             preco: precoFb,
@@ -217,29 +191,28 @@ const MercadoAPI = {
       }
     }
 
-    // ── Cripto via CoinGecko ──
+    // ── Cripto via CoinGecko — FIX: BRL direto, sem passar por USD/awesomeapi ──
     if (criptos.length) {
       try {
         const MAP_ID = {
           BTC: 'bitcoin', ETH: 'ethereum', BNB: 'binancecoin',
           SOL: 'solana',  ADA: 'cardano',  DOT: 'polkadot', AVAX: 'avalanche-2',
         };
-        const ids = criptos.map(t => MAP_ID[t]).filter(Boolean).join(',');
-        const usd2brl = await this._getUSD();
-        const data = await this._fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
-          6000
-        );
         const MAP_BACK = {
           bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB',
           solana: 'SOL', cardano: 'ADA', polkadot: 'DOT', 'avalanche-2': 'AVAX',
         };
+        const ids = criptos.map(t => MAP_ID[t]).filter(Boolean).join(',');
+        const data = await this._fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=brl&include_24hr_change=true`,
+          6000
+        );
         Object.entries(data).forEach(([id, v]) => {
           const sym = MAP_BACK[id];
           if (sym) resultado.push({
             ticker: sym, nome: sym,
-            preco:        v.usd * usd2brl,
-            variacao_pct: v.usd_24h_change || 0,
+            preco:        v.brl,
+            variacao_pct: v.brl_24h_change || 0,
             variacao: 0, volume: 0, market_cap: 0, pl: 0, dy: 0, max_52s: 0, min_52s: 0,
             _fonte: 'coingecko',
           });
@@ -247,7 +220,6 @@ const MercadoAPI = {
       } catch (e) { console.warn('[API] CoinGecko:', e.message); }
     }
 
-    // Só cacheia se todos os tickers foram resolvidos com preço real (não fallback)
     const todosReais = resultado.every(r => r._fonte !== 'firestore_fallback');
     if (resultado.length && todosReais) {
       this._toCache(cacheKey, resultado);
@@ -256,11 +228,6 @@ const MercadoAPI = {
     return resultado;
   },
 
-  // ────────────────────────────────────────────
-  //  FALLBACK FIRESTORE
-  //  Busca o último preço salvo no Firestore via callback injetado
-  //  Para injetar: MercadoAPI.onPrecioFallback = async (ticker) => { ... }
-  // ────────────────────────────────────────────
   async _fallbackFirestore(ticker) {
     if (typeof this.onPrecioFallback !== 'function') return null;
     try {
@@ -270,19 +237,6 @@ const MercadoAPI = {
       console.warn(`[API] _fallbackFirestore ${ticker}:`, e.message);
       return null;
     }
-  },
-
-  // ────────────────────────────────────────────
-  //  CÂMBIO USD → BRL
-  // ────────────────────────────────────────────
-  _usdCache: null,
-  async _getUSD() {
-    if (this._usdCache) return this._usdCache;
-    try {
-      const d = await this._fetch('https://economia.awesomeapi.com.br/last/USD-BRL', 5000);
-      this._usdCache = parseFloat(d.USDBRL?.bid) || 5.70;
-    } catch (e) { this._usdCache = 5.70; }
-    return this._usdCache;
   },
 
   // ────────────────────────────────────────────
@@ -384,7 +338,6 @@ const MercadoAPI = {
     }
   },
 
-  // FIX: VALE3 duplicado removido
   CONSENSO_FALLBACK: {
     PETR4: { n_analistas: 18, rec: 'buy',       alvo: 48.50, c: 12, n: 4, v: 2 },
     VALE3: { n_analistas: 20, rec: 'buy',       alvo: 68.00, c: 13, n: 5, v: 2 },
@@ -495,7 +448,7 @@ const MercadoAPI = {
   },
 
   // ────────────────────────────────────────────
-  //  CRIPTO
+  //  CRIPTO (já buscava BRL direto — sem alteração)
   // ────────────────────────────────────────────
   async buscarCripto(id) {
     const cacheKey = `cripto_${id}`;
@@ -507,18 +460,18 @@ const MercadoAPI = {
         8000
       );
       const r = {
-  id, nome: data.name,
-  simbolo:       data.symbol?.toUpperCase(),
-  preco:         data.market_data?.current_price?.brl || 0,
-  preco_brl:     data.market_data?.current_price?.brl || 0,
-  low_24h:       data.market_data?.low_24h?.brl  || 0,
-  high_24h:      data.market_data?.high_24h?.brl || 0,
-  variacao_24h:  data.market_data?.price_change_percentage_24h || 0,
-  variacao_7d:   data.market_data?.price_change_percentage_7d  || 0,
-  max_historico: data.market_data?.ath?.brl || 0,
-  market_cap:    data.market_data?.market_cap?.brl || 0,
-  rank:          data.market_cap_rank || 0,
-};
+        id, nome: data.name,
+        simbolo:       data.symbol?.toUpperCase(),
+        preco:         data.market_data?.current_price?.brl || 0,
+        preco_brl:     data.market_data?.current_price?.brl || 0,
+        low_24h:       data.market_data?.low_24h?.brl  || 0,
+        high_24h:      data.market_data?.high_24h?.brl || 0,
+        variacao_24h:  data.market_data?.price_change_percentage_24h || 0,
+        variacao_7d:   data.market_data?.price_change_percentage_7d  || 0,
+        max_historico: data.market_data?.ath?.brl || 0,
+        market_cap:    data.market_data?.market_cap?.brl || 0,
+        rank:          data.market_cap_rank || 0,
+      };
       this._toCache(cacheKey, r);
       return r;
     } catch (e) { return null; }
@@ -597,7 +550,7 @@ const MercadoAPI = {
     'Tecnologia':            ['TOTS3', 'LWSA3', 'POSI3'],
     'Transporte':            ['RAIL3', 'CCRO3', 'GOLL4', 'AZUL4'],
     'Bens Industriais':      ['WEGE3', 'EMAE4', 'FRAS3'],
-    'Consumo':               ['ABEV3', 'RENT3', 'LREN3'],
+    'Consumo':               ['ABEV3', 'RENT3'],
   },
 
   obterConcorrentes(ticker) {
@@ -634,18 +587,14 @@ const MercadoAPI = {
   //  SIMULAÇÃO RENDA FIXA
   // ────────────────────────────────────────────
   simularRendaFixa({ valor, tipo, taxa, prazoMeses, cdiAnual, ipcaAnual }) {
-    // FIX: antes usava 14.65 e 5.06 fixos no código sempre, mesmo quando o
-    // chamador já tinha a Selic/IPCA reais do BCB em mãos (buscarTaxasBacen).
-    // Agora aceita a taxa real como parâmetro opcional; se não vier nada,
-    // cai nos mesmos valores fixos de antes (nenhum comportamento antigo quebra).
     const cdi  = (typeof cdiAnual  === 'number' && cdiAnual  > 0) ? cdiAnual  : 14.65;
     const ipca = (typeof ipcaAnual === 'number' && ipcaAnual > 0) ? ipcaAnual : 5.06;
 
     const anos = prazoMeses / 12;
     let montante;
-    if (tipo === 'cdi_pct')    montante = valor * Math.pow(1 + (taxa / 100 * cdi / 100), anos);
+    if (tipo === 'cdi_pct')        montante = valor * Math.pow(1 + (taxa / 100 * cdi / 100), anos);
     else if (tipo === 'ipca_mais') montante = valor * Math.pow(1 + (ipca + taxa) / 100, anos);
-    else                       montante = valor * Math.pow(1 + taxa / 100, anos);
+    else                            montante = valor * Math.pow(1 + taxa / 100, anos);
 
     const rendaBruta = montante - valor;
     const aliq = prazoMeses <= 6 ? .225 : prazoMeses <= 12 ? .20 : prazoMeses <= 24 ? .175 : .15;
@@ -694,7 +643,5 @@ const MercadoAPI = {
 
   _toCache(key, data) { this._cache[key] = { data, ts: Date.now() }; },
 
-  // Limpa todo o cache manualmente (útil após execução de ordem)
-  limparCache() { this._cache = {}; this._usdCache = null; },
+  limparCache() { this._cache = {}; },
 };
-
