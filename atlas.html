@@ -23,7 +23,6 @@
     @keyframes fadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
     @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.4} }
     @keyframes spin   { to { transform: rotate(360deg) } }
-    @keyframes scanline { from{transform:translateY(-100%)} to{transform:translateY(100vh)} }
 
     /* ── Header ── */
     .hdr { position: sticky; top: 0; z-index: 100; background: var(--sand); border-bottom: 1.5px solid var(--shore); padding: 0 16px; height: 58px; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(12px); }
@@ -53,7 +52,6 @@
     .ah-var { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
     .ah-var.pos { color: #88ffbb; } .ah-var.neg { color: #ffaaaa; }
 
-    /* Medidor de probabilidade — o elemento signature desta página */
     .prob-ring-wrap { display: flex; justify-content: center; margin: 14px 0 10px; gap: 24px; }
     .prob-ring { display: flex; flex-direction: column; align-items: center; gap: 6px; }
     .prob-ring svg { transform: rotate(-90deg); }
@@ -79,32 +77,17 @@
     .ag-bar-fill  { height: 100%; border-radius: 2px; transition: width 1s ease; }
     .ag-resumo { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
 
-    /* ── Fatores SHAP-like ── */
+    /* ── Fatores (SHAP-like e Fatores Quantitativos) ── */
     .fatores-card { background: var(--card); border: 1.5px solid var(--shore); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; animation: fadeUp .45s ease; display: none; }
 
-    .clima-sinal { border: 1.5px solid; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; background: var(--sand); }
-    .clima-sinal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-    .clima-sinal-cidade { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink); }
-    .clima-sinal-forca { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; }
-    .clima-sinal-desc { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; }
-    .clima-aviso { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.5; padding: 4px 0 10px; }
-    .clima-lista-title { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
+    .info-sinal { border: 1.5px solid; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; background: var(--sand); }
+    .info-sinal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .info-sinal-titulo { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink); }
+    .info-sinal-valor { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; }
+    .info-sinal-desc { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+    .info-aviso { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.5; padding: 4px 0 10px; }
+    .info-lista-title { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
 
-    .setor-bloco { text-align: left; max-width: 560px; margin: 0 auto 22px; }
-    .setor-titulo { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; color: var(--ink); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    .setor-tag { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; font-weight: 500; color: var(--wave); background: var(--foam); padding: 2px 7px; border-radius: 20px; }
-    .setor-tag.gold { color: #8a6d1f; background: #f5e6c4; }
-    .setor-tag.muted { color: var(--muted); background: var(--shore); }
-    .setor-exp { font-family: var(--sans); font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
-
-    .sent-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .5px; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
-    .sent-badge.positivo { background: #d4f5e2; color: #0f6b42; }
-    .sent-badge.negativo { background: #ffd5ce; color: #a31f1f; }
-    .sent-badge.neutro   { background: var(--shore); color: var(--muted); }
-    .sent-resumo { font-family: var(--sans); font-size: 12px; color: var(--ink); line-height: 1.6; margin-bottom: 12px; }
-    .sent-manchete { display: block; font-family: var(--sans); font-size: 11px; color: var(--muted); padding: 6px 0; border-top: 1px solid var(--shore); text-decoration: none; }
-    .sent-manchete:hover { color: var(--wave); }
-    .sent-manchete .fonte { font-family: var(--mono); font-size: 9px; color: var(--wave); letter-spacing: .5px; }
     .fatores-title { font-family: var(--display); font-size: 16px; letter-spacing: 2px; margin-bottom: 14px; color: var(--ink); }
     .fator-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .fator-nome { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; color: var(--muted); width: 120px; flex-shrink: 0; }
@@ -135,26 +118,11 @@
     .cenario-result { background: var(--sand); border: 1.5px solid var(--shore); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--ink); display: none; white-space: pre-wrap; }
     .cenario-result.show { display: block; }
 
-    /* ── Faixa de preço ── */
-    .faixa-card { background: var(--ink); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; color: white; animation: fadeUp .5s ease; display: none; }
-    .faixa-title { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; opacity: .5; margin-bottom: 12px; }
-    .faixa-range { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-    .faixa-val { font-family: var(--display); font-size: 26px; letter-spacing: 2px; }
-    .faixa-sep { font-family: var(--mono); font-size: 10px; opacity: .4; }
-    .faixa-track { flex: 1; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; position: relative; margin-bottom: 8px; }
-    .faixa-fill { position: absolute; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #128a55, #c9962e, #c62828); }
-    .faixa-dot  { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--gold); }
-    .faixa-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 8px; opacity: .4; }
-    .faixa-prazo { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; opacity: .4; text-align: center; }
-
     /* ── Estado inicial ── */
     .estado-inicial { text-align: center; padding: 48px 20px; animation: fadeUp .4s ease; }
     .ei-ico { font-size: 48px; margin-bottom: 16px; }
     .ei-titulo { font-family: var(--display); font-size: 28px; letter-spacing: 3px; color: var(--ink); margin-bottom: 8px; }
     .ei-desc { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--muted); line-height: 1.8; }
-    .sugestoes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
-    .sug-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; background: var(--card); border: 1.5px solid var(--shore); border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: all .2s; color: var(--wave); }
-    .sug-pill:hover { border-color: var(--wave); background: var(--foam); }
 
     /* Nav */
     .nav { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: rgba(240,235,227,.92); backdrop-filter: blur(16px); border-top: 1.5px solid var(--shore); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
@@ -240,71 +208,7 @@
     <div class="estado-inicial" id="estado-inicial">
       <div class="ei-ico">🔭</div>
       <p class="ei-titulo">ATLAS</p>
-      <p class="ei-desc">Digite um ticker acima, ou escolha abaixo — cada setor tem uma explicação de por que o clima entra (ou não) na análise.</p>
-
-      <div class="setor-bloco">
-        <div class="setor-titulo">🌾 AGRO <span class="setor-tag">clima fundamentalista</span></div>
-        <p class="setor-exp">Chuva acumulada na região produtora + regime El Niño/La Niña + câmbio — a safra reage à seca/excesso de chuva com semanas de atraso.</p>
-        <div class="sugestoes">
-          <span class="sug-pill" onclick="analisarTicker('SLCE3')">SLCE3</span>
-          <span class="sug-pill" onclick="analisarTicker('SMTO3')">SMTO3</span>
-          <span class="sug-pill" onclick="analisarTicker('RAIZ4')">RAIZ4</span>
-          <span class="sug-pill" onclick="analisarTicker('BEEF3')">BEEF3</span>
-          <span class="sug-pill" onclick="analisarTicker('MRFG3')">MRFG3</span>
-          <span class="sug-pill" onclick="analisarTicker('JBSS3')">JBSS3</span>
-        </div>
-      </div>
-
-      <div class="setor-bloco">
-        <div class="setor-titulo">💧 ENERGIA / HIDRELÉTRICAS <span class="setor-tag">clima fundamentalista</span></div>
-        <p class="setor-exp">Nível de reservatório (dado oficial do ONS) — chuva enche represa, represa cheia gera mais energia hídrica, mais barata.</p>
-        <div class="sugestoes">
-          <span class="sug-pill" onclick="analisarTicker('ELET3')">ELET3</span>
-          <span class="sug-pill" onclick="analisarTicker('ENGI11')">ENGI11</span>
-          <span class="sug-pill" onclick="analisarTicker('CPFE3')">CPFE3</span>
-          <span class="sug-pill" onclick="analisarTicker('TAEE11')">TAEE11</span>
-          <span class="sug-pill" onclick="analisarTicker('EQTL3')">EQTL3</span>
-        </div>
-      </div>
-
-      <div class="setor-bloco">
-        <div class="setor-titulo">🌍 MERCADOS GLOBAIS <span class="setor-tag gold">clima comportamental</span></div>
-        <p class="setor-exp">Sem ligação com safra — testa se dias de mais sol na cidade da bolsa coincidem com o índice subindo (efeito de humor, estudado em finanças comportamentais).</p>
-        <div class="sugestoes">
-          <span class="sug-pill" onclick="analisarTicker('IBOVESPA')">IBOVESPA</span>
-          <span class="sug-pill" onclick="analisarTicker('SP500')">S&amp;P 500</span>
-          <span class="sug-pill" onclick="analisarTicker('NASDAQ')">NASDAQ</span>
-          <span class="sug-pill" onclick="analisarTicker('DOWJONES')">DOW JONES</span>
-          <span class="sug-pill" onclick="analisarTicker('FTSE100')">FTSE 100</span>
-          <span class="sug-pill" onclick="analisarTicker('DAX')">DAX</span>
-          <span class="sug-pill" onclick="analisarTicker('NIKKEI')">NIKKEI</span>
-          <span class="sug-pill" onclick="analisarTicker('DOLAR')">💵 DÓLAR</span>
-          <span class="sug-pill" onclick="analisarTicker('EURO')">💶 EURO</span>
-        </div>
-      </div>
-
-      <div class="setor-bloco">
-        <div class="setor-titulo">📊 OUTRAS AÇÕES B3 <span class="setor-tag muted">sem fator climático</span></div>
-        <p class="setor-exp">Bancos, industriais, petróleo — sem cadeia causal conhecida com clima, então essa parte da análise nem roda pra elas.</p>
-        <div class="sugestoes">
-          <span class="sug-pill" onclick="analisarTicker('PETR4')">PETR4</span>
-          <span class="sug-pill" onclick="analisarTicker('VALE3')">VALE3</span>
-          <span class="sug-pill" onclick="analisarTicker('ITUB4')">ITUB4</span>
-          <span class="sug-pill" onclick="analisarTicker('WEGE3')">WEGE3</span>
-          <span class="sug-pill" onclick="analisarTicker('BBAS3')">BBAS3</span>
-        </div>
-      </div>
-
-      <div class="setor-bloco">
-        <div class="setor-titulo">₿ CRIPTO <span class="setor-tag muted">sem fator climático</span></div>
-        <p class="setor-exp">Mercado 24h global sem sede física — não existe "cidade da bolsa" pra testar humor nem safra pra testar clima.</p>
-        <div class="sugestoes">
-          <span class="sug-pill" style="border-color:#f7931a;color:#f7931a" onclick="analisarTicker('BTC')">₿ BTC</span>
-          <span class="sug-pill" style="border-color:#627eea;color:#627eea" onclick="analisarTicker('ETH')">Ξ ETH</span>
-          <span class="sug-pill" style="border-color:#9945ff;color:#9945ff" onclick="analisarTicker('SOL')">◎ SOL</span>
-          <span class="sug-pill" style="border-color:#0033ad;color:#0033ad" onclick="analisarTicker('BNB')">⬡ BNB</span>
-        </div>
-      </div>
+      <p class="ei-desc">Digite um ticker acima pra ver a análise probabilística completa — ações, FIIs ou cripto.</p>
     </div>
 
     <!-- Hero do ativo -->
@@ -320,7 +224,6 @@
         </div>
       </div>
 
-      <!-- Anéis de probabilidade -->
       <div class="prob-ring-wrap" id="prob-ring-wrap">
         <div class="prob-ring">
           <div class="ring-container">
@@ -402,30 +305,12 @@
       </div>
     </div>
 
-    <!-- Fator Climático -->
-    <div class="section-divider" id="div-clima" style="display:none">FATOR CLIMÁTICO</div>
-    <div class="fatores-card" id="clima-card">
-      <div class="fatores-title">🌦️ CLIMA × HISTÓRICO DE PREÇO</div>
-      <div id="clima-body">
-        <span class="analise-loading"><span class="spin-dot"></span> Verificando se este ativo tem exposição climática conhecida...</span>
-      </div>
-    </div>
-
     <!-- Fatores Quantitativos (Value/Quality/Momentum) -->
     <div class="section-divider" id="div-quant" style="display:none">FATORES QUANTITATIVOS</div>
     <div class="fatores-card" id="quant-card">
       <div class="fatores-title">📊 VALUE · QUALITY · MOMENTUM</div>
       <div id="quant-body">
         <span class="analise-loading"><span class="spin-dot"></span> Calculando fatores quantitativos...</span>
-      </div>
-    </div>
-
-    <!-- Sentimento de Notícias -->
-    <div class="section-divider" id="div-noticias" style="display:none">SENTIMENTO DE NOTÍCIAS</div>
-    <div class="fatores-card" id="noticias-card">
-      <div class="fatores-title">📰 O QUE A IMPRENSA ANDA DIZENDO</div>
-      <div id="noticias-body">
-        <span class="analise-loading"><span class="spin-dot"></span> Buscando manchetes recentes...</span>
       </div>
     </div>
 
@@ -465,15 +350,10 @@
   <script>
   'use strict';
 
-  // ── Guard de sessão: sem login, não acessa o Atlas ──
   firebase.auth().onAuthStateChanged(user => {
     if (!user) { location.href = 'login.html'; return; }
   });
 
-  // Todas as chamadas pro backend agora exigem login (ver correção de
-  // segurança nos endpoints) — este helper busca o token atual e monta
-  // os headers padrão. `forcarNovoToken` força refresh (usa true se um
-  // fetch anterior já tiver voltado 401).
   async function authHeaders(forcarNovoToken = false) {
     const user = firebase.auth().currentUser;
     const idToken = user ? await user.getIdToken(forcarNovoToken) : null;
@@ -488,7 +368,6 @@
 
   let tickerAtual = '', dadosAtivo = null, cenarioSelecionado = '';
 
-  // ── Sugere ticker via URL params ──
   const params = new URLSearchParams(location.search);
   if (params.get('ticker')) {
     setTimeout(() => analisarTicker(params.get('ticker')), 200);
@@ -500,7 +379,6 @@
     analisarTicker(v);
   }
 
-  // Mapa de cripto: ticker → CoinGecko ID
   const CRIPTO_MAP = {
     'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana',
     'BNB': 'binancecoin', 'ADA': 'cardano', 'DOT': 'polkadot',
@@ -510,15 +388,10 @@
 
   function ehCripto(ticker) { return !!CRIPTO_MAP[ticker.toUpperCase()]; }
 
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
   async function buscarDadosCripto(ticker) {
     const id = CRIPTO_MAP[ticker.toUpperCase()];
     if (!id) return null;
     try {
-      // Taxa USD→BRL
       let usd2brl = 5.70;
       try {
         const fx = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL', { signal: AbortSignal.timeout(4000) });
@@ -544,7 +417,6 @@
         market_cap:   md.market_cap?.brl || 0,
         rank:         d.market_cap_rank || 0,
         descricao:    (d.description?.pt || d.description?.en || '').substring(0, 400),
-        // Métricas específicas de cripto
         max_7d:       (md.high_24h?.brl || 0),
         min_7d:       (md.low_24h?.brl || 0),
         var_7d:       md.price_change_percentage_7d || 0,
@@ -558,8 +430,6 @@
     }
   }
 
-  const MERCADOS_GLOBAIS_KEYS = ['IBOVESPA','SP500','DOWJONES','NASDAQ','FTSE100','DAX','CAC40','NIKKEI','HANGSENG','DOLAR','EURO'];
-
   async function analisarTicker(ticker) {
     ticker = ticker.toUpperCase().trim();
     document.getElementById('search-input').value = ticker;
@@ -568,35 +438,16 @@
 
     document.getElementById('estado-inicial').style.display = 'none';
 
-    // Índices e câmbio não são "ações" — pulam hero/agentes de IA (feitos pra
-    // ativos B3) e vão direto pro Fator Comportamental (sol × humor de mercado).
-    if (MERCADOS_GLOBAIS_KEYS.includes(ticker)) {
-      document.getElementById('ativo-hero').style.display = 'none';
-      document.getElementById('div-analise').style.display = 'none';
-      document.getElementById('analise-card').style.display = 'none';
-      document.getElementById('div-fatores').style.display = 'none';
-      document.getElementById('fatores-card').style.display = 'none';
-      document.getElementById('div-quant').style.display = 'none';
-      document.getElementById('quant-card').style.display = 'none';
-      carregarFatorClimatico(ticker, 'mercado_global');
-      carregarSentimentoNoticias(ticker, ticker);
-      return;
-    }
-
     mostrarEsqueleto();
 
     try {
       if (ehCripto(ticker)) {
-        // ── Fluxo CRIPTO ──
         const cripto = await buscarDadosCripto(ticker);
         if (!cripto) throw new Error('Cripto não encontrado');
         dadosAtivo = { ativo: cripto, detalhe: null, ticker, tipo: 'cripto' };
         renderAtivo(cripto, null);
         await gerarAnaliseCripto(ticker, cripto);
-        carregarFatorClimatico(ticker, 'cripto');
-        carregarSentimentoNoticias(ticker, `${ticker} criptomoeda`);
       } else {
-        // ── Fluxo AÇÃO B3 ──
         const [ativo, detalhe] = await Promise.all([
           MercadoAPI.buscarAtivo(ticker),
           MercadoAPI.buscarDetalhadoAtivo(ticker).catch(() => null)
@@ -604,9 +455,7 @@
         dadosAtivo = { ativo, detalhe, ticker, tipo: 'acao' };
         renderAtivo(ativo, detalhe);
         await gerarAnalise(ticker, ativo, detalhe);
-        carregarFatorClimatico(ticker, 'acoes');
         carregarFatoresQuant(ticker, detalhe?.pl, detalhe?.pvp, detalhe?.roe, detalhe?.margem_lucro);
-        carregarSentimentoNoticias(ticker, `${ticker} ação B3`);
       }
     } catch (e) {
       console.error(e);
@@ -616,93 +465,9 @@
     }
   }
 
-  // ── Fator Climático (v2): só roda pra ativos com mecanismo causal
-  // conhecido (agro ou hidrelétrica). Testa poucas variáveis com sentido
-  // (chuva acumulada, ONI, câmbio, nível de reservatório) em vez de
-  // qualquer cidade contra qualquer ativo, e corrige o limiar estatístico
-  // pelo número real de testes (Bonferroni) — ver api/clima-precos.js.
-  async function carregarFatorClimatico(ticker, tipo) {
-    document.getElementById('div-clima').style.display = 'flex';
-    document.getElementById('clima-card').style.display = 'block';
-    const body = document.getElementById('clima-body');
-
-    try {
-      const res = await fetch('/api/clima-precos', {
-        method: 'POST',
-        headers: await authHeaders(),
-        body: JSON.stringify({ ticker, tipo })
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
-
-      if (!d.aplicavel) {
-        body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
-        return;
-      }
-
-      let html = '';
-
-      if (tipo === 'mercado_global' && d.contexto) {
-        html += `<div style="font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:10px">${d.contexto.ativo}</div>`;
-      }
-
-      if (d.sinal) {
-        const cor = d.sinal.r > 0 ? '#128a55' : '#c62828';
-        const seta = d.sinal.r > 0 ? '▲' : '▼';
-        html += `
-          <div class="clima-sinal" style="border-color:${cor}">
-            <div class="clima-sinal-top">
-              <span class="clima-sinal-cidade">${d.sinal.nome}</span>
-              <span class="clima-sinal-forca" style="color:${cor}">${seta} r=${d.sinal.r}</span>
-            </div>
-            <div class="clima-sinal-desc">
-              Alvo: <strong>${d.sinal.alvo}</strong> · defasagem de ${d.sinal.lagDias} dias · p=${d.sinal.p} (significativo mesmo após corrigir
-              por ${d.numTestes} testes, limiar p&lt;${d.alfaCorrigido}) · amostra de ${d.sinal.n} dias.
-              Ainda é uma relação estatística histórica, não uma garantia de resultado futuro.
-            </div>
-          </div>`;
-      } else {
-        html += `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
-      }
-
-      if (d.contexto) {
-        const ctxTxt = d.contexto.categoria === 'agro'
-          ? `Ativo de agro — região de referência: ${d.contexto.regiao}`
-          : d.contexto.categoria === 'hidro'
-          ? `Hidrelétrica/transmissora — subsistema: ${d.contexto.subsistema}`
-          : `Fator comportamental — cidade da bolsa: ${d.contexto.cidade}`;
-        html += `<div class="clima-lista-title">${ctxTxt.toUpperCase()}</div>`;
-      }
-
-      if (d.testes?.length) {
-        html += `<div class="clima-lista-title">TODAS AS VARIÁVEIS TESTADAS (${d.testes.length}) — PREÇO E VOLUME</div>`;
-        d.testes.forEach(t => {
-          const abs = Math.abs(t.r);
-          const sig = t.p !== null && t.p < d.alfaCorrigido;
-          const cor = !sig ? 'var(--muted)' : t.r > 0 ? '#128a55' : '#c62828';
-          html += `
-            <div class="fator-row">
-              <span class="fator-nome">${t.nome} · ${t.alvo} · ${t.lagDias}d</span>
-              <div class="fator-bar-wrap">
-                <div class="fator-bar" style="width:${Math.round(abs*100)}%;background:${cor}"></div>
-              </div>
-              <span class="fator-pct" style="color:${cor}">r=${t.r}${sig ? ' ✓' : ''}</span>
-            </div>`;
-        });
-      }
-
-      body.innerHTML = html;
-
-    } catch (e) {
-      console.error('[Clima]', e);
-      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular o fator climático agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
-    }
-  }
-
   // ── Fatores Quantitativos (Value/Quality/Momentum): reaproveita os
   // fundamentos (pl, pvp, roe, margem) que buscarDetalhadoAtivo já
-  // trouxe, e só busca de novo o histórico de preço de ~1 ano pro
-  // cálculo de momentum — ver api/fatores-fundamentais.js.
+  // trouxe — ver api/fatores-fundamentais.js.
   async function carregarFatoresQuant(ticker, pl, pvp, roe, margem) {
     document.getElementById('div-quant').style.display = 'flex';
     document.getElementById('quant-card').style.display = 'block';
@@ -718,18 +483,18 @@
       if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
 
       if (!d.aplicavel) {
-        body.innerHTML = `<div class="clima-aviso">ℹ️ ${d.aviso}</div>`;
+        body.innerHTML = `<div class="info-aviso">ℹ️ ${d.aviso}</div>`;
         return;
       }
 
       const cor = d.geral.score >= 60 ? '#128a55' : d.geral.score >= 40 ? '#c9962e' : '#c62828';
       let html = `
-        <div class="clima-sinal" style="border-color:${cor}">
-          <div class="clima-sinal-top">
-            <span class="clima-sinal-cidade">Score geral</span>
-            <span class="clima-sinal-forca" style="color:${cor}">${d.geral.score} · ${d.geral.classificacao}</span>
+        <div class="info-sinal" style="border-color:${cor}">
+          <div class="info-sinal-top">
+            <span class="info-sinal-titulo">Score geral</span>
+            <span class="info-sinal-valor" style="color:${cor}">${d.geral.score} · ${d.geral.classificacao}</span>
           </div>
-          <div class="clima-sinal-desc">${d.aviso}</div>
+          <div class="info-sinal-desc">${d.aviso}</div>
         </div>`;
 
       const linha = (nome, dados, corBase) => {
@@ -749,80 +514,16 @@
       html += linha('Momentum', d.momentum, '#c9962e');
 
       if (d.avisoMomentum) {
-        html += `<div class="clima-aviso">ℹ️ ${d.avisoMomentum}</div>`;
+        html += `<div class="info-aviso">ℹ️ ${d.avisoMomentum}</div>`;
       } else if (d.fonteHistorico) {
-        html += `<div class="clima-lista-title">HISTÓRICO DE PREÇO VIA ${d.fonteHistorico.toUpperCase()}</div>`;
+        html += `<div class="info-lista-title">HISTÓRICO DE PREÇO VIA ${d.fonteHistorico.toUpperCase()}</div>`;
       }
 
       body.innerHTML = html;
 
     } catch (e) {
       console.error('[FatoresQuant]', e);
-      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível calcular os fatores quantitativos agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
-    }
-  }
-
-  // ── Sentimento de Notícias: busca manchetes recentes (Google News RSS)
-  // e pede pro Claude classificar o tom geral, reaproveitando o mesmo
-  // /api/analise-ia usado na síntese dos agentes — nenhum código novo de
-  // IA, só um prompt novo.
-  async function carregarSentimentoNoticias(ticker, query) {
-    document.getElementById('div-noticias').style.display = 'flex';
-    document.getElementById('noticias-card').style.display = 'block';
-    const body = document.getElementById('noticias-body');
-
-    try {
-      const resNoticias = await fetch('/api/noticias', {
-        method: 'POST',
-        headers: await authHeaders(),
-        body: JSON.stringify({ query })
-      });
-      const dNoticias = await resNoticias.json();
-      if (!resNoticias.ok) throw new Error(dNoticias.error || `HTTP ${resNoticias.status}`);
-
-      const manchetes = dNoticias.manchetes || [];
-      if (!manchetes.length) {
-        body.innerHTML = `<div class="clima-aviso">ℹ️ Não encontrei notícias recentes sobre ${escHtml(ticker)}.</div>`;
-        return;
-      }
-
-      const listaManchetes = manchetes.map((m, i) => `${i+1}. [${m.fonte || 'fonte desconhecida'}] ${m.titulo}`).join('\n');
-      const prompt = `Você é um analista financeiro. Abaixo estão manchetes recentes sobre ${ticker}:
-
-${listaManchetes}
-
-Classifique o sentimento geral dessas manchetes em relação a ${ticker} como investimento. Responda SOMENTE em JSON, sem texto antes ou depois, no formato exato:
-{"sentimento":"positivo|neutro|negativo","confianca":0 a 100,"resumo":"2-3 frases explicando o motivo, em português"}`;
-
-      const resIA = await fetch('/api/analise-ia', {
-        method: 'POST',
-        headers: await authHeaders(),
-        body: JSON.stringify({ prompt })
-      });
-      const dIA = await resIA.json();
-      if (!resIA.ok) throw new Error(dIA.error || `HTTP ${resIA.status}`);
-
-      const limpo = (dIA.texto || '').replace(/```json|```/g, '').trim();
-      const analise = JSON.parse(limpo);
-
-      const emoji = analise.sentimento === 'positivo' ? '📈' : analise.sentimento === 'negativo' ? '📉' : '➖';
-
-      let html = `
-        <div class="sent-badge ${escHtml(analise.sentimento)}">${emoji} ${escHtml(String(analise.sentimento).toUpperCase())} · ${escHtml(analise.confianca)}% confiança</div>
-        <p class="sent-resumo">${escHtml(analise.resumo)}</p>
-        <div class="clima-lista-title">MANCHETES USADAS NESSA ANÁLISE</div>`;
-
-      manchetes.forEach(m => {
-        html += `<a class="sent-manchete" href="${escHtml(m.link)}" target="_blank" rel="noopener">
-          <span class="fonte">${escHtml(m.fonte || '???')}</span> — ${escHtml(m.titulo)}
-        </a>`;
-      });
-
-      body.innerHTML = html;
-
-    } catch (e) {
-      console.error('[Notícias]', e);
-      body.innerHTML = `<div class="clima-aviso">⚠️ Não foi possível analisar o sentimento das notícias agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
+      body.innerHTML = `<div class="info-aviso">⚠️ Não foi possível calcular os fatores quantitativos agora.<br><span style="opacity:.7;font-size:10.5px">${e.message || 'Erro desconhecido'}</span></div>`;
     }
   }
 
@@ -839,17 +540,12 @@ Classifique o sentimento geral dessas manchetes em relação a ${ticker} como in
     document.getElementById('fatores-card').style.display = 'none';
     document.getElementById('div-analise').style.display = 'none';
     document.getElementById('analise-card').style.display = 'none';
-    document.getElementById('div-clima').style.display = 'none';
-    document.getElementById('clima-card').style.display = 'none';
     document.getElementById('div-quant').style.display = 'none';
     document.getElementById('quant-card').style.display = 'none';
-    document.getElementById('div-noticias').style.display = 'none';
-    document.getElementById('noticias-card').style.display = 'none';
     document.getElementById('div-cenarios').style.display = 'none';
     document.getElementById('cenarios-card').style.display = 'none';
     document.getElementById('cenario-result').classList.remove('show');
 
-    // Reset anéis
     setRing('ring-alta',  0); setRing('ring-queda', 0);
     document.getElementById('ring-alta-val').textContent  = '—';
     document.getElementById('ring-queda-val').textContent = '—';
@@ -857,7 +553,6 @@ Classifique o sentimento geral dessas manchetes em relação a ${ticker} como in
     document.getElementById('conf-fill').style.width = '0%';
     document.getElementById('faixa-inline').textContent = '—';
 
-    // Reset agentes
     ['economista','fundamentalista','tecnico','sentimento'].forEach(ag => {
       const el = document.getElementById('ag-' + ag);
       el.classList.add('loading');
@@ -882,7 +577,6 @@ Classifique o sentimento geral dessas manchetes em relação a ${ticker} como in
     }
   }
 
-  // ── Chama Claude API para gerar análise multiagente ──
   async function gerarAnalise(ticker, ativo, detalhe) {
     const preco      = ativo?.preco || 0;
     const variacao   = ativo?.variacao_pct || 0;
@@ -965,13 +659,11 @@ Retorne este JSON (com valores reais calculados, não os exemplos):
 
     } catch (e) {
       console.error('Claude API:', e);
-      // Fallback com dados estimados se API falhar
       const fallback = gerarFallback(ticker, ativo, detalhe);
       renderResultado(fallback, ativo);
     }
   }
 
-  // ── Análise CRIPTO via Claude API ──
   async function gerarAnaliseCripto(ticker, cripto) {
     const preco    = cripto.preco || 0;
     const var24h   = cripto.variacao_pct || 0;
@@ -984,7 +676,6 @@ Retorne este JSON (com valores reais calculados, não os exemplos):
     const posVsAth = max52 > 0 ? ((preco / max52 - 1) * 100).toFixed(1) : '—';
     const vol      = cripto.volume || 0;
 
-    // Atualiza cenários para cripto
     document.getElementById('cenario-opts').innerHTML = `
       <button class="cenario-opt" onclick="selecionarCenario(this,'ETF de Bitcoin aprovado nos EUA')">🇺🇸 ETF Bitcoin aprovado nos EUA</button>
       <button class="cenario-opt" onclick="selecionarCenario(this,'Fed cortar juros 0.5%')">📉 Fed cortar juros 0.5%</button>
@@ -1058,7 +749,6 @@ Retorne este JSON:
 
     } catch (e) {
       console.error('Claude API Cripto:', e);
-      // Fallback cripto
       const alta = var30d >= 0 ? 62 : 42;
       renderResultado({
         probabilidade_alta: alta, probabilidade_queda: 100 - alta,
@@ -1084,7 +774,6 @@ Retorne este JSON:
     }
   }
 
-  // Fallback caso API não responda
   function gerarFallback(ticker, ativo, detalhe) {
     const rec = detalhe?.recomendacao || 'hold';
     const baseAlta = rec === 'strongBuy' ? 75 : rec === 'buy' ? 65 : rec === 'hold' ? 50 : 38;
@@ -1117,8 +806,6 @@ Retorne este JSON:
   }
 
   function renderResultado(r, ativo) {
-    // Anéis
-    const circunf = 2 * Math.PI * 38;
     setRing('ring-alta',  r.probabilidade_alta);
     setRing('ring-queda', r.probabilidade_queda);
     document.getElementById('ring-alta-val').textContent  = r.probabilidade_alta  + '%';
@@ -1126,13 +813,11 @@ Retorne este JSON:
     document.getElementById('conf-val').textContent = r.confianca + '%';
     document.getElementById('conf-fill').style.width = r.confianca + '%';
 
-    const precoAtual = ativo?.preco || 0;
     if (r.faixa_min_30d && r.faixa_max_30d) {
       document.getElementById('faixa-inline').textContent =
         `${R$(r.faixa_min_30d)} – ${R$(r.faixa_max_30d)}`;
     }
 
-    // Agentes
     const agMap = { economista: r.agentes.economista, fundamentalista: r.agentes.fundamentalista, tecnico: r.agentes.tecnico, sentimento: r.agentes.sentimento };
     Object.entries(agMap).forEach(([ag, dados]) => {
       const el     = document.getElementById('ag-' + ag);
@@ -1148,7 +833,6 @@ Retorne este JSON:
       el.querySelector('.ag-resumo').textContent = dados.resumo;
     });
 
-    // Fatores
     document.getElementById('div-fatores').style.display = 'flex';
     document.getElementById('fatores-card').style.display = 'block';
     const list = document.getElementById('fatores-list');
@@ -1166,7 +850,6 @@ Retorne este JSON:
         </div>`;
     });
 
-    // Síntese
     document.getElementById('div-analise').style.display = 'flex';
     document.getElementById('analise-card').style.display = 'block';
     let sintese = r.sintese || '';
@@ -1178,7 +861,6 @@ Retorne este JSON:
     }
     document.getElementById('analise-body').textContent = sintese;
 
-    // Cenários
     document.getElementById('div-cenarios').style.display = 'flex';
     document.getElementById('cenarios-card').style.display = 'block';
   }
@@ -1190,7 +872,6 @@ Retorne este JSON:
     el.setAttribute('stroke-dasharray', `${dash} ${circunf - dash}`);
   }
 
-  // ── Cenários ──
   function selecionarCenario(btn, texto) {
     document.querySelectorAll('.cenario-opt').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
