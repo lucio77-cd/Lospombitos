@@ -447,11 +447,19 @@
         dadosAtivo = { ativo: cripto, detalhe: null, ticker, tipo: 'cripto' };
         renderAtivo(cripto, null);
         await gerarAnaliseCripto(ticker, cripto);
-      } else {
+          } else {
         const [ativo, detalhe] = await Promise.all([
           MercadoAPI.buscarAtivo(ticker),
           MercadoAPI.buscarDetalhadoAtivo(ticker).catch(() => null)
         ]);
+
+        // FIX: sem isso, um ticker inexistente (ativo=null) seguia
+        // direto pra análise da IA, que gerava números genéricos
+        // (50/50, "hold") como se fosse uma análise real.
+        if (!ativo || !ativo.preco) {
+          throw new Error(`"${ticker}" não é um ticker válido na B3. Confira a grafia (ex: PETR4, não PETR).`);
+        }
+
         dadosAtivo = { ativo, detalhe, ticker, tipo: 'acao' };
         renderAtivo(ativo, detalhe);
         await gerarAnalise(ticker, ativo, detalhe);
