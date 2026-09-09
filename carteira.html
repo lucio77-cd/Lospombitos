@@ -414,14 +414,20 @@
         })
         .sort((a, b) => parseData(a.data) - parseData(b.data));
 
-      // Saldo recalculado
-      let saldoRecalc = CAPITAL;
-      for (const o of ordensValidas) {
-        const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-        if (o.lado === 'compra') saldoRecalc -= total;
-        if (o.lado === 'venda')  saldoRecalc += total;
+      // Saldo — usa o valor oficial gravado pelo servidor em carteiras/{uid}.
+      // Só recalcula a partir das ordens se o documento ainda não tiver esse
+      // campo (carteira antiga, criada antes desta correção).
+      if (typeof c.saldo_disponivel === 'number') {
+        saldoDispGlobal = c.saldo_disponivel;
+      } else {
+        let saldoRecalc = CAPITAL;
+        for (const o of ordensValidas) {
+          const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+          if (o.lado === 'compra') saldoRecalc -= total;
+          if (o.lado === 'venda')  saldoRecalc += total;
+        }
+        saldoDispGlobal = Math.max(0, saldoRecalc);
       }
-      saldoDispGlobal = Math.max(0, saldoRecalc);
 
       // Cotações — separadas por tipo porque cripto é comprada em
       // ordem.html/relatorio.html usando o ID do CoinGecko como ticker
@@ -494,8 +500,9 @@
 
     } catch (e) {
       console.error('carregar:', e);
-      document.getElementById('pos-loading').innerHTML =
-        `<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">${e.message}</span></div>`;
+      const erroHtml = `<div class="empty"><span class="empty-ico">⚠️</span>Erro ao carregar.<br><span style="opacity:.6">${e.message}</span></div>`;
+      document.getElementById('pos-loading').innerHTML  = erroHtml;
+      document.getElementById('hist-loading').innerHTML = erroHtml;
     }
   }
 
