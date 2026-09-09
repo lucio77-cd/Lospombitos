@@ -694,7 +694,7 @@ async function postar() {
       uid:user.uid,
       username:u.username||'pombito',
       foto_perfil:u.foto_perfil||`https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
-      texto:txt,mood:moodAtual,tipo:'texto',likes:0,
+      texto:txt,mood:moodAtual,tipo:'texto',likes:0,curtido_por:[],
       data_post:firebase.firestore.FieldValue.serverTimestamp(),
     });
     inp.value='';onPostInput(inp);moodAtual=null;
@@ -708,15 +708,25 @@ async function postar() {
 async function darLike(postId, btn) {
   const user=firebase.auth().currentUser;
   if(!user){toast('Faça login para curtir.');return;}
-  const liked=btn.classList.contains('on');
+  if(btn.disabled) return;
+  const jaCurtiu=btn.classList.contains('on');
   const cnt=btn.querySelector('.lc');
   const cur=parseInt(cnt.textContent)||0;
-  btn.classList.toggle('on');cnt.textContent=liked?cur-1:cur+1;
+  btn.disabled=true;
+  btn.classList.toggle('on');cnt.textContent=jaCurtiu?cur-1:cur+1;
   try {
     await db.collection('posts').doc(postId).update({
-      likes:firebase.firestore.FieldValue.increment(liked?-1:1)
+      likes:firebase.firestore.FieldValue.increment(jaCurtiu?-1:1),
+      curtido_por: jaCurtiu
+        ? firebase.firestore.FieldValue.arrayRemove(user.uid)
+        : firebase.firestore.FieldValue.arrayUnion(user.uid)
     });
-  } catch(e){btn.classList.toggle('on');cnt.textContent=cur;}
+  } catch(e){
+    btn.classList.toggle('on');cnt.textContent=cur;
+    toast('Não deu pra curtir agora.');
+  } finally {
+    btn.disabled=false;
+  }
 }
 
 /* ── FILTROS ── */
@@ -750,6 +760,7 @@ function renderPosts(posts) {
     const foto=post.foto_perfil||fallbackAv;
     const t=tempoRelativo(post.data_post?.seconds);
     const likes=post.likes||0;
+    const jaCurtiu=(post.curtido_por||[]).includes(meuUid);
 
     if(post.data_post?.seconds){
       const dia=new Date(post.data_post.seconds*1000).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
@@ -782,7 +793,7 @@ function renderPosts(posts) {
             <div class="tc span3"><p class="tc-l">TOTAL OPERAÇÃO</p><p class="tc-v big">${BRL(post.total||0)}</p></div>
           </div>
           <a class="btn-rel" href="relatorio.html?ticker=${encodeURIComponent(post.ticker||'')}&tipo=${encodeURIComponent(post.tipo_ativo||'acoes')}">Ver relatório →</a>
-          <div class="p-reacts"><button class="react" onclick="darLike('${post.id}',this)">❤️ <span class="lc">${likes}</span></button></div>
+          <div class="p-reacts"><button class="react ${jaCurtiu?'on':''}" onclick="darLike('${post.id}',this)">❤️ <span class="lc">${likes}</span></button></div>
         </div>`;
     } else {
       card.className='post-card';
@@ -795,7 +806,7 @@ function renderPosts(posts) {
             <span class="p-time">· ${t}</span>
           </div>
           <p class="p-text">${escHtml(post.texto||'').replace(/\n/g,'<br>')}</p>
-          <div class="p-reacts"><button class="react" onclick="darLike('${post.id}',this)">❤️ <span class="lc">${likes}</span></button></div>
+          <div class="p-reacts"><button class="react ${jaCurtiu?'on':''}" onclick="darLike('${post.id}',this)">❤️ <span class="lc">${likes}</span></button></div>
         </div>`;
     }
     list.appendChild(card);
