@@ -407,7 +407,7 @@
 
   // ── Init ──
   firebase.auth().onAuthStateChanged(async user => {
-    if (!user) { location.href = 'invite.html'; return; }
+    if (!user) { location.href = 'login.html'; return; }
     meuUID = user.uid;
 
     try {
