@@ -236,7 +236,7 @@
   let saldoDisp = 0, patrimonioTotal = 0;
 
   firebase.auth().onAuthStateChanged(async user => {
-    if (!user) { location.href = 'invite.html'; return; }
+    if (!user) { location.href = 'login.html'; return; }
     uid = user.uid;
     db  = window.db || firebase.firestore();
     await carregar();
@@ -254,20 +254,26 @@
     carteiraData = cS.exists ? cS.data() : {};
     posicoes     = carteiraData.posicoes || [];
 
-    // ── Recalcula saldo pelas ordens válidas (igual ao carteira.html) ──
-    const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const ordensValidas = todasOrdens.filter(o => {
-      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-      return total > 0 && o.lado && o.status !== 'cancelada';
-    });
+    // ── Saldo: usa o valor oficial gravado pelo servidor em carteiras/{uid}.
+    //    Só recalcula pelas ordens se essa carteira ainda não tiver o campo
+    //    (carteira antiga, criada antes da correção do anti-cheat).
+    if (typeof carteiraData.saldo_disponivel === 'number') {
+      saldoDisp = carteiraData.saldo_disponivel;
+    } else {
+      const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const ordensValidas = todasOrdens.filter(o => {
+        const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+        return total > 0 && o.lado && o.status !== 'cancelada';
+      });
 
-    let saldoRecalc = CAPITAL;
-    for (const o of ordensValidas) {
-      const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-      if (o.lado === 'compra') saldoRecalc -= total;
-      if (o.lado === 'venda')  saldoRecalc += total;
+      let saldoRecalc = CAPITAL;
+      for (const o of ordensValidas) {
+        const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
+        if (o.lado === 'compra') saldoRecalc -= total;
+        if (o.lado === 'venda')  saldoRecalc += total;
+      }
+      saldoDisp = Math.max(0, saldoRecalc);
     }
-    saldoDisp = Math.max(0, saldoRecalc);
 
     // ── Cotações ──
     const tks = posicoes
