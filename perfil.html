@@ -3,108 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Perfil | Los Pombitos</title>
+  <title>Relatório | Los Pombitos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --ink:#170f28;--sand:#f5f2fb;--shore:#e3d9f5;--wave:#5b2a99;--foam:#ece0fa;
-      --sun:#c9962e;--muted:#756c86;--card:#ffffff;--green:#128a55;--red:#c62828;
-      --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
+    :root {
+      --ink:#170f28; --sand:#f5f2fb; --shore:#e3d9f5; --wave:#5b2a99;
+      --foam:#ece0fa; --sun:#c9962e; --coral:#ff5533; --muted:#756c86;
+      --card:#ffffff; --green:#128a55; --red:#c62828; --radius:14px;
+      --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif; --display:'Bebas Neue',sans-serif;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:90px;overscroll-behavior:none}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--sand);color:var(--ink);min-height:100dvh;padding-bottom:120px;overscroll-behavior:none}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* HEADER */
+    .feed-header{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px)}
+    .btn-voltar{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);padding:4px;display:flex;align-items:center}
+    .header-titulo{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);flex:1}
+    .header-tipo{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted);background:var(--shore);border-radius:20px;padding:4px 10px}
+
+    .container{padding:20px 16px;max-width:640px;margin:0 auto}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
 
-    .hdr{position:sticky;top:0;z-index:100;background:var(--sand);border-bottom:1.5px solid var(--shore);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
-    .hdr-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink)}
-    .btn-edit{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave);background:var(--foam);border:none;border-radius:20px;padding:5px 12px;cursor:pointer}
-    .container{max-width:640px;margin:0 auto;padding:20px 16px}
+    /* SKELETON */
+    .sk-bloco{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+    .sk-line{height:12px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:10px}
 
-    .hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;animation:fadeUp .3s ease}
-    .avatar{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:3px solid white;box-shadow:0 0 0 2px var(--shore);flex-shrink:0;overflow:hidden;background:var(--wave)}
-    .avatar img{width:100%;height:100%;object-fit:cover}
-    .hero-info{flex:1;min-width:0}
-    .hero-nome{font-family:var(--display);font-size:26px;letter-spacing:2px;line-height:1;margin-bottom:2px}
-    .hero-username{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px}
-    .hero-bio{font-size:13px;line-height:1.5;color:var(--ink);opacity:.75}
-    .perfil-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;background:var(--foam);color:var(--wave);border-radius:20px;padding:3px 9px;margin-bottom:6px}
+    /* SEÇÃO GENÉRICA */
+    .relatorio-secao{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:18px;margin-bottom:12px;animation:fadeUp .3s ease}
+    .relatorio-secao:hover{border-color:var(--foam)}
+    .secao-titulo{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .relatorio-item{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--shore)}
+    .relatorio-item:last-child{border-bottom:none}
+    .item-label{font-family:var(--mono);font-size:10px;color:var(--muted);flex:1}
+    .item-valor{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink);text-align:right}
+    .item-valor.pos{color:var(--green)}.item-valor.neg{color:var(--red)}
 
-    .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;animation:fadeUp .35s ease}
-    .stat-box{background:var(--card);border:1.5px solid var(--shore);border-radius:12px;padding:12px;text-align:center}
-    .stat-val{font-family:var(--display);font-size:17px;letter-spacing:1px;color:var(--ink);line-height:1;margin-bottom:3px}
-    .stat-val.pos{color:var(--green)}.stat-val.neg{color:var(--red)}
-    .stat-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
+    /* HERO */
+    .ativo-hero{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:20px;margin-bottom:12px;animation:fadeUp .3s ease}
+    .ativo-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+    .ativo-ticker{font-family:var(--display);font-size:36px;letter-spacing:3px;color:var(--wave);line-height:1}
+    .ativo-nome{font-size:12px;color:var(--muted);margin-top:4px}
+    .ativo-preco{font-family:var(--display);font-size:30px;letter-spacing:2px;color:var(--ink);line-height:1;text-align:right}
+    .ativo-var{font-family:var(--mono);font-size:12px;font-weight:500;margin-top:4px;text-align:right;padding:3px 10px;border-radius:20px;display:inline-block}
+    .ativo-var.pos{color:var(--green);background:#d4f5e2}.ativo-var.neg{color:var(--red);background:#ffd5ce}
 
-    .secao-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px}
-    .treemap-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;animation:fadeUp .4s ease}
-    canvas.treemap{width:100%;display:block}
-    .treemap-leg{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--shore)}
-    .tl-item{display:flex;align-items:center;gap:5px}
-    .tl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-    .tl-info{font-family:var(--mono);font-size:9px}
-    .tl-ticker{color:var(--ink);font-weight:500}
-    .tl-pct{color:var(--muted)}
+    /* FAIXA 52 SEMANAS */
+    .range-wrap{margin:16px 0 4px}
+    .range-label-row{display:flex;justify-content:space-between;margin-bottom:6px}
+    .range-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+    .range-bar{position:relative;height:6px;background:var(--shore);border-radius:3px;margin-bottom:4px}
+    .range-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--sun))}
+    .range-dot{position:absolute;top:50%;width:12px;height:12px;background:var(--wave);border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 4px rgba(0,0,0,.2)}
+    .range-val-row{display:flex;justify-content:space-between}
+    .range-val{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink)}
 
-    .perf-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:14px;animation:fadeUp .45s ease}
-    .perf-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
-    .perf-resultado{font-family:var(--display);font-size:22px;letter-spacing:1px}
-    .perf-resultado.pos{color:var(--green)}.perf-resultado.neg{color:var(--red)}
-    .perf-sub{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px}
-    .perf-pct{font-family:var(--mono);font-size:12px;font-weight:500}
-    .perf-pct.pos{color:var(--green)}.perf-pct.neg{color:var(--red)}
-    .perf-chart-wrap{height:90px;position:relative;margin-bottom:10px}
-    canvas#perf-chart{width:100%;height:90px}
+    /* GRID DE STATS */
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid var(--shore)}
+    .stat-bloco{background:var(--sand);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:3px}
+    .stat-label{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted)}
+    .stat-valor{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink)}
+    .stat-valor.pos{color:var(--green)}.stat-valor.neg{color:var(--red)}
 
-    /* ── Barras de ativo — redesenhadas ── */
-    .ativo-rows{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--shore)}
-    .ativo-row{display:flex;align-items:center;gap:8px;cursor:pointer;padding:2px 0}
-    .ar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .ar-ticker{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--wave);width:52px;flex-shrink:0}
-    .ar-bar-track{flex:1;height:5px;background:var(--shore);border-radius:3px;overflow:hidden}
-    .ar-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
-    .ar-val{font-family:var(--mono);font-size:10px;font-weight:500;text-align:right;width:76px;flex-shrink:0}
-    .ar-val.pos{color:var(--green)}.ar-val.neg{color:var(--red)}.ar-val.neu{color:var(--muted)}
-    .ar-no-cot{font-family:var(--mono);font-size:8px;color:var(--muted);flex:1;text-align:right}
+    /* GRÁFICO MINI */
+    .mini-chart-wrap{margin:14px 0 6px;height:70px;position:relative}
+    canvas.mini-chart{width:100%;height:70px}
 
-    /* Posts */
-    .post-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:14px;margin-bottom:8px;animation:fadeUp .3s ease}
-    .post-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .post-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;background:var(--wave)}
-    .post-av img{width:100%;height:100%;object-fit:cover}
-    .post-nome{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink)}
-    .post-data{font-family:var(--mono);font-size:9px;color:var(--muted)}
-    .post-txt{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px}
-    .post-likes{font-family:var(--mono);font-size:10px;color:var(--muted)}
-    .trade-pill{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block;margin-left:auto}
-    .trade-pill.c{background:#d4f5e2;color:var(--green)}.trade-pill.v{background:#ffd5ce;color:var(--red)}
-    .trade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;background:var(--shore);border-radius:8px;overflow:hidden}
-    .tc{background:var(--sand);padding:8px 10px}
-    .tg-lbl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;color:var(--muted);margin-bottom:2px}
-    .tg-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink)}
-    .trade-total-row{background:var(--sand);border-radius:8px;padding:8px 10px;margin-bottom:8px}
-    .ticker-big{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave);margin-bottom:8px}
-    .sk-line{height:11px;border-radius:4px;background:var(--shore);animation:shimmer 1.4s infinite;margin-bottom:8px}
-    .empty{text-align:center;padding:28px 20px;color:var(--muted);font-family:var(--mono);font-size:10px}
+    /* FUNDAMENTOS — grade visual */
+    .fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+    .fund-item{background:var(--sand);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px}
+    .fund-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
+    .fund-valor{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink)}
+    .fund-valor.pos{color:var(--green)}.fund-valor.neg{color:var(--red)}
+    .fund-sub{font-family:var(--mono);font-size:8px;color:var(--muted)}
 
-    .nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(240,235,227,.92);backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
-    .ni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
-    .ni:hover{background:var(--shore)}
-    .ni-ico{font-size:20px;line-height:1}
-    .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
-    .ni.on .ni-lbl{color:var(--wave);font-weight:500}
+    /* ANALISTAS */
+    .analistas-bar{display:flex;border-radius:6px;overflow:hidden;height:10px;margin:10px 0 6px}
+    .bar-c{background:var(--green)}.bar-n{background:var(--sun)}.bar-v{background:var(--red)}
+    .analistas-leg{display:flex;gap:14px}
+    .leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+    .leg-dot{width:8px;height:8px;border-radius:50%}
+
+    /* CONCORRENTES */
+    .conc-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--shore);cursor:pointer;transition:opacity .2s}
+    .conc-item:last-child{border-bottom:none}
+    .conc-item:hover{opacity:.7}
+    .conc-ticker{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--wave);background:var(--foam);border-radius:6px;padding:2px 8px;flex-shrink:0}
+    .conc-nome{font-size:12px;color:var(--ink);flex:1;margin:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .conc-preco{font-family:var(--mono);font-size:11px;color:var(--ink)}
+    .conc-var{font-family:var(--mono);font-size:10px;font-weight:500;margin-left:6px}
+    .conc-var.pos{color:var(--green)}.conc-var.neg{color:var(--red)}
+
+    /* IA CARD */
+    .ia-card{background:linear-gradient(135deg,#eef2ff,var(--card));border:1.5px solid var(--foam);border-radius:var(--radius);padding:18px;margin-bottom:12px;animation:fadeUp .3s ease}
+    .ia-badge{font-family:var(--mono);font-size:8px;letter-spacing:2px;background:var(--wave);color:white;border-radius:20px;padding:3px 10px}
+    .ia-titulo{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--wave)}
+    .ia-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .ia-sk{height:12px;border-radius:4px;background:var(--foam);animation:shimmer 1.4s infinite;margin-bottom:8px}
+    .ia-texto{font-size:14px;line-height:1.7;color:var(--ink);margin-bottom:14px}
+    .ia-lista{display:flex;flex-direction:column;gap:8px}
+    .ia-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5}
+    .ia-aviso{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:12px;line-height:1.6;padding-top:10px;border-top:1px solid var(--foam)}
+
+    /* RISCOS */
+    .risco-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--shore);font-size:13px;line-height:1.5}
+    .risco-item:last-child{border-bottom:none}
+
+    /* SIMULAÇÃO */
+    .sim-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}
+    .sim-item{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
+    .sim-prazo{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+    .sim-valor{font-family:var(--display);font-size:15px;letter-spacing:1px;color:var(--ink)}
+    .sim-rend{font-family:var(--mono);font-size:9px;color:var(--green);margin-top:2px}
+
+    /* LISTA ATIVOS */
+    .lista-ativo{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s,transform .2s}
+    .lista-ativo:hover{border-color:var(--wave);transform:translateY(-1px)}
+    .lista-ticker{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--wave)}
+    .lista-nome{font-size:11px;color:var(--muted);margin-top:2px}
+    .lista-seg{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;letter-spacing:1px}
+    .lista-preco{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink);text-align:right}
+    .lista-var{font-family:var(--mono);font-size:11px;font-weight:500;text-align:right;margin-top:2px}
+    .lista-var.pos{color:var(--green)}.lista-var.neg{color:var(--red)}
+
+    /* BTN INVESTIR */
+    .btn-investir-wrap{position:fixed;bottom:68px;left:0;right:0;padding:10px 16px;background:linear-gradient(to top,var(--sand) 60%,transparent);z-index:50}
+    .btn-investir{width:100%;max-width:640px;margin:0 auto;height:52px;display:flex;background:var(--wave);color:white;border:none;border-radius:25px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:1.5px;cursor:pointer;transition:all .2s;align-items:center;justify-content:center;gap:10px}
+    .btn-investir:hover{background:#3d1a70;transform:translateY(-1px)}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:140px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:white;font-family:var(--mono);font-size:12px;padding:10px 22px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* NAV */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(245,242,251,.92);backdrop-filter:blur(16px);border-top:1.5px solid var(--shore);display:flex;justify-content:space-around;align-items:center;z-index:100}
+    .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s;text-decoration:none;color:inherit}
+    .nav-item:hover{background:var(--shore)}
+    .nav-icon{font-size:20px;line-height:1}
+    .nav-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+    .nav-item.active-link .nav-label{color:var(--wave);font-weight:500}
+
+    .info-dica{background:var(--foam);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--wave)}
+
+    /* TAG DE POSIÇÃO */
+    .minha-pos-banner{background:linear-gradient(135deg,#d4f5e2,#c8f0da);border:1.5px solid #128a5530;border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;animation:fadeUp .3s ease}
+    .minha-pos-banner.neg{background:linear-gradient(135deg,#ffd5ce,#ffc8bf);border-color:#c6282830}
+    .mpb-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--green);margin-bottom:3px}
+    .minha-pos-banner.neg .mpb-label{color:var(--red)}
+    .mpb-valor{font-family:var(--display);font-size:22px;letter-spacing:1px;color:var(--green)}
+    .minha-pos-banner.neg .mpb-valor{color:var(--red)}
+    .mpb-pct{font-family:var(--display);font-size:18px;color:var(--green)}
+    .minha-pos-banner.neg .mpb-pct{color:var(--red)}
 
     /* ══════ RESPONSIVO — mobile (padrão acima) / tablet / desktop ══════ */
     .sidebar{display:none}
-    .hdr-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between}
+    .header-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;gap:14px}
 
     @media (min-width:640px){
       .container{max-width:760px;padding:26px 24px}
-      .hdr{padding:0 24px;height:64px}
-      .hdr-inner{max-width:760px}
-      .hdr-title{font-size:24px}
+      .feed-header{padding:0 24px;height:64px}
+      .header-inner{max-width:760px}
+      .header-titulo{font-size:20px}
     }
 
     @media (min-width:1024px){
@@ -122,16 +185,16 @@
       .sni.on{background:var(--wave);color:#fff}
       .sni-ico{font-size:16px;line-height:1}
       .app-main{margin-left:212px}
-      .nav{display:none}
-      .hdr{padding:0 40px;height:76px}
-      .hdr-inner{max-width:900px}
-      .hdr-title{font-size:26px}
-      .container{max-width:900px;padding:32px 40px}
-      .stats-row{max-width:900px}
+      .bottom-nav{display:none}
+      .feed-header{padding:0 40px;height:76px}
+      .header-inner{max-width:820px}
+      .container{max-width:820px;padding:32px 40px}
+      .btn-investir-wrap{max-width:820px;margin-left:auto;margin-right:auto}
     }
   </style>
 </head>
 <body>
+
   <aside class="sidebar">
     <div class="sidebar-brand">POMBITOS</div>
     <nav class="sidebar-nav">
@@ -140,69 +203,41 @@
       <a class="sni" href="atlas.html"><span class="sni-ico">🔭</span>ATLAS</a>
       <a class="sni" href="carteira.html"><span class="sni-ico">💼</span>CARTEIRA</a>
       <a class="sni" href="game-estudo.html"><span class="sni-ico">🎮</span>GAME ESTUDO</a>
-      <a class="sni on" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
+      <a class="sni" href="perfil.html"><span class="sni-ico">👤</span>PERFIL</a>
     </nav>
   </aside>
 
   <div class="app-main">
-  <header class="hdr">
-    <div class="hdr-inner">
-    <div class="hdr-title">PERFIL</div>
-    <button class="btn-edit" onclick="location.href='editar-perfil.html'">✏️ EDITAR</button>
+  <header class="feed-header">
+    <div class="header-inner">
+    <button class="btn-voltar" onclick="history.back()">←</button>
+    <div class="header-titulo" id="header-titulo">RELATÓRIO</div>
+    <span class="header-tipo" id="header-tipo">···</span>
     </div>
   </header>
 
   <div class="container">
-    <div class="hero" id="hero">
-      <div class="avatar" id="avatar-el">🐦</div>
-      <div class="hero-info">
-        <div class="perfil-badge" id="badge-perfil">⚖️ MODERADO</div>
-        <p class="hero-nome" id="p-nome">···</p>
-        <p class="hero-username" id="p-username">@···</p>
-        <p class="hero-bio" id="p-bio">···</p>
-      </div>
+    <div id="skeleton-wrap">
+      <div class="sk-bloco"><div class="sk-line" style="width:40%;height:28px"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:50%"></div></div>
+      <div class="sk-bloco"><div class="sk-line" style="width:60%"></div><div class="sk-line"></div><div class="sk-line" style="width:80%"></div></div>
+      <div class="sk-bloco"><div class="sk-line" style="width:50%"></div><div class="sk-line"></div></div>
     </div>
-
-    <div class="stats-row">
-      <div class="stat-box"><p class="stat-val" id="st-pat">···</p><p class="stat-lbl">PATRIMÔNIO</p></div>
-      <div class="stat-box"><p class="stat-val" id="st-res">···</p><p class="stat-lbl">RESULTADO</p></div>
-      <div class="stat-box"><p class="stat-val" id="st-atv">···</p><p class="stat-lbl">ATIVOS</p></div>
-    </div>
-
-    <p class="secao-lbl">ALOCAÇÃO</p>
-    <div class="treemap-card" id="treemap-card" style="display:none">
-      <canvas class="treemap" id="treemap-canvas"></canvas>
-      <div class="treemap-leg" id="treemap-leg"></div>
-    </div>
-
-    <p class="secao-lbl">DESEMPENHO</p>
-    <div class="perf-card" id="perf-card" style="display:none">
-      <div class="perf-top">
-        <div>
-          <p class="perf-resultado" id="perf-res">···</p>
-          <p class="perf-sub">desde o início · capital R$ 500k</p>
-        </div>
-        <p class="perf-pct" id="perf-pct">···</p>
-      </div>
-      <div class="perf-chart-wrap">
-        <canvas id="perf-chart"></canvas>
-      </div>
-      <div class="ativo-rows" id="ativo-rows"></div>
-    </div>
-
-    <p class="secao-lbl">COMPARTILHADO</p>
-    <div id="posts-list">
-      <div><div class="sk-line" style="width:55%"></div><div class="sk-line"></div><div class="sk-line" style="width:35%"></div></div>
-    </div>
+    <div id="conteudo" style="display:none"></div>
   </div>
 
-  <nav class="nav">
-    <a class="ni" href="feed.html"><span class="ni-ico">🏠</span><span class="ni-lbl">FEED</span></a>
-    <a class="ni" href="investir.html"><span class="ni-ico">📈</span><span class="ni-lbl">INVESTIR</span></a>
-    <a class="ni" href="atlas.html"><span class="ni-ico">🔭</span><span class="ni-lbl">ATLAS</span></a>
-    <a class="ni" href="carteira.html"><span class="ni-ico">💼</span><span class="ni-lbl">CARTEIRA</span></a>
-    <a class="ni" href="game-estudo.html"><span class="ni-ico">🎮</span><span class="ni-lbl">GAME</span></a>
-    <a class="ni on" href="perfil.html"><span class="ni-ico">👤</span><span class="ni-lbl">PERFIL</span></a>
+  <div class="btn-investir-wrap" id="btn-investir-wrap" style="display:none">
+    <button class="btn-investir" onclick="irParaOrdem()">📊 INVESTIR NESTE ATIVO</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="feed.html"><span class="nav-icon">🏠</span><span class="nav-label">FEED</span></a>
+    <a class="nav-item" href="investir.html"><span class="nav-icon">📈</span><span class="nav-label">INVESTIR</span></a>
+    <a class="nav-item" href="atlas.html"><span class="nav-icon">🔭</span><span class="nav-label">ATLAS</span></a>
+    <a class="nav-item" href="carteira.html"><span class="nav-icon">💼</span><span class="nav-label">CARTEIRA</span></a>
+    <a class="nav-item" href="game-estudo.html"><span class="nav-icon">🎮</span><span class="nav-label">GAME</span></a>
+    <a class="nav-item" href="perfil.html"><span class="nav-icon">👤</span><span class="nav-label">PERFIL</span></a>
   </nav>
   </div>
 
@@ -211,481 +246,873 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
+
   <script>
-  'use strict';
+    const params = new URLSearchParams(window.location.search);
+    // FIX: para cripto, o TICKER na URL é o ID do CoinGecko (ex: "bitcoin"), em minúsculas
+    // Para ações/fiis, é o símbolo B3 em maiúsculas (ex: "PETR4")
+    const TICKER_RAW = (params.get('ticker') || '').trim();
+    const TIPO       = params.get('tipo') || 'acoes';
+    // Display: cripto exibe em maiúsculas, ações já vêm em maiúsculas
+    const TICKER     = TIPO === 'cripto' ? TICKER_RAW.toLowerCase() : TICKER_RAW.toUpperCase();
+    const TICKER_DISPLAY = TICKER_RAW.toUpperCase();
 
-  const CAPITAL  = 500000;
-  const CORES    = ['#5b2a99','#128a55','#c9962e','#c62828','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#c2410c'];
-  const COR_DISP = '#d4c9b8';
+    let dadosAtivo = null, dadosDetalhe = null, dadosHist1y = null, dadosHist6m = null;
+    let perfilUsuario = 'moderado';
+    let minhasPosicoes = [];
 
-  const Rk = v => {
-    const neg = v < 0, a = Math.abs(v);
-    let str;
-    if (a >= 10000)     str = Math.floor(a / 1000) + 'k';           // ≥10k → "34k"
-    else if (a >= 1000) str = (a / 1000).toFixed(1) + 'k';          // 1k–9.9k → "2.6k"
-    else                str = a.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    return (neg ? '-' : '') + 'R$ ' + str;
-  };
-  const RkSigned = v => (v >= 0 ? '+' : '') + Rk(v);
-  const R$  = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
-
-  let db, uid;
-  let userData = {}, carteiraData = {};
-  let posicoes = [], cotacoes = {};
-  let saldoDisp = 0, patrimonioTotal = 0;
-
-  firebase.auth().onAuthStateChanged(async user => {
-    if (!user) { location.href = 'login.html'; return; }
-    uid = user.uid;
-    db  = window.db || firebase.firestore();
-    await carregar();
-  });
-
-  async function carregar() {
-    const [uS, cS, ordSnap] = await Promise.all([
-      db.collection('usuarios').doc(uid).get(),
-      db.collection('carteiras').doc(uid).get(),
-      db.collection('ordens').where('uid', '==', uid).get()
-        .catch(() => db.collection('ordens').where('uid', '==', uid).limit(200).get())
-    ]);
-
-    userData     = uS.data() || {};
-    carteiraData = cS.exists ? cS.data() : {};
-    posicoes     = carteiraData.posicoes || [];
-
-    // ── Saldo: usa o valor oficial gravado pelo servidor em carteiras/{uid}.
-    //    Só recalcula pelas ordens se essa carteira ainda não tiver o campo
-    //    (carteira antiga, criada antes da correção do anti-cheat).
-    if (typeof carteiraData.saldo_disponivel === 'number') {
-      saldoDisp = carteiraData.saldo_disponivel;
-    } else {
-      const todasOrdens = ordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const ordensValidas = todasOrdens.filter(o => {
-        const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-        return total > 0 && o.lado && o.status !== 'cancelada';
-      });
-
-      let saldoRecalc = CAPITAL;
-      for (const o of ordensValidas) {
-        const total = o.total > 0 ? o.total : (o.preco || 0) * (o.quantidade || 0);
-        if (o.lado === 'compra') saldoRecalc -= total;
-        if (o.lado === 'venda')  saldoRecalc += total;
-      }
-      saldoDisp = Math.max(0, saldoRecalc);
+    // ── TOAST ──
+    let toastTimer;
+    function toast(msg, dur=3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>t.classList.remove('show'), dur);
     }
 
-    // ── Cotações ──
-    const tks = posicoes
-      .filter(p => p.tipo === 'acoes' || p.tipo === 'fiis' || !p.tipo)
-      .map(p => p.ticker);
-
-    if (tks.length) {
-      try {
-        const d = await MercadoAPI.buscarMultiplos(tks);
-        d.forEach(x => { if (x.preco > 0) cotacoes[x.ticker] = x.preco; });
-      } catch (e) { console.warn('Cotações perfil:', e); }
-
-      // Individual fallback para os que faltaram
-      const faltam = tks.filter(t => !cotacoes[t]);
-      if (faltam.length) {
-        await Promise.allSettled(faltam.map(async ticker => {
-          try {
-            const d = await MercadoAPI.buscarAtivo(ticker);
-            if (d?.preco > 0) cotacoes[ticker] = d.preco;
-          } catch (_) {}
-        }));
-      }
+    function esconderSkeleton() {
+      document.getElementById('skeleton-wrap').style.display = 'none';
+      document.getElementById('conteudo').style.display = 'block';
     }
 
-    // Patrimônio com cotações reais
-    const valorAtivos = posicoes.reduce((s, p) => {
-      const pr = cotacoes[p.ticker] || p.preco_medio || 0;
-      return s + (p.quantidade || 0) * pr;
-    }, 0);
-    patrimonioTotal = saldoDisp + valorAtivos;
-
-    renderHero();
-    renderStats();
-    renderTreemap();
-    renderPerf();
-    renderPosts();
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
-  function corPombito() {
-    const m = {
-      'azul':'#5b2a99','azul celeste':'#87ceeb','azul mar':'#006994',
-      'verde':'#2d8a4e','verde mar':'#2e8b57','vermelho':'#c62828',
-      'rosa':'#e75480','roxo':'#6a0dad','laranja':'#e86a1a',
-      'amarelo':'#c9962e','dourado':'#c9a84c','cinza':'#6b6b6b',
-      'marrom':'#7a4e2d','ciano':'#00b4d8','violeta':'#7c3aed',
-      'turquesa':'#40e0d0','coral':'#ff6b6b'
-    };
-    return m[(userData.cor || '').toLowerCase().trim()] || '#5b2a99';
-  }
-
-  function renderHero() {
-    const cor = corPombito();
-    document.getElementById('avatar-el').style.background = cor;
-    document.getElementById('p-nome').textContent     = userData.nome     || 'Pombito';
-    document.getElementById('p-username').textContent = '@' + (userData.username || '···');
-    const bio = [
-      userData.musica ? '🎵 ' + userData.musica : '',
-      userData.filme  ? '🎬 ' + userData.filme  : ''
-    ].filter(Boolean).join('  ·  ');
-    document.getElementById('p-bio').textContent = bio || '—';
-    const badges = { conservador:'🛡️ CONSERVADOR', moderado:'⚖️ MODERADO', arrojado:'🚀 ARROJADO' };
-    document.getElementById('badge-perfil').textContent = badges[userData.perfil_investidor || 'moderado'];
-  }
-
-  function renderStats() {
-    const resultado = patrimonioTotal - CAPITAL;
-    const isPos     = resultado >= 0;
-    document.getElementById('st-pat').textContent = Rk(patrimonioTotal);
-    const resEl = document.getElementById('st-res');
-    resEl.textContent = RkSigned(resultado);
-    resEl.className   = 'stat-val ' + (isPos ? 'pos' : 'neg');
-    document.getElementById('st-atv').textContent = posicoes.length;
-  }
-
-  // ── TREEMAP ──
-  function renderTreemap() {
-    if (!posicoes.length && saldoDisp <= 0) return;
-    document.getElementById('treemap-card').style.display = 'block';
-
-    const total = patrimonioTotal;
-    if (total <= 0) return;
-
-    const itens = posicoes.map((p, i) => {
-      const pa  = cotacoes[p.ticker] || p.preco_medio || 0;
-      const val = (p.quantidade || 0) * pa;
-      return { label: p.ticker, val, pct: val / total * 100, cor: CORES[i % CORES.length] };
-    });
-    if (saldoDisp > 0) itens.push({ label: 'DISPONÍVEL', val: saldoDisp, pct: saldoDisp / total * 100, cor: COR_DISP });
-    itens.sort((a, b) => b.val - a.val);
-
-    const canvas = document.getElementById('treemap-canvas');
-    const dpr = window.devicePixelRatio || 1;
-    const W   = canvas.parentElement.offsetWidth;
-    const H   = Math.round(W * 0.52);
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    squarify(ctx, itens, 0, 0, W, H);
-
-    const leg = document.getElementById('treemap-leg');
-    leg.innerHTML = '';
-    itens.forEach(it => {
-      const d = document.createElement('div'); d.className = 'tl-item';
-      d.innerHTML = `<div class="tl-dot" style="background:${it.cor}"></div>
-        <span class="tl-info"><span class="tl-ticker">${it.label}</span> <span class="tl-pct">${it.pct.toFixed(1)}%</span></span>`;
-      leg.appendChild(d);
-    });
-  }
-
-  function squarify(ctx, itens, x, y, w, h) {
-    if (!itens.length) return;
-    const total = itens.reduce((s, i) => s + i.pct, 0);
-    let rx = x, ry = y, rw = w, rh = h, fila = [];
-    const worst = (fila, side) => {
-      const s = side * side, sum = fila.reduce((a, f) => a + f.pct, 0) * s / total;
-      return Math.max(...fila.map(f => { const a = f.pct * s / total; return Math.max(sum * sum / a, a / sum * sum); }));
-    };
-    let idx = 0;
-    while (idx < itens.length) {
-      const side = rw >= rh ? rh : rw;
-      const novo = [...fila, itens[idx]];
-      if (!fila.length || worst(fila, side) >= worst(novo, side)) {
-        fila = novo; idx++;
-        if (idx === itens.length) flush();
-      } else { flush(); }
+    // ── HELPERS ──
+    const R$ = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const pct = v => (v>=0?'+':'') + (v||0).toFixed(2) + '%';
+    function item(label, valor, cls='') {
+      return `<div class="relatorio-item"><span class="item-label">${label}</span><span class="item-valor ${cls}">${valor}</span></div>`;
     }
-    function flush() {
-      if (!fila.length) return;
-      const fp = fila.reduce((s, f) => s + f.pct, 0);
-      const hz = rw >= rh;
-      const dim = hz ? (fp / total) * rw : (fp / total) * rh;
-      let cur = hz ? ry : rx;
-      fila.forEach(it => {
-        const sz = (it.pct / fp) * (hz ? rh : rw);
-        desenharBloco(ctx, hz ? rx : cur, hz ? cur : ry, hz ? dim : sz, hz ? sz : dim, it);
-        cur += sz;
-      });
-      if (hz) { rx += dim; rw -= dim; } else { ry += dim; rh -= dim; }
-      fila = [];
+    function nomeTipo(t) {
+      return {acoes:'AÇÕES',fiis:'FIIs',cdb:'CDB',lci:'LCI/LCA',tesouro:'TESOURO DIRETO',cripto:'CRIPTO'}[t] || t.toUpperCase();
     }
-  }
-
-  function desenharBloco(ctx, x, y, w, h, it) {
-    const g = 2;
-    ctx.fillStyle = it.cor;
-    ctx.fillRect(x + g, y + g, w - g * 2, h - g * 2);
-    if (w > 44 && h > 24) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const fs = Math.min(12, w / 5.5);
-      ctx.font = `600 ${fs}px DM Mono,monospace`;
-      ctx.fillText(it.label, x + w / 2, h > 42 ? y + h / 2 - 7 : y + h / 2);
-      if (h > 42) {
-        ctx.font = `${Math.min(9, w / 7)}px DM Mono,monospace`;
-        ctx.fillStyle = 'rgba(255,255,255,.65)';
-        ctx.fillText(it.pct.toFixed(1) + '%', x + w / 2, y + h / 2 + 8);
-      }
-      ctx.restore();
+    function traduzirRec(r) {
+      return {buy:'Compra',strongBuy:'Compra Forte',sell:'Venda',strongSell:'Venda Forte',hold:'Neutro'}[r] || r || '—';
     }
-  }
 
-  // ── DESEMPENHO ──
-  // FIX: ganho por ativo só usa cotação REAL — se não tem cotação, mostra "—" na barra
-  function renderPerf() {
-    if (!posicoes.length) return;
-    document.getElementById('perf-card').style.display = 'block';
-
-    const resultado = patrimonioTotal - CAPITAL;
-    const rentab    = (resultado / CAPITAL) * 100;
-    const isPos     = resultado >= 0;
-
-    const resEl = document.getElementById('perf-res');
-    resEl.textContent = (isPos ? '+' : '') + R$(resultado);
-    resEl.className   = 'perf-resultado ' + (isPos ? 'pos' : 'neg');
-    const pctEl = document.getElementById('perf-pct');
-    pctEl.textContent = pct(rentab);
-    pctEl.className   = 'perf-pct ' + (isPos ? 'pos' : 'neg');
-
-    // ── Barras por ativo: só com cotação real ──
-    const porAtivo = posicoes.map((p, i) => {
-      const cot  = cotacoes[p.ticker]; // undefined se não carregou
-      const pm   = p.preco_medio || 0;
-      const qtd  = p.quantidade  || 0;
-      const vp   = qtd * pm;
-      // ganho só calculado quando tem cotação real
-      const ganho     = cot ? qtd * cot - vp : null;
-      const ganhoAbs  = ganho !== null ? Math.abs(ganho) : 0;
-      return {
-        ticker: p.ticker, ganho, ganhoAbs,
-        cor: CORES[i % CORES.length],
-        tipo: p.tipo || 'acoes',
-        temCotacao: !!cot,
-      };
-    }).sort((a, b) => {
-      // Ordena: com cotação primeiro, depois por ganho decrescente
-      if (a.temCotacao && !b.temCotacao) return -1;
-      if (!a.temCotacao && b.temCotacao) return 1;
-      return (b.ganho || 0) - (a.ganho || 0);
-    });
-
-    // Máximo absoluto só entre os que têm cotação
-    const comCot = porAtivo.filter(p => p.temCotacao);
-    const maxAbs = comCot.length ? Math.max(...comCot.map(p => p.ganhoAbs), 1) : 1;
-
-    const ativoRows = document.getElementById('ativo-rows');
-    ativoRows.innerHTML = '';
-
-    porAtivo.forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'ativo-row';
-      row.onclick = () => location.href = `relatorio.html?ticker=${p.ticker}&tipo=${p.tipo}`;
-
-      if (p.temCotacao && p.ganho !== null) {
-        const ip   = p.ganho >= 0;
-        const barW = (p.ganhoAbs / maxAbs * 100).toFixed(1);
-        row.innerHTML = `
-          <div class="ar-dot" style="background:${p.cor}"></div>
-          <span class="ar-ticker">${p.ticker}</span>
-          <div class="ar-bar-track">
-            <div class="ar-bar-fill" style="width:${barW}%;background:${ip ? 'var(--green)' : 'var(--red)'}"></div>
-          </div>
-          <span class="ar-val ${ip ? 'pos' : 'neg'}">${ip ? '+' : ''}${Rk(p.ganho)}</span>`;
+    // FIX: para cripto passa o ID do CoinGecko e o preço atual para a ordem
+    function irParaOrdem() {
+      if (!TICKER_RAW) return;
+      const preco = dadosAtivo?.preco || 0;
+      if (TIPO === 'cripto') {
+        // ticker=bitcoin (ID CoinGecko), tipo=cripto, preco=valor atual
+        window.location.href = `ordem.html?ticker=${encodeURIComponent(TICKER)}&tipo=cripto&preco=${preco}`;
       } else {
-        // Sem cotação — mostra só o ticker e dash
-        row.innerHTML = `
-          <div class="ar-dot" style="background:${p.cor}"></div>
-          <span class="ar-ticker">${p.ticker}</span>
-          <div class="ar-bar-track"><div class="ar-bar-fill" style="width:0%"></div></div>
-          <span class="ar-val neu">—</span>`;
+        window.location.href = `ordem.html?ticker=${encodeURIComponent(TICKER)}&tipo=${TIPO}&preco=${preco}`;
       }
-
-      ativoRows.appendChild(row);
-    });
-
-    // Gráfico de histórico do ativo com maior posição
-    const principal = comCot.length ? comCot[0] : posicoes[0];
-    if (principal) carregarGraficoPerfil(principal.ticker, posicoes.find(p => p.ticker === principal.ticker)?.preco_medio || 0);
-  }
-
-  async function carregarGraficoPerfil(ticker, pm) {
-    try {
-      const hist = await MercadoAPI.buscarHistorico(ticker, '3mo');
-      if (!hist?.historico?.length) return;
-      desenharGraficoPerfil(hist.historico.map(h => h.preco), pm || hist.historico[0]?.preco);
-    } catch (e) { console.warn('Histórico perfil:', e); }
-  }
-
-  function desenharGraficoPerfil(precos, pm) {
-    const canvas = document.getElementById('perf-chart');
-    const dpr    = window.devicePixelRatio || 1;
-    const W      = canvas.parentElement.offsetWidth;
-    const H      = 90;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-
-    const pad = { t: 6, r: 6, b: 6, l: 6 };
-    const cw  = W - pad.l - pad.r, ch = H - pad.t - pad.b;
-    const allV = [...precos, pm].filter(Boolean);
-    const minV = Math.min(...allV) * 0.997, maxV = Math.max(...allV) * 1.003;
-    const rng  = maxV - minV || 1;
-    const xOf  = i => pad.l + (i / (precos.length - 1)) * cw;
-    const yOf  = v => pad.t + ch - ((v - minV) / rng) * ch;
-
-    ctx.clearRect(0, 0, W, H);
-
-    const isPos = precos[precos.length - 1] >= precos[0];
-    const grad  = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-    grad.addColorStop(0, isPos ? 'rgba(26,138,74,.2)' : 'rgba(204,34,0,.2)');
-    grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
-
-    ctx.beginPath();
-    ctx.moveTo(xOf(0), yOf(precos[0]));
-    precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
-    ctx.lineTo(xOf(precos.length - 1), pad.t + ch);
-    ctx.lineTo(xOf(0), pad.t + ch);
-    ctx.closePath();
-    ctx.fillStyle = grad; ctx.fill();
-
-    ctx.beginPath();
-    ctx.strokeStyle = '#170f28'; ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
-    ctx.moveTo(xOf(0), yOf(precos[0]));
-    precos.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p)); });
-    ctx.stroke();
-
-    if (pm && pm >= minV && pm <= maxV) {
-      const yPM = yOf(pm);
-      ctx.save(); ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#c62828'; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(pad.l, yPM); ctx.lineTo(W - pad.r, yPM); ctx.stroke();
-      ctx.restore();
-      ctx.fillStyle = '#c62828'; ctx.font = '8px DM Mono,monospace';
-      ctx.textAlign = 'left'; ctx.fillText('PM', pad.l + 4, yPM - 3);
     }
 
-    const lx = xOf(precos.length - 1), ly = yOf(precos[precos.length - 1]);
-    ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#170f28'; ctx.fill();
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
-  }
+    // ── EXTRAI MIN/MAX DO HISTÓRICO ──
+    function extrairMinMax(historico) {
+      if (!historico?.length) return { min: 0, max: 0 };
+      const precos = historico.map(h => h.preco).filter(Boolean);
+      return { min: Math.min(...precos), max: Math.max(...precos) };
+    }
 
-  // ── POSTS ──
-  // FIX: posts com preco=0 ou total=0 são PULADOS (não renderizados)
-  async function renderPosts() {
-    const listEl = document.getElementById('posts-list');
-    try {
-      let snap;
+    function extrairVariacao(historico) {
+      if (!historico?.length || historico.length < 2) return 0;
+      const inicio = historico[0].preco;
+      const fim    = historico[historico.length - 1].preco;
+      return inicio > 0 ? ((fim - inicio) / inicio) * 100 : 0;
+    }
+
+    // ── INIT ──
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+
       try {
-        snap = await db.collection('posts')
-          .where('uid', '==', uid)
-          .orderBy('data_post', 'desc')
-          .limit(30)
-          .get();
-      } catch (e) {
-        snap = await db.collection('posts').where('uid', '==', uid).limit(30).get();
+        const [snapUser, snapCarteira] = await Promise.all([
+          firebase.firestore().collection('usuarios').doc(user.uid).get(),
+          firebase.firestore().collection('carteiras').doc(user.uid).get()
+        ]);
+        perfilUsuario  = snapUser.data()?.perfil_investidor || 'moderado';
+        minhasPosicoes = snapCarteira.exists ? (snapCarteira.data()?.posicoes || []) : [];
+      } catch(e) {
+        perfilUsuario  = 'moderado';
+        minhasPosicoes = [];
       }
 
-      const posts = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(p => {
-          // FIX: filtra posts de trade inválidos (preco=0 ou total=0)
-          if (p.tipo === 'trade') {
-            const preco = p.preco ?? p.trade?.preco ?? 0;
-            const total = p.total ?? p.trade?.total ?? 0;
-            return preco > 0 && total > 0;
-          }
-          return true; // posts de texto sempre mostram
-        })
-        .sort((a, b) =>
-          (b.data_post?.seconds || b.criadoEm?.seconds || 0) -
-          (a.data_post?.seconds || a.criadoEm?.seconds || 0)
-        );
+      if (TICKER_RAW) {
+        await carregarRelatorio();
+      } else {
+        await carregarListaCategoria();
+      }
+    });
 
-      if (!posts.length) {
-        listEl.innerHTML = '<div class="empty">📭 Nenhum post ainda.</div>';
+    // ══════════════════════════════════════════
+    //  LISTA DA CATEGORIA
+    // ══════════════════════════════════════════
+    async function carregarListaCategoria() {
+      document.getElementById('header-titulo').textContent = nomeTipo(TIPO);
+      document.getElementById('header-tipo').textContent = 'CATEGORIA';
+      const conteudo = document.getElementById('conteudo');
+
+      if (TIPO === 'cdb' || TIPO === 'lci') {
+        // FIX: antes, a simulação usava 14.65% fixo no código (mercado-api.js)
+        // e a legenda mostrava um número diferente e também fixo (13,65%) —
+        // nenhum dos dois vinha da Selic/CDI real. Agora busca a taxa real
+        // do Banco Central, igual já era feito na aba de Tesouro Direto.
+        let taxas = null;
+        try { taxas = await MercadoAPI.buscarTaxasBacen(); } catch (_) { /* usa fallback do próprio simularRendaFixa */ }
+        renderizarRendaFixaInfo(conteudo, taxas);
+        esconderSkeleton();
+        return;
+      }
+      if (TIPO === 'tesouro') {
+        esconderSkeleton();
+        conteudo.innerHTML = `<p class="info-dica">💡 Buscando títulos do Tesouro Direto...</p>`;
+        try {
+          const [titulos, taxas] = await Promise.all([MercadoAPI.buscarTesouroDireto(), MercadoAPI.buscarTaxasBacen()]);
+          renderizarTesouro(conteudo, titulos, taxas);
+        } catch(e) { conteudo.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar Tesouro Direto.</p>`; }
+        return;
+      }
+      if (TIPO === 'cripto') {
+        esconderSkeleton();
+        conteudo.innerHTML = `<p class="info-dica">💡 Buscando criptomoedas...</p>`;
+        try {
+          const criptos = await MercadoAPI.listarCriptos(20);
+          renderizarListaCripto(conteudo, criptos);
+        } catch(e) { conteudo.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Erro ao carregar criptos.</p>`; }
         return;
       }
 
-      listEl.innerHTML = '';
-      const avBg = corPombito();
-      const foto = userData.foto_perfil
-        || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
+      const isFII = TIPO === 'fiis';
+      const ativos = isFII ? [
+        {ticker:'HGLG11',nome:'CSHG Logística',seg:'Logística'},
+        {ticker:'MXRF11',nome:'Maxi Renda',seg:'Papel'},
+        {ticker:'XPML11',nome:'XP Malls',seg:'Shopping'},
+        {ticker:'KNRI11',nome:'Kinea Renda Imob.',seg:'Híbrido'},
+        {ticker:'VISC11',nome:'Vinci Shopping',seg:'Shopping'},
+        {ticker:'HGRE11',nome:'CSHG Real Estate',seg:'Lajes'},
+        {ticker:'BTLG11',nome:'BTG Logística',seg:'Logística'},
+        {ticker:'ALZR11',nome:'Alianza Trust',seg:'Logística'},
+        {ticker:'RBRF11',nome:'RBR Alpha FOF',seg:'FOF'},
+        {ticker:'BCFF11',nome:'BC Fund',seg:'FOF'},
+      ] : [
+        {ticker:'PETR4',nome:'Petrobras PN',seg:'Petróleo & Gás'},
+        {ticker:'VALE3',nome:'Vale ON',seg:'Mineração'},
+        {ticker:'ITUB4',nome:'Itaú Unibanco PN',seg:'Bancos'},
+        {ticker:'BBAS3',nome:'Banco do Brasil ON',seg:'Bancos'},
+        {ticker:'WEGE3',nome:'WEG ON',seg:'Bens Industriais'},
+        {ticker:'RENT3',nome:'Localiza ON',seg:'Consumo'},
+        {ticker:'ABEV3',nome:'Ambev ON',seg:'Bebidas'},
+        {ticker:'BBDC4',nome:'Bradesco PN',seg:'Bancos'},
+        {ticker:'RDOR3',nome:'Rede D\'Or ON',seg:'Saúde'},
+        {ticker:'PRIO3',nome:'PRIO ON',seg:'Petróleo'},
+        {ticker:'EGIE3',nome:'Engie Brasil ON',seg:'Energia'},
+        {ticker:'MGLU3',nome:'Magazine Luiza ON',seg:'Varejo'},
+        {ticker:'TOTS3',nome:'Totvs ON',seg:'Tecnologia'},
+        {ticker:'AZUL4',nome:'Azul PN',seg:'Transporte'},
+        {ticker:'CSAN3',nome:'Cosan ON',seg:'Petróleo'},
+      ];
 
-      posts.forEach(p => {
-        const ts   = p.data_post || p.criadoEm;
-        const data = ts?.toDate
-          ? ts.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-          : ts?.seconds
-            ? new Date(ts.seconds * 1000).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-            : '—';
+      conteudo.innerHTML = `<p class="info-dica">💡 Clique em um ativo para ver o relatório completo com análise por IA</p>`;
+      ativos.forEach(a => {
+        const div = document.createElement('div');
+        div.className = 'lista-ativo'; div.id = `card-${a.ticker}`;
+        div.onclick = () => window.location.href = `relatorio.html?ticker=${a.ticker}&tipo=${TIPO}`;
+        div.innerHTML = `
+          <div>
+            <p class="lista-ticker">${a.ticker}</p>
+            <p class="lista-nome">${a.nome}</p>
+            <p class="lista-seg">${a.seg}</p>
+          </div>
+          <div id="cot-${a.ticker}">
+            <p class="lista-preco" style="color:var(--muted)">···</p>
+            <p class="lista-var" style="color:var(--muted)">carregando</p>
+          </div>`;
+        conteudo.appendChild(div);
+      });
+      esconderSkeleton();
 
-        const card = document.createElement('div');
-        card.className = 'post-card';
+      for (let i = 0; i < ativos.length; i += 5) {
+        const lote = ativos.slice(i,i+5).map(a=>a.ticker);
+        try {
+          const dados = await MercadoAPI.buscarMultiplos(lote);
+          dados.forEach(d => {
+            const el = document.getElementById(`cot-${d.ticker}`);
+            if (!el) return;
+            const pos = (d.variacao_pct||0) >= 0;
+            el.innerHTML = `<p class="lista-preco">R$ ${(d.preco||0).toFixed(2)}</p><p class="lista-var ${pos?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</p>`;
+          });
+        } catch(e) {}
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
 
-        if (p.tipo === 'trade') {
-          const ticker = p.ticker   || p.trade?.ticker   || '—';
-          const lado   = p.lado     || p.trade?.lado     || 'compra';
-          const qtd    = p.quantidade ?? p.trade?.quantidade ?? 0;
-          const preco  = p.preco    ?? p.trade?.preco    ?? 0;
-          const total  = p.total    ?? p.trade?.total    ?? 0;
-          const isC    = lado === 'compra';
+    // ══════════════════════════════════════════
+    //  RELATÓRIO COMPLETO
+    //  FIX: cripto usa buscarCripto() em vez de buscarAtivo()
+    // ══════════════════════════════════════════
+    async function carregarRelatorio() {
+      document.getElementById('header-titulo').textContent = TICKER_DISPLAY;
+      document.getElementById('header-tipo').textContent = nomeTipo(TIPO);
+      const conteudo = document.getElementById('conteudo');
 
-          card.innerHTML = `
-            <div class="post-hdr">
-              <div class="post-av" style="background:${avBg}">
-                <img src="${escHtml(foto)}" alt="" onerror="this.style.display='none'">
-              </div>
-              <div>
-                <p class="post-nome">@${escHtml(userData.username || 'pombito')}</p>
-                <p class="post-data">${data}</p>
-              </div>
-              <span class="trade-pill ${isC ? 'c' : 'v'}" style="margin-left:auto">
-                ${isC ? '📈 COMPRA' : '📉 VENDA'}
-              </span>
-            </div>
-            <p class="ticker-big">${escHtml(ticker)}</p>
-            <div class="trade-grid">
-              <div class="tc"><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${qtd}</p></div>
-              <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toFixed(2)}</p></div>
-              <div class="tc"><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(total)}</p></div>
-            </div>
-            ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${escHtml(p.texto)}</p>` : ''}
-            <p class="post-likes">❤️ ${p.likes || 0}</p>`;
+      try {
+        if (TIPO === 'cripto') {
+          // ── ROTA CRIPTO: usa CoinGecko via MercadoAPI.buscarCripto ──
+          const cripto = await MercadoAPI.buscarCripto(TICKER); // TICKER = ID ex: "bitcoin"
+          if (!cripto || cripto.preco <= 0) throw new Error('Dados de cripto indisponíveis.');
+
+          dadosAtivo = {
+            preco:        cripto.preco,
+            variacao_pct: cripto.variacao_24h || 0,
+            nome:         cripto.nome || TICKER_DISPLAY,
+          };
+          dadosDetalhe = {
+            market_cap:   cripto.market_cap  || 0,
+            min_52s:      cripto.low_24h     || 0,
+            max_52s:      cripto.high_24h    || 0,
+            setor:        'Criptomoedas',
+            industria:    cripto.simbolo?.toUpperCase() || '',
+          };
+          // Histórico de cripto: tenta buscar se MercadoAPI suportar
+          try {
+            dadosHist1y = await MercadoAPI.buscarHistoricoCripto(TICKER, 365);
+            dadosHist6m = await MercadoAPI.buscarHistoricoCripto(TICKER, 180);
+          } catch(_) {
+            dadosHist1y = null; dadosHist6m = null;
+          }
+
         } else {
-          card.innerHTML = `
-            <div class="post-hdr">
-              <div class="post-av" style="background:${avBg}">
-                <img src="${escHtml(foto)}" alt="" onerror="this.style.display='none'">
-              </div>
-              <div>
-                <p class="post-nome">@${escHtml(userData.username || 'pombito')}</p>
-                <p class="post-data">${data}</p>
-              </div>
-            </div>
-            <p class="post-txt">${escHtml(p.texto || '—')}</p>
-            <p class="post-likes">❤️ ${p.likes || 0}</p>`;
+          // ── ROTA AÇÕES / FIIS / TESOURO: brapi ──
+          [dadosAtivo, dadosDetalhe, dadosHist1y, dadosHist6m] = await Promise.all([
+            MercadoAPI.buscarAtivo(TICKER),
+            MercadoAPI.buscarDetalhadoAtivo(TICKER),
+            MercadoAPI.buscarHistorico(TICKER, '1y'),
+            MercadoAPI.buscarHistorico(TICKER, '6mo'),
+          ]);
         }
 
-        listEl.appendChild(card);
-      });
+        // ── ENRIQUECE COM DADOS DO HISTÓRICO SE API RETORNOU ZEROS ──
+        const hist1y = dadosHist1y?.historico || [];
+        const hist6m = dadosHist6m?.historico || [];
 
-    } catch (e) {
-      console.error('renderPosts:', e);
-      listEl.innerHTML = '<div class="empty">⚠️ Erro ao carregar posts.</div>';
+        if (!(dadosDetalhe?.min_52s > 0) && hist1y.length) {
+          const mm = extrairMinMax(hist1y);
+          if (!dadosDetalhe) dadosDetalhe = {};
+          dadosDetalhe.min_52s = mm.min;
+          dadosDetalhe.max_52s = mm.max;
+        }
+        if (!(dadosHist6m?.variacao_periodo) && hist6m.length) {
+          if (!dadosHist6m) dadosHist6m = {};
+          dadosHist6m.variacao_periodo = extrairVariacao(hist6m);
+          const mm6m = extrairMinMax(hist6m);
+          dadosHist6m.min_periodo = mm6m.min;
+          dadosHist6m.max_periodo = mm6m.max;
+        }
+        if (!(dadosHist1y?.variacao_periodo) && hist1y.length) {
+          if (!dadosHist1y) dadosHist1y = {};
+          dadosHist1y.variacao_periodo = extrairVariacao(hist1y);
+        }
+        if (!(dadosDetalhe?.media_50d > 0) && hist1y.length >= 50) {
+          const ult50 = hist1y.slice(-50).map(h => h.preco);
+          dadosDetalhe.media_50d = ult50.reduce((a,b)=>a+b,0) / ult50.length;
+        }
+        if (!(dadosDetalhe?.media_200d > 0) && hist1y.length >= 30) {
+          const precos = hist1y.map(h => h.preco);
+          dadosDetalhe.media_200d = precos.reduce((a,b)=>a+b,0) / precos.length;
+        }
+
+        esconderSkeleton();
+        conteudo.innerHTML = '';
+
+        // Banner "minha posição"
+        // FIX: para cripto a chave salva no Firestore é o ID em minúsculas
+        const tickerBusca = TIPO === 'cripto' ? TICKER : TICKER;
+        const posicao = minhasPosicoes.find(p => p.ticker === tickerBusca);
+        if (posicao) {
+          const precoAtual = dadosAtivo?.preco || posicao.preco_medio || 0;
+          const valorAtual = (posicao.quantidade||0) * precoAtual;
+          const valorPago  = (posicao.quantidade||0) * (posicao.preco_medio||0);
+          const ganho      = valorAtual - valorPago;
+          const ganhoP     = valorPago > 0 ? (ganho/valorPago)*100 : 0;
+          const isPos      = ganho >= 0;
+          const banner = document.createElement('div');
+          banner.className = `minha-pos-banner ${isPos?'':'neg'}`;
+          banner.innerHTML = `
+            <div>
+              <p class="mpb-label">${isPos?'📈 MINHA POSIÇÃO — GANHO':'📉 MINHA POSIÇÃO — PERDA'}</p>
+              <p class="mpb-valor">${isPos?'+':''}${R$(ganho)}</p>
+              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${posicao.quantidade} ${TIPO==='cripto'?'unidades':'cotas'} · PM R$ ${(posicao.preco_medio||0).toFixed(2)}</p>
+            </div>
+            <p class="mpb-pct">${pct(ganhoP)}</p>`;
+          conteudo.appendChild(banner);
+        }
+
+        conteudo.appendChild(renderizarHero());
+        conteudo.appendChild(renderizarHistoricoPrecos());
+        conteudo.appendChild(renderizarFundamentos());
+
+        if (TIPO === 'acoes' || TIPO === 'fiis') {
+          const {setor, concorrentes} = MercadoAPI.obterConcorrentes(TICKER);
+          if (concorrentes.length > 0) conteudo.appendChild(renderizarConcorrentes(setor, concorrentes));
+          conteudo.appendChild(renderizarAnalistas());
+        }
+
+        conteudo.appendChild(renderizarRiscos());
+
+        // IA
+        const iaEl = document.createElement('div');
+        iaEl.className = 'ia-card';
+        iaEl.innerHTML = `
+          <div class="ia-header"><span class="ia-badge">IA</span><p class="ia-titulo">ANÁLISE INTELIGENTE</p></div>
+          <div class="ia-sk" style="width:100%"></div>
+          <div class="ia-sk" style="width:85%"></div>
+          <div class="ia-sk" style="width:90%"></div>
+          <div class="ia-sk" style="width:70%"></div>`;
+        conteudo.appendChild(iaEl);
+        gerarAnaliseIA(iaEl);
+
+        document.getElementById('btn-investir-wrap').style.display = 'block';
+
+      } catch(e) {
+        console.error('[Relatório]', e);
+        esconderSkeleton();
+        conteudo.innerHTML = `
+          <div class="relatorio-secao">
+            <p style="font-family:var(--mono);font-size:11px;color:var(--muted)">
+              ⚠️ Não foi possível carregar dados de <strong>${TICKER_DISPLAY}</strong>.<br><br>
+              Possíveis causas:<br>· Ticker incorreto (ex: use PETR4, não PETR)<br>
+              · API temporariamente indisponível<br><br>
+              <a href="investir.html" style="color:var(--wave)">← Voltar e tentar outro ativo</a>
+            </p>
+          </div>`;
+      }
     }
-  }
+
+    // ══════════════════════════════════════════
+    //  SEÇÕES
+    // ══════════════════════════════════════════
+    function renderizarHero() {
+      const preco  = dadosAtivo?.preco || dadosDetalhe?.preco || 0;
+      const varpct = dadosAtivo?.variacao_pct || 0;
+      const pos    = varpct >= 0;
+
+      const hist1y    = dadosHist1y?.historico || [];
+      const min52     = dadosDetalhe?.min_52s || 0;
+      const max52     = dadosDetalhe?.max_52s || 0;
+      const range52   = max52 - min52 || 1;
+      const posRange  = min52 > 0 ? Math.min(100, Math.max(0, ((preco - min52) / range52) * 100)) : 50;
+
+      const hist1m   = hist1y.slice(-22);
+      const temVar1m = hist1m.length > 1;
+      const var1m    = temVar1m ? ((hist1m[hist1m.length-1].preco - hist1m[0].preco) / hist1m[0].preco) * 100 : 0;
+      const temVar1y = !!dadosHist1y;
+      const temVar6m = !!dadosHist6m;
+      const var1y    = dadosHist1y?.variacao_periodo ?? 0;
+      const var6m    = dadosHist6m?.variacao_periodo ?? 0;
+
+      // Para cripto, variação do dia
+      const varLabel = TIPO === 'cripto' ? '24H' : 'HOJE';
+      const varVal   = TIPO === 'cripto' ? pct(varpct) + ' 24h' : pct(varpct) + ' hoje';
+
+      const el = document.createElement('div');
+      el.className = 'ativo-hero';
+      el.innerHTML = `
+        <div class="ativo-hero-top">
+          <div>
+            <p class="ativo-ticker">${TICKER_DISPLAY}</p>
+            <p class="ativo-nome">${(dadosAtivo?.nome || dadosDetalhe?.industria || '').substring(0,50)}</p>
+          </div>
+          <div style="text-align:right">
+            <p class="ativo-preco">R$ ${preco.toFixed(2)}</p>
+            <span class="ativo-var ${pos?'pos':'neg'}">${varVal}</span>
+          </div>
+        </div>
+
+        ${min52 > 0 ? `
+        <div class="range-wrap">
+          <div class="range-label-row">
+            <span class="range-label">${TIPO==='cripto'?'MÍN 24H':'MÍN 52 SEM'}</span>
+            <span class="range-label">POSIÇÃO</span>
+            <span class="range-label">${TIPO==='cripto'?'MÁX 24H':'MÁX 52 SEM'}</span>
+          </div>
+          <div class="range-bar">
+            <div class="range-fill" style="width:${posRange}%"></div>
+            <div class="range-dot" style="left:${posRange}%"></div>
+          </div>
+          <div class="range-val-row">
+            <span class="range-val">R$ ${min52.toFixed(2)}</span>
+            <span class="range-val" style="color:var(--wave)">${posRange.toFixed(0)}%</span>
+            <span class="range-val">R$ ${max52.toFixed(2)}</span>
+          </div>
+        </div>` : ''}
+
+        ${hist1y.length > 0 ? `
+        <div class="mini-chart-wrap">
+          <canvas class="mini-chart" id="mini-canvas"></canvas>
+        </div>` : ''}
+
+        <div class="stats-grid">
+          <div class="stat-bloco">
+            <span class="stat-label">${TIPO==='cripto'?'24H':'1 MÊS'}</span>
+            <span class="stat-valor ${(TIPO==='cripto'?varpct:var1m)>=0?'pos':'neg'}">${(TIPO==='cripto'||temVar1m) ? pct(TIPO==='cripto'?varpct:var1m) : '—'}</span>
+          </div>
+          <div class="stat-bloco">
+            <span class="stat-label">6 MESES</span>
+            <span class="stat-valor ${var6m>=0?'pos':'neg'}">${temVar6m ? pct(var6m) : '—'}</span>
+          </div>
+          <div class="stat-bloco">
+            <span class="stat-label">1 ANO</span>
+            <span class="stat-valor ${var1y>=0?'pos':'neg'}">${temVar1y ? pct(var1y) : '—'}</span>
+          </div>
+        </div>`;
+
+      if (hist1y.length > 0) {
+        requestAnimationFrame(() => {
+          const canvas = el.querySelector('#mini-canvas');
+          if (canvas) desenharMiniChart(canvas, hist1y.map(h=>h.preco), var1y >= 0);
+        });
+      }
+
+      return el;
+    }
+
+    function desenharMiniChart(canvas, precos, isPos) {
+      const dpr  = window.devicePixelRatio || 1;
+      const W    = canvas.parentElement.offsetWidth;
+      const H    = 70;
+      canvas.width        = W * dpr;
+      canvas.height       = H * dpr;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const pad = {t:4, r:4, b:4, l:4};
+      const cw  = W - pad.l - pad.r;
+      const ch  = H - pad.t - pad.b;
+      const min = Math.min(...precos) * 0.998;
+      const max = Math.max(...precos) * 1.002;
+      const rng = max - min || 1;
+
+      const xOf = i => pad.l + (i / (precos.length-1)) * cw;
+      const yOf = v => pad.t + ch - ((v-min)/rng)*ch;
+
+      const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t+ch);
+      grad.addColorStop(0, isPos ? 'rgba(26,138,74,.3)' : 'rgba(204,34,0,.3)');
+      grad.addColorStop(1, isPos ? 'rgba(26,138,74,.02)' : 'rgba(204,34,0,.02)');
+
+      ctx.beginPath();
+      ctx.moveTo(xOf(0), yOf(precos[0]));
+      precos.forEach((p,i) => { if(i>0) ctx.lineTo(xOf(i), yOf(p)); });
+      ctx.lineTo(xOf(precos.length-1), pad.t+ch);
+      ctx.lineTo(xOf(0), pad.t+ch);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.strokeStyle = isPos ? '#128a55' : '#c62828';
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.moveTo(xOf(0), yOf(precos[0]));
+      precos.forEach((p,i) => { if(i>0) ctx.lineTo(xOf(i), yOf(p)); });
+      ctx.stroke();
+
+      const lx = xOf(precos.length-1);
+      const ly = yOf(precos[precos.length-1]);
+      ctx.beginPath();
+      ctx.arc(lx, ly, 3.5, 0, Math.PI*2);
+      ctx.fillStyle = isPos ? '#128a55' : '#c62828';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    function renderizarHistoricoPrecos() {
+      const d     = dadosDetalhe || {};
+      const preco = dadosAtivo?.preco || 0;
+      const m50   = d.media_50d  || 0;
+      const m200  = d.media_200d || 0;
+
+      let vsMedia = '';
+      if (m200 > 0) {
+        const acima = preco > m200;
+        const diffPct = ((preco - m200) / m200) * 100;
+        vsMedia = item('Vs. média 200d', `${acima ? 'Acima' : 'Abaixo'} ${pct(diffPct)}`, acima ? 'pos' : 'neg');
+      }
+
+      const var6m = dadosHist6m?.variacao_periodo || 0;
+      const var1y = dadosHist1y?.variacao_periodo || 0;
+
+      const el = document.createElement('div');
+      el.className = 'relatorio-secao';
+      el.innerHTML = `
+        <p class="secao-titulo">📊 HISTÓRICO DE PREÇOS</p>
+        ${item('Preço atual', R$(preco))}
+        ${TIPO !== 'cripto' && m50  > 0 ? item('Média 50 dias',  R$(m50),  preco>m50?'pos':'neg')  : ''}
+        ${TIPO !== 'cripto' && m200 > 0 ? item('Média 200 dias', R$(m200), preco>m200?'pos':'neg') : ''}
+        ${TIPO !== 'cripto' ? vsMedia : ''}
+        ${dadosHist6m ? item('Variação 6 meses', pct(var6m), var6m>=0?'pos':'neg') : item('Variação 6 meses', 'Indisponível', '')}
+        ${dadosHist1y ? item('Variação 1 ano',   pct(var1y), var1y>=0?'pos':'neg') : item('Variação 1 ano',   'Indisponível', '')}
+        ${d.volume_medio > 0 && TIPO !== 'cripto' ? item('Volume médio (3m)', Number(d.volume_medio).toLocaleString('pt-BR')) : ''}
+        ${TIPO === 'cripto' && d.market_cap > 0 ? item('Market Cap', MercadoAPI.bigNum(d.market_cap)) : ''}`;
+      return el;
+    }
+
+    function renderizarFundamentos() {
+      const d = dadosDetalhe || {};
+      const temFund = d.market_cap || d.pl || d.dy || d.roe || d.pvp;
+
+      const el = document.createElement('div');
+      el.className = 'relatorio-secao';
+
+      if (!temFund) {
+        el.innerHTML = `
+          <p class="secao-titulo">🏛️ FUNDAMENTOS</p>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px 0">Dados fundamentalistas indisponíveis para este ativo no momento.</p>`;
+        return el;
+      }
+
+      const fundItems = [];
+      if (d.market_cap)    fundItems.push({ label:'MARKET CAP', valor: MercadoAPI.bigNum(d.market_cap), sub:'', cls:'' });
+      if (d.pl)            fundItems.push({ label:'P/L',         valor: d.pl.toFixed(2), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
+      if (d.pvp)           fundItems.push({ label:'P/VP',        valor: d.pvp.toFixed(2), sub: d.pvp<1?'Abaixo do patrimônio':'Acima do patrimônio', cls: d.pvp<1?'pos':'' });
+      if (d.dy)            fundItems.push({ label:'DIV. YIELD',  valor: pct(d.dy), sub: d.dy>6?'Yield alto':'', cls: d.dy>6?'pos':'' });
+      if (d.roe)           fundItems.push({ label:'ROE',         valor: pct(d.roe), sub: d.roe>15?'Eficiente':'', cls: d.roe>15?'pos':'' });
+      if (d.margem_lucro)  fundItems.push({ label:'MARGEM LÍQ.', valor: pct(d.margem_lucro), sub:'', cls: d.margem_lucro>0?'pos':'neg' });
+      if (d.ev_ebitda)     fundItems.push({ label:'EV/EBITDA',   valor: d.ev_ebitda.toFixed(2), sub:'', cls:'' });
+      if (d.margem_ebitda) fundItems.push({ label:'MARGEM EBITDA', valor: pct(d.margem_ebitda), sub:'', cls:'' });
+
+      el.innerHTML = `
+        <p class="secao-titulo">🏛️ FUNDAMENTOS</p>
+        ${d.setor    ? `<p style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:12px">${d.setor}${d.industria?' · '+d.industria:''}</p>` : ''}
+        <div class="fund-grid">
+          ${fundItems.map(f => `
+            <div class="fund-item">
+              <span class="fund-label">${f.label}</span>
+              <span class="fund-valor ${f.cls}">${f.valor}</span>
+              ${f.sub ? `<span class="fund-sub">${f.sub}</span>` : ''}
+            </div>`).join('')}
+        </div>`;
+      return el;
+    }
+
+    function renderizarConcorrentes(setor, tickers) {
+      const el = document.createElement('div');
+      el.className = 'relatorio-secao';
+      el.innerHTML = `
+        <p class="secao-titulo">🏢 SETOR: ${setor.toUpperCase()}</p>
+        <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:10px">Comparação no mesmo setor</p>
+        <div id="conc-lista"><p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Carregando concorrentes...</p></div>`;
+
+      MercadoAPI.buscarMultiplos(tickers.slice(0,5)).then(dados => {
+        const lista = el.querySelector('#conc-lista');
+        if (!dados?.length) { lista.innerHTML = `<p style="font-family:var(--mono);font-size:10px;color:var(--muted)">Indisponível</p>`; return; }
+        lista.innerHTML = dados.map(d => `
+          <div class="conc-item" onclick="location.href='relatorio.html?ticker=${d.ticker}&tipo=${TIPO}'">
+            <span class="conc-ticker">${d.ticker}</span>
+            <span class="conc-nome">${d.nome||d.ticker}</span>
+            <span class="conc-preco">R$ ${(d.preco||0).toFixed(2)}</span>
+            <span class="conc-var ${(d.variacao_pct||0)>=0?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</span>
+          </div>`).join('');
+      }).catch(()=>{});
+      return el;
+    }
+
+    function renderizarAnalistas() {
+      const d = dadosDetalhe || {};
+      const c = d.rec_compra || 0, n = d.rec_neutro || 0, v = d.rec_venda || 0;
+      const t = c + n + v || 1;
+      const temDados = (c + n + v) > 0;
+      const preco = dadosAtivo?.preco || 0;
+      const potencial = d.alvo_analistas && preco ? ((d.alvo_analistas - preco) / preco) * 100 : null;
+
+      const el = document.createElement('div');
+      el.className = 'relatorio-secao';
+      el.innerHTML = `
+        <p class="secao-titulo">👥 CONSENSO DE ANALISTAS</p>
+        ${item('Total analistas',    d.n_analistas > 0 ? d.n_analistas : '—')}
+        ${item('Preço-alvo médio',   d.alvo_analistas ? R$(d.alvo_analistas) : '—')}
+        ${potencial !== null ? item('Potencial de alta', pct(potencial), potencial>=0?'pos':'neg') : ''}
+        ${item('Recomendação', traduzirRec(d.recomendacao), d.recomendacao==='buy'||d.recomendacao==='strongBuy'?'pos':d.recomendacao==='sell'?'neg':'')}
+        ${temDados ? `
+        <div class="analistas-bar" style="margin-top:12px">
+          <div class="bar-c" style="width:${Math.round(c/t*100)}%"></div>
+          <div class="bar-n" style="width:${Math.round(n/t*100)}%"></div>
+          <div class="bar-v" style="width:${Math.round(v/t*100)}%"></div>
+        </div>
+        <div class="analistas-leg">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Compra ${c}</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--sun)"></div>Neutro ${n}</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Venda ${v}</div>
+        </div>
+        <p style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">* Distribuição estimada com base na recomendação consolidada</p>
+        ` : `<p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px">Dados de analistas indisponíveis para este ativo no momento.</p>`}`;
+      return el;
+    }
+
+    // ── Riscos por SETOR (ações) — usa o mesmo mapa de concorrentes, que
+    // é local (sem chamada de API) e por isso nunca fica indisponível.
+    // Cobertura parcial (os setores/tickers já mapeados em MercadoAPI.SETORES);
+    // fora dessa lista cai no fallback genérico, igual ao comportamento antigo.
+    const RISCOS_SETOR = {
+      'Petróleo & Gás':         ['Preço do petróleo no mercado internacional foge do controle da empresa','Receita e parte dos custos são dolarizados — câmbio afeta diretamente o resultado','Risco regulatório e ambiental (licenciamento, marco legal do setor)'],
+      'Bancos':                 ['Inadimplência da carteira de crédito sobe em cenários de juros altos e desemprego','Exigências de capital regulatório (Basileia) podem limitar dividendos','Resultado historicamente sensível ao ciclo de crédito e à Selic'],
+      'Varejo':                 ['Consumo das famílias é sensível a juros, inflação e desemprego','Margem pressionada por concorrência e inadimplência do crediário próprio','Sazonalidade forte em torno de datas comemorativas'],
+      'Energia Elétrica':       ['Receita depende de revisões tarifárias definidas pela Aneel','Risco hidrológico (regime de chuvas) afeta custo e geração de energia','Setor de capital intensivo, tipicamente com endividamento alto'],
+      'Mineração & Siderurgia': ['Preço de commodities definido no mercado internacional, fora do controle da empresa','Receita parcialmente dolarizada — câmbio afeta diretamente o resultado','Risco ambiental e de licenciamento (mineração, barragens)'],
+      'Saúde':                  ['Reajustes de planos de saúde são regulados pela ANS, o que pode pressionar receita','Custos médico-hospitalares historicamente sobem acima da inflação geral','Consolidação do setor aumenta a concorrência entre operadoras/hospitais'],
+      'Tecnologia':             ['Valuation costuma ser mais sensível a mudanças na taxa de juros','Ciclo de adoção do produto pode ser mais lento que o projetado','Concorrência inclui empresas globais, não só brasileiras'],
+      'Transporte':             ['Combustível é um dos principais custos operacionais do setor','Aeronaves e peças são dolarizadas — câmbio afeta custos diretamente','Forte regulação de tarifas e rotas'],
+      'Bens Industriais':       ['Demanda ligada ao ciclo de investimento das empresas (CAPEX)','Parte da receita pode vir de exportação, expondo a empresa ao câmbio','Custo de matéria-prima pode pressionar margem'],
+      'Consumo':                ['Custo de insumos importados sensível ao câmbio, mesmo com receita majoritariamente doméstica','Consumo discricionário sensível ao poder de compra e à inflação','Concorrência de marcas próprias e produtos importados'],
+    };
+    const RISCOS_SETOR_FALLBACK = ['Volatilidade pode causar perdas significativas','Resultados podem frustrar expectativas','Mudanças regulatórias podem afetar o setor'];
+
+    // ── Riscos por SEGMENTO de FII — cobertura parcial (tickers mais
+    // conhecidos de cada segmento); fora da lista cai no fallback genérico.
+    const RISCOS_FII_SEGMENTO = {
+      papel:  ['Risco de crédito dos devedores dos CRIs que compõem a carteira','Marcação a mercado sensível a mudanças na curva de juros (IPCA/CDI)','Concentração em poucos devedores amplia o impacto de uma inadimplência'],
+      tijolo: ['Vacância dos imóveis reduz a distribuição de dividendos','Concentração geográfica ou setorial dos imóveis do fundo','Liquidez do imóvel físico é menor que a liquidez da cota em bolsa'],
+      fallback: ['Vacância reduz os dividendos','Alta de juros pressiona as cotas','Concentração em poucos imóveis','Risco do setor imobiliário específico'],
+    };
+    const FII_SEGMENTO_TICKERS = {
+      papel:  ['MXRF11','KNCR11','KNIP11','IRDM11','RECR11','VGIP11','KNSC11','RBRR11'],
+      tijolo: ['HGLG11','KNRI11','XPLG11','VISC11','HGRE11','BRCO11','VILG11','BTLG11'],
+    };
+
+    // ── Camada dinâmica: usa números REAIS deste ativo (quando disponíveis)
+    // pra acrescentar riscos específicos, além do template do setor.
+    function riscosDinamicos(d, var6m, var1y) {
+      const extras = [];
+      if (d?.pl) {
+        if (d.pl > 30) extras.push(`Negocia a múltiplo de lucro elevado (P/L de ${d.pl.toFixed(1)}x) — mais sensível a frustração de resultados.`);
+        else if (d.pl < 0) extras.push('Empresa reportou prejuízo no período mais recente (P/L negativo).');
+      }
+      if (d?.roe && d.roe > 0 && d.roe < 5) {
+        extras.push(`Retorno sobre patrimônio (ROE) de ${d.roe.toFixed(1)}% está abaixo da média histórica do mercado brasileiro (~15%).`);
+      }
+      const maiorVar = Math.max(Math.abs(var6m || 0), Math.abs(var1y || 0));
+      if (maiorVar > 30) {
+        extras.push(`Alta volatilidade recente: variação de ${maiorVar.toFixed(1)}% no período analisado.`);
+      }
+      return extras;
+    }
+
+    function renderizarRiscos() {
+      const d     = dadosDetalhe || {};
+      const var6m = dadosHist6m?.variacao_periodo || 0;
+      const var1y = dadosHist1y?.variacao_periodo || 0;
+
+      const mapaFixo = {
+        cdb:    ['Risco de crédito do emissor (FGC até R$ 250k)','Risco de liquidez sem resgate antecipado','Inflação corrói ganhos em prazos longos','IR regressivo impacta curto prazo'],
+        lci:    ['Carência mínima obrigatória','Risco de crédito do emissor','Rentabilidade menor que CDB bruto','Poucos produtos disponíveis'],
+        tesouro:['Marcação a mercado em prefixados','Risco político/fiscal','Prazo longo pode não adequar ao objetivo','Risco de inflação para Tesouro Selic'],
+        cripto: ['Altíssima volatilidade — quedas de 50%+ em semanas são comuns','Risco regulatório — governos podem proibir ou restringir','Risco de custódia nas exchanges — sem FGC','Mercado 24h com variações noturnas sem liquidez imediata'],
+      };
+
+      let riscos, nota = '';
+
+      if (TIPO === 'acoes') {
+        const { setor } = MercadoAPI.obterConcorrentes(TICKER);
+        riscos = [...(RISCOS_SETOR[setor] || RISCOS_SETOR_FALLBACK)];
+        const extras = riscosDinamicos(d, var6m, var1y);
+        riscos.push(...extras);
+        nota = extras.length
+          ? 'Os 3 primeiros riscos são do setor; os demais usam dados deste ativo específico.'
+          : 'Riscos do setor deste ativo.';
+      } else if (TIPO === 'fiis') {
+        const seg = FII_SEGMENTO_TICKERS.papel.includes(TICKER) ? 'papel'
+                  : FII_SEGMENTO_TICKERS.tijolo.includes(TICKER) ? 'tijolo'
+                  : null;
+        riscos = seg ? RISCOS_FII_SEGMENTO[seg] : RISCOS_FII_SEGMENTO.fallback;
+        nota = seg ? `Riscos do segmento "${seg}" de FIIs.` : 'Segmento deste FII não identificado — riscos genéricos de FIIs.';
+      } else {
+        riscos = mapaFixo[TIPO] || mapaFixo.cdb;
+      }
+
+      const el = document.createElement('div');
+      el.className = 'relatorio-secao';
+      el.innerHTML = `
+        <p class="secao-titulo">⚠️ RISCOS</p>
+        ${riscos.map(r=>`<div class="risco-item"><span>⚠️</span><span>${r}</span></div>`).join('')}
+        ${nota ? `<p style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">${nota}</p>` : ''}`;
+      return el;
+    }
+
+    // ══════════════════════════════════════════
+    //  ANÁLISE IA
+    //  FIX: model string correto + header anthropic-dangerous-direct-browser-ipc
+    // ══════════════════════════════════════════
+    async function gerarAnaliseIA(el) {
+      const d     = dadosDetalhe || {};
+      const preco = dadosAtivo?.preco || 0;
+      const var1y = dadosHist1y?.variacao_periodo || 0;
+      const var6m = dadosHist6m?.variacao_periodo || 0;
+      const min52 = d.min_52s || 0;
+      const max52 = d.max_52s || 0;
+
+      const nomeTipoStr = nomeTipo(TIPO);
+
+      const prompt = `Você é um analista financeiro educacional da plataforma Los Pombitos Investimentos.
+Analise o ativo ${TICKER_DISPLAY} (${nomeTipoStr}) e gere um relatório em português brasileiro para um investidor com perfil: ${perfilUsuario}.
+
+DADOS DISPONÍVEIS:
+- Preço atual: R$ ${preco.toFixed(2)} | Variação: ${pct(dadosAtivo?.variacao_pct||0)}
+- Variação 6 meses: ${pct(var6m)} | Variação 1 ano: ${pct(var1y)}
+- Mín período: R$ ${min52.toFixed(2)} | Máx período: R$ ${max52.toFixed(2)}
+- Posição na faixa: ${min52>0?((preco-min52)/(max52-min52||1)*100).toFixed(0)+'%':'N/A'}
+- Média 50 dias: R$ ${(d.media_50d||0).toFixed(2)} | Média 200 dias: R$ ${(d.media_200d||0).toFixed(2)}
+- P/L: ${d.pl?.toFixed(2)||'N/A'} | P/VP: ${d.pvp?.toFixed(2)||'N/A'}
+- Dividend Yield: ${pct(d.dy||0)} | ROE: ${pct(d.roe||0)}
+- Margem Líquida: ${pct(d.margem_lucro||0)} | Setor: ${d.setor||nomeTipoStr}
+- Recomendação analistas: ${traduzirRec(d.recomendacao)} | Preço-alvo: R$ ${d.alvo_analistas?.toFixed(2)||'N/A'}
+- Market Cap: ${d.market_cap ? MercadoAPI.bigNum(d.market_cap) : 'N/A'}
+
+Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
+{"resumo":"2-3 frases sobre o ativo e momento atual","positivos":["p1","p2","p3"],"atencao":["a1","a2","a3"],"perfil_ideal":"uma frase","horizonte":"curto/médio/longo prazo","contexto_macro":"uma frase sobre o contexto macroeconômico"}`;
+
+      try {
+        // A chamada à Anthropic agora passa pelo proxy serverless /api/analise-ia,
+        // que guarda a chave no servidor (variável de ambiente ANTHROPIC_API_KEY
+        // na Vercel). O client nunca vê a chave nem fala direto com api.anthropic.com.
+        // Esse endpoint agora exige login — manda o token do Firebase Auth.
+        const userAtual = firebase.auth().currentUser;
+        const idToken   = userAtual ? await userAtual.getIdToken() : null;
+        const res = await fetch('/api/analise-ia', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {}),
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({error:'Erro desconhecido'}));
+          throw new Error(err?.error || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const limpo = (data.texto || '').replace(/```json|```/g, '').trim();
+        const a = JSON.parse(limpo);
+
+        el.innerHTML = `
+          <div class="ia-header"><span class="ia-badge">IA</span><p class="ia-titulo">ANÁLISE INTELIGENTE</p></div>
+          <p class="ia-texto">${a.resumo}</p>
+          <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--green);margin-bottom:8px">✅ PONTOS POSITIVOS</p>
+          <div class="ia-lista">${a.positivos.map(p=>`<div class="ia-item"><span>✅</span><span>${p}</span></div>`).join('')}</div>
+          <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--coral);margin:14px 0 8px">⚠️ PONTOS DE ATENÇÃO</p>
+          <div class="ia-lista">${a.atencao.map(x=>`<div class="ia-item"><span>⚠️</span><span>${x}</span></div>`).join('')}</div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--foam)">
+            ${item('Perfil ideal',   a.perfil_ideal)}
+            ${item('Horizonte',      a.horizonte)}
+            ${item('Contexto macro', a.contexto_macro)}
+          </div>
+          <p class="ia-aviso">⚠️ Esta análise é educacional e não constitui recomendação de investimento. Consulte um assessor antes de investir.</p>`;
+
+      } catch(e) {
+        console.error('[IA]', e);
+        // Fallback com dados reais disponíveis
+        // FIX: antes, "sem dado" virava 0.00% (var || 0), o que é uma
+        // afirmação diferente (e falsa) de "não sei". Agora distingue
+        // "sem dado" (mostra Indisponível) de "variação foi zero de fato".
+        const temVar1y  = !!dadosHist1y;
+        const temVar6m  = !!dadosHist6m;
+        const var1yVal  = dadosHist1y?.variacao_periodo ?? 0;
+        const var6mVal  = dadosHist6m?.variacao_periodo ?? 0;
+        const pl        = dadosDetalhe?.pl || 0;
+        const dy        = dadosDetalhe?.dy || 0;
+        const posRange  = min52 > 0 ? ((preco-min52)/(max52-min52||1)*100).toFixed(0) : null;
+
+        el.innerHTML = `
+          <div class="ia-header"><span class="ia-badge">ANÁLISE</span><p class="ia-titulo">DADOS DO ATIVO</p></div>
+          <p class="ia-texto">
+            ${TICKER_DISPLAY} negocia a R$ ${preco.toFixed(2)}${(temVar1y && var1yVal !== 0) ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses${temVar6m?` e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses`:''}` : ''}.
+            ${posRange !== null ? `Está a ${posRange}% da sua faixa de preços recente (mín R$ ${min52.toFixed(2)}, máx R$ ${max52.toFixed(2)}).` : ''}
+            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl<15?' indica valuation atrativo':pl>30?' está elevado':' está em linha com o setor'}.` : ''}
+            ${dy > 4 ? `Dividend Yield de ${dy.toFixed(1)}% é um ponto positivo para renda passiva.` : ''}
+          </p>
+          ${temVar6m ? item('Variação 6 meses', pct(var6mVal), var6mVal>=0?'pos':'neg') : item('Variação 6 meses', 'Indisponível', '')}
+          ${temVar1y ? item('Variação 1 ano', pct(var1yVal), var1yVal>=0?'pos':'neg') : item('Variação 1 ano', 'Indisponível', '')}
+          ${posRange !== null ? item('Posição na faixa', posRange + '%') : ''}
+          <p class="ia-aviso">⚠️ Análise automática temporariamente indisponível. Os dados acima foram calculados do histórico de preços.</p>`;
+      }
+    }
+
+    // ══════════════════════════════════════════
+    //  LISTAS DE CATEGORIA
+    // ══════════════════════════════════════════
+    function renderizarTesouro(conteudo, titulos, taxas) {
+      conteudo.innerHTML = `
+        <div class="relatorio-secao">
+          <p class="secao-titulo">📊 TAXAS DE REFERÊNCIA</p>
+          ${item('SELIC Meta', MercadoAPI.pct(taxas.selic_meta,2))}
+          ${item('CDI Anual (aprox.)', MercadoAPI.pct(taxas.cdi_anual_aprox,2))}
+          ${item('IPCA 12 meses', MercadoAPI.pct(taxas.ipca_12m,2))}
+        </div>` +
+        titulos.map(t => {
+          const tipo = t.tipo==='selic'?'cdi_pct':t.tipo==='ipca'?'ipca_mais':'prefixado';
+          const taxa = t.tipo==='selic'?100:t.taxa_compra;
+          const s12 = MercadoAPI.simularRendaFixa({valor:10000,tipo,taxa,prazoMeses:12,cdiAnual:taxas.cdi_anual_aprox,ipcaAnual:taxas.ipca_12m});
+          const s24 = MercadoAPI.simularRendaFixa({valor:10000,tipo,taxa,prazoMeses:24,cdiAnual:taxas.cdi_anual_aprox,ipcaAnual:taxas.ipca_12m});
+          return `
+            <div class="relatorio-secao">
+              <p class="secao-titulo">${t.tipo==='selic'?'📈':t.tipo==='ipca'?'🏛️':'🔒'} ${t.nome}</p>
+              ${item('Taxa de compra', MercadoAPI.pct(t.taxa_compra,2)+' a.a.')}
+              ${item('Vencimento', new Date(t.vencimento).toLocaleDateString('pt-BR'))}
+              ${item('Investimento mínimo', MercadoAPI.R$(t.min_investimento||100))}
+              <p style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin:12px 0 8px">SIMULAÇÃO — R$ 10.000,00</p>
+              <div class="sim-grid">
+                <div class="sim-item"><p class="sim-prazo">1 ANO</p><p class="sim-valor">${MercadoAPI.R$(s12.montante_liquido)}</p><p class="sim-rend">+${MercadoAPI.R$(s12.renda_liquida)}</p></div>
+                <div class="sim-item"><p class="sim-prazo">2 ANOS</p><p class="sim-valor">${MercadoAPI.R$(s24.montante_liquido)}</p><p class="sim-rend">+${MercadoAPI.R$(s24.renda_liquida)}</p></div>
+                <div class="sim-item"><p class="sim-prazo">IR</p><p class="sim-valor">15%</p><p class="sim-rend">>2 anos</p></div>
+              </div>
+              <button class="btn-investir" style="position:static;margin-top:12px;max-width:100%;height:42px;font-size:11px"
+                onclick="location.href='ordem.html?ticker=${encodeURIComponent(t.nome)}&tipo=tesouro&taxa=${t.taxa_compra}&preco=${t.preco_compra||100}'">
+                INVESTIR NESTE TÍTULO
+              </button>
+            </div>`;
+        }).join('');
+    }
+
+    // FIX: lista cripto linka com ?ticker=ID&tipo=cripto (ID em minúsculas, ex: "bitcoin")
+    function renderizarListaCripto(conteudo, criptos) {
+      conteudo.innerHTML = `<p class="info-dica">💡 Clique em uma cripto para ver o relatório completo</p>` +
+        criptos.map(c => `
+          <div class="lista-ativo" onclick="location.href='relatorio.html?ticker=${encodeURIComponent(c.id)}&tipo=cripto'">
+            <div style="display:flex;align-items:center;gap:10px">
+              <img src="${c.imagem}" width="32" height="32" style="border-radius:50%" onerror="this.style.display='none'">
+              <div>
+                <p class="lista-ticker" style="font-size:16px">${(c.simbolo||c.id).toUpperCase()}</p>
+                <p class="lista-nome">${c.nome} · #${c.rank}</p>
+              </div>
+            </div>
+            <div>
+              <p class="lista-preco">${MercadoAPI.R$(c.preco)}</p>
+              <p class="lista-var ${(c.variacao_24h||0)>=0?'pos':'neg'}">${MercadoAPI.pct(c.variacao_24h||0)}</p>
+            </div>
+          </div>`).join('');
+    }
+
+    function renderizarRendaFixaInfo(conteudo, taxas) {
+      const isCDB = TIPO === 'cdb';
+      const cdiAnual = taxas?.cdi_anual_aprox || 14.65; // mesmo fallback que já existia em simularRendaFixa
+      const sim = [12,24,36].map(m => {
+        const s = MercadoAPI.simularRendaFixa({valor:10000,tipo:'cdi_pct',taxa:isCDB?110:90,prazoMeses:m,cdiAnual});
+        return `<div class="sim-item"><p class="sim-prazo">${m} MESES</p><p class="sim-valor">${MercadoAPI.R$(s.montante_liquido)}</p><p class="sim-rend">+${MercadoAPI.R$(s.renda_liquida)}</p></div>`;
+      }).join('');
+      conteudo.innerHTML = `
+        <div class="relatorio-secao">
+          <p class="secao-titulo">${isCDB?'🏦':'🌱'} ${isCDB?'CDB':'LCI / LCA'}</p>
+          <p style="font-size:13px;line-height:1.7;color:var(--ink);margin-bottom:14px">
+            ${isCDB?'O CDB é um título emitido por bancos. Você empresta dinheiro ao banco e recebe juros. Tem proteção do FGC até R$ 250.000.':'LCI e LCA são títulos isentos de Imposto de Renda para pessoa física. Ideais para quem está na faixa alta do IR.'}
+          </p>
+          ${item('Proteção FGC','Sim — até R$ 250.000')}
+          ${item('Imposto de Renda',isCDB?'Sim (tabela regressiva)':'Isento para PF ✅',isCDB?'':'pos')}
+          ${item('Liquidez',isCDB?'Depende do produto':'Carência mínima obrigatória')}
+          ${item('Rentabilidade típica',isCDB?'100-120% do CDI':'85-95% do CDI')}
+        </div>
+        <div class="relatorio-secao">
+          <p class="secao-titulo">🧮 SIMULAÇÃO — R$ 10.000,00</p>
+          <div class="sim-grid">${sim}</div>
+          <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px">Simulação a ${isCDB?'110%':'90%'} do CDI · CDI aprox. ${cdiAnual.toFixed(2)}% a.a.${taxas?.cdi_anual_aprox?' (Selic atual)':' (estimativa — Selic indisponível no momento)'}</p>
+        </div>`;
+    }
   </script>
 </body>
 </html>
