@@ -32,17 +32,18 @@ const auth = firebase.auth();
 
 // ----------------------------------------------------------
 // 3. VERIFICAÇÃO DE SESSÃO ATIVA
-//    Páginas permitidas por perfil:
-//    - Sem sessão        → apenas index.html e login.html
-//    - Perfil completo   → feed, investir, carteira, relatorio, ordem
-//    - Perfil incompleto → apenas germinar.html
+//    Esta checagem só controla PARA ONDE redirecionar — não é
+//    controle de acesso a dado nenhum (isso é papel do
+//    firestore.rules). Regras de navegação:
+//    - Sem sessão        → só pode ver index.html / login.html
+//    - Perfil incompleto → só pode ver germinar.html
+//    - Perfil completo   → pode ver qualquer página que não seja
+//      pública (não existe mais uma lista fechada de páginas de
+//      membro — se precisar travar isso de verdade no futuro, é
+//      preciso montar a lista completa de páginas do site antes).
 // ----------------------------------------------------------
 
 const PAGINAS_PUBLICAS = ["index.html", "login.html", "", "/"];
-const PAGINAS_MEMBRO   = [
-  "feed.html", "investir.html", "carteira.html", "atlas.html",
-  "relatorio.html", "ordem.html", "germinar.html"
-];
 
 auth.onAuthStateChanged(async (user) => {
   const paginaAtual = window.location.pathname.split("/").pop() || "index.html";
@@ -285,3 +286,4 @@ async function obterDadosMembro() {
     return null;
   }
 }
+
