@@ -6,17 +6,6 @@
 
 const BRAPI_TOKEN = process.env.BRAPI_TOKEN || '';
 
-// CoinGecko não aceita "btc"/"eth" como ID — precisa do slug completo.
-const CRIPTO_IDS = {
-  BTC: 'bitcoin',
-  ETH: 'ethereum',
-  BNB: 'binancecoin',
-  SOL: 'solana',
-  ADA: 'cardano',
-  DOT: 'polkadot',
-  AVAX: 'avalanche-2',
-};
-
 async function precoAcaoOuFii(ticker) {
   const url = `https://brapi.dev/api/quote/${encodeURIComponent(ticker)}` +
     `?fundamental=false${BRAPI_TOKEN ? `&token=${BRAPI_TOKEN}` : ''}`;
@@ -31,10 +20,18 @@ async function precoAcaoOuFii(ticker) {
   };
 }
 
+// FIX: o resto do app (mercado-api.js, carteira.html, ordem.html) trata
+// cripto pelo ID COMPLETO do CoinGecko (ex: "bitcoin", "ethereum"), salvo
+// em maiúsculas nas posições/ordens (ex: "BITCOIN"). Esta função antes
+// tentava mapear isso contra uma tabela de SÍMBOLOS (BTC, ETH...), que
+// nunca batia com "BITCOIN"/"ETHEREUM" — resultado: toda ordem de cripto
+// a mercado falhava com "Não foi possível confirmar a cotação real".
+// Agora usa o próprio ticker (em minúsculas) como ID do CoinGecko,
+// exatamente como buscarCripto() já faz no client.
 async function precoCripto(ticker) {
-  const id = CRIPTO_IDS[ticker.toUpperCase()];
+  const id = (ticker || '').toLowerCase().trim();
   if (!id) return null;
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=brl`;
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(id)}&vs_currencies=brl`;
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
   const data = await res.json();
@@ -58,4 +55,4 @@ async function obterPrecoReal(tipo, ticker) {
   }
 }
 
-module.exports = { obterPrecoReal, CRIPTO_IDS };
+module.exports = { obterPrecoReal };
