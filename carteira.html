@@ -269,8 +269,8 @@
       </div>
       <canvas id="timeline-chart" style="margin-top:10px"></canvas>
       <div class="chart-legend" style="margin-top:8px;font-size:9px;line-height:1.6">
-        <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#8b5fc4"></div>CUSTO INVESTIDO (reconstruído das ordens)</div>
-        <div class="bar-leg-item"><div class="bar-leg-dot" style="background:#128a55"></div>PATRIMÔNIO REAL (a partir de hoje, snapshot diário)</div>
+        <div class="bar-leg-item"><div class="bar-leg-dot" style="background:var(--wave)"></div>CUSTO INVESTIDO (reconstruído das ordens)</div>
+        <div class="bar-leg-item"><div class="bar-leg-dot" style="background:var(--sun)"></div>PATRIMÔNIO REAL (a partir de hoje, snapshot diário)</div>
       </div>
       <p id="timeline-empty" style="display:none;font-size:10.5px;color:var(--txt3,#a89fb5);text-align:center;padding:20px 8px">
         Ainda não há snapshots diários suficientes pra essa curva real —
@@ -385,10 +385,19 @@
       const c = cS.exists ? cS.data() : {};
 
       // Deduplicação de posições
+      // FIX: a chave usava p.ticker "cru" — qualquer diferença invisível
+      // na tela (espaço sobrando, maiúscula/minúscula) fazia duas
+      // entradas do MESMO ativo ficarem em posições separadas do array
+      // e aparecerem como dois cards duplicados (ex: ABEV3 duas vezes).
+      // Normalizando a chave, elas se juntam corretamente aqui — mas
+      // isso só corrige a EXIBIÇÃO. Se o dado bruto em carteiras/{uid}
+      // realmente tiver duas entradas de ABEV3, vale limpar isso direto
+      // no Firestore também.
       const posMap = {};
       for (const p of (c.posicoes || [])) {
-        const t = p.ticker;
-        if (!posMap[t]) { posMap[t] = { ...p }; }
+        const t = (p.ticker || '').trim().toUpperCase();
+        if (!t) continue;
+        if (!posMap[t]) { posMap[t] = { ...p, ticker: t }; }
         else {
           const qa = posMap[t].quantidade || 0, pa = posMap[t].preco_medio || 0;
           const qn = p.quantidade || 0, pn = p.preco_medio || 0;
@@ -861,27 +870,62 @@
       ctx.fillText('R$' + (val / 1000).toFixed(0) + 'K', PAD.l - 6, y + 3);
     }
 
-    // Linha de custo (staircase, roxo)
+    // Linha de custo (staircase, roxo da marca) — com preenchimento em
+    // degradê embaixo, cantos arredondados e uma bolinha em cada compra
+    // real, pra ficar com cara de gráfico premium mesmo com só 1-2 ordens.
     if (custoPontos.length) {
-      ctx.strokeStyle = '#8b5fc4';
-      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap  = 'round';
+
+      // Preenchimento em degradê (roxo da marca esmaecendo até transparente)
+      ctx.beginPath();
+      ctx.moveTo(xOf(custoPontos[0].t), PAD.t + plotH);
+      custoPontos.forEach((p, i) => {
+        const x = xOf(p.t), y = yOf(p.y);
+        if (i === 0) { ctx.lineTo(x, y); }
+        else {
+          ctx.lineTo(x, yOf(custoPontos[i - 1].y));
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.lineTo(xOf(custoPontos[custoPontos.length - 1].t), PAD.t + plotH);
+      ctx.closePath();
+      const gradCusto = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + plotH);
+      gradCusto.addColorStop(0, 'rgba(91,42,153,0.28)');
+      gradCusto.addColorStop(1, 'rgba(91,42,153,0.02)');
+      ctx.fillStyle = gradCusto;
+      ctx.fill();
+
+      // Linha do degrau por cima do preenchimento
+      ctx.strokeStyle = '#5b2a99';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       custoPontos.forEach((p, i) => {
         const x = xOf(p.t), y = yOf(p.y);
         if (i === 0) { ctx.moveTo(x, y); }
         else {
-          const xPrev = xOf(custoPontos[i - 1].t);
           ctx.lineTo(x, yOf(custoPontos[i - 1].y)); // degrau: mantém Y anterior até o novo X
           ctx.lineTo(x, y);
         }
       });
       ctx.stroke();
+
+      // Bolinha em cada ponto real de compra/venda (exceto o último, que é
+      // só o "esticão" até hoje e não uma ordem de verdade)
+      ctx.fillStyle = '#5b2a99';
+      custoPontos.slice(0, -1).forEach(p => {
+        ctx.beginPath();
+        ctx.arc(xOf(p.t), yOf(p.y), 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
     }
 
-    // Linha de valor real (snapshots, verde)
+    // Linha de valor real (snapshots, dourado da marca)
     if (snapPontos.length) {
-      ctx.strokeStyle = '#128a55';
-      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap  = 'round';
+      ctx.strokeStyle = '#c9962e';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       snapPontos.forEach((p, i) => {
         const x = xOf(p.t), y = yOf(p.y);
@@ -890,9 +934,14 @@
       ctx.stroke();
       snapPontos.forEach(p => {
         ctx.beginPath();
-        ctx.arc(xOf(p.t), yOf(p.y), 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#128a55';
+        ctx.arc(xOf(p.t), yOf(p.y), 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#c9962e';
         ctx.fill();
+        ctx.beginPath();
+        ctx.arc(xOf(p.t), yOf(p.y), 3, 0, Math.PI * 2);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
       });
     }
 
@@ -1029,3 +1078,4 @@
   </script>
 </body>
 </html>
+
