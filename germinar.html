@@ -61,12 +61,23 @@
             firebase.auth().onAuthStateChanged(async (user) => {
                 if (user) {
                     try {
-                        // 1. Busca os dados que acabamos de salvar no setup-perfil
+                        // FIX: antes esta página só LIA o perfil e nunca marcava
+                        // perfil_completo:true — como nada mais chamava
+                        // germinarEsalvarPombito(), o usuário voltava pra cá
+                        // toda vez que tentava abrir o feed (auth.js manda de
+                        // volta perfis incompletos), gerando um loop infinito
+                        // na tela de boas-vindas. Sem formulário extra pra
+                        // preencher (avatar já é a foto do Google), é aqui
+                        // mesmo que finalizamos o cadastro.
+                        const salvou = await germinarEsalvarPombito({});
+                        if (!salvou) return; // germinarEsalvarPombito já avisa o erro
+
+                        // 1. Busca os dados já salvos (agora com perfil_completo:true)
                         const doc = await db.collection("usuarios").doc(user.uid).get();
-                        
+
                         if (doc.exists) {
                             const dadosUsuario = doc.data();
-                            
+
                             // 2. Chama a função do germinador.js passando os dados reais
                             const sucesso = await iniciarProcessoDeArte(dadosUsuario);
 
