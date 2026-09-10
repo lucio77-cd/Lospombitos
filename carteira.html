@@ -117,81 +117,17 @@
     .ni.on .ni-lbl{color:var(--wave);font-weight:500}
 
     /* ══════════════════════════════════════════
-       RESPONSIVO — mobile (padrão acima) / tablet / desktop
+       SÓ MOBILE — app pensado e usado exclusivamente no celular
        ══════════════════════════════════════════ */
 
-    /* Sidebar de desktop — escondida por padrão (mobile/tablet usam .nav) */
+    /* Sidebar de desktop não é mais usada — fica sempre escondida */
     .sidebar{display:none}
 
     .hdr-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;gap:14px}
 
     .positions-block{display:contents}
 
-    /* ── Tablet: 640–1023px — mesmo layout, mais respiro ── */
-    @media (min-width:640px){
-      .container{max-width:760px;padding:22px 24px}
-      .hdr{padding:0 24px;height:64px}
-      .hdr-inner{max-width:760px}
-      .hdr-title{font-size:24px}
-      .pat-card{padding:28px 30px}
-      .pat-valor{font-size:46px}
-      .charts-row{display:grid;grid-template-columns:1fr 200px;align-items:start}
-    }
-
-    /* ── Desktop: ≥1024px — sidebar fixa + grid de dashboard ── */
-    @media (min-width:1024px){
-      body{padding-bottom:0}
-
-      .sidebar{
-        display:flex;flex-direction:column;gap:2px;
-        position:fixed;top:0;left:0;bottom:0;width:212px;
-        background:var(--card);border-right:1.5px solid var(--shore);
-        padding:22px 14px;z-index:100
-      }
-      .sidebar-brand{
-        font-family:var(--display);font-size:20px;letter-spacing:2px;
-        padding:8px 12px 22px;color:var(--wave)
-      }
-      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
-      .sni{
-        display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;
-        font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);
-        text-decoration:none;transition:background .15s,color .15s
-      }
-      .sni:hover{background:var(--shore);color:var(--ink)}
-      .sni.on{background:var(--wave);color:#fff}
-      .sni-ico{font-size:16px;line-height:1}
-
-      .app-main{margin-left:212px}
-      .nav{display:none}
-
-      .hdr{padding:0 40px;height:76px}
-      .hdr-inner{max-width:1200px}
-      .hdr-title{font-size:26px}
-      .hdr-edit{padding:7px 16px;font-size:10px}
-
-      .container{
-        max-width:1200px;padding:32px 40px;
-        display:grid;grid-template-columns:1fr 380px;
-        grid-template-areas:
-          "patrimonio charts"
-          "resultado  charts"
-          "positions  charts";
-        gap:24px;align-items:start
-      }
-
-      .pat-valor{font-size:52px}
-      .pat-card{padding:32px 36px;grid-area:patrimonio;margin-bottom:0}
-      .resultado-banner{grid-area:resultado;margin-bottom:0}
-      .positions-block{grid-area:positions;display:block}
-      .charts-row{
-        grid-area:charts;display:flex;flex-direction:column;
-        margin-bottom:0;position:sticky;top:96px
-      }
-      .chart-card{width:100%}
-      .pos-grid{grid-template-columns:repeat(6,1fr)}
-    }
-  </style>
+</style>
 </head>
 <body>
   <div id="chart-tooltip" style="display:none;position:fixed;z-index:999;background:#170f28;color:#fff;font-family:'DM Mono',monospace;font-size:10.5px;line-height:1.6;padding:8px 11px;border-radius:8px;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.25);white-space:nowrap"></div>
@@ -953,7 +889,6 @@
     ctx.textAlign = 'right';
     ctx.fillText(new Date(maxT).toLocaleDateString('pt-BR'), W_CSS - PAD.r, H_CSS - 4);
   }
-
 
   function renderPosicoes() {
     document.getElementById('pos-loading').style.display = 'none';

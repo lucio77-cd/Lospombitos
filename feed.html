@@ -64,30 +64,9 @@
     /* ══════ RESPONSIVO — mobile / tablet / desktop ══════ */
     .sidebar{display:none}
 
-    @media (min-width:640px){
-      .app{max-width:760px;padding:22px 24px}
-      .header{padding:0 24px}
-    }
+    
 
-    @media (min-width:1024px){
-      body{padding-bottom:0}
-      .sidebar{
-        display:flex;flex-direction:column;gap:2px;
-        position:fixed;top:0;left:0;bottom:0;width:212px;
-        background:var(--bg2);border-right:1.5px solid var(--line);
-        padding:22px 14px;z-index:500
-      }
-      .sidebar-brand{font-family:var(--display);font-size:20px;letter-spacing:2px;padding:8px 12px 22px;color:var(--blue)}
-      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
-      .sni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--txt2);text-decoration:none;transition:background .15s,color .15s}
-      .sni:hover{background:var(--bg4);color:var(--txt)}
-      .sni.on{background:var(--blue);color:#fff}
-      .sni-ico{font-size:16px;line-height:1}
-      .app-main{margin-left:212px}
-      .nav{display:none}
-      .app{max-width:1000px;padding:32px 40px}
-      .idx-grid{max-width:100%}
-    }
+    
 
     /* ── ÍNDICES ── */
     .idx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
@@ -883,4 +862,3 @@ window.addEventListener('beforeunload',()=>{if(unsubTimeline)unsubTimeline();});
 
 </body>
 </html>
-

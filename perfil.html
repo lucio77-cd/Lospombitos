@@ -96,39 +96,13 @@
     .ni-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--muted)}
     .ni.on .ni-lbl{color:var(--wave);font-weight:500}
 
-    /* ══════ RESPONSIVO — mobile (padrão acima) / tablet / desktop ══════ */
+    /* ══════ SÓ MOBILE — app pensado e usado exclusivamente no celular ══════ */
     .sidebar{display:none}
     .hdr-inner{max-width:640px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between}
 
-    @media (min-width:640px){
-      .container{max-width:760px;padding:26px 24px}
-      .hdr{padding:0 24px;height:64px}
-      .hdr-inner{max-width:760px}
-      .hdr-title{font-size:24px}
-    }
+    
 
-    @media (min-width:1024px){
-      body{padding-bottom:0}
-      .sidebar{
-        display:flex;flex-direction:column;gap:2px;
-        position:fixed;top:0;left:0;bottom:0;width:212px;
-        background:var(--card);border-right:1.5px solid var(--shore);
-        padding:22px 14px;z-index:100
-      }
-      .sidebar-brand{font-family:var(--display);font-size:20px;letter-spacing:2px;padding:8px 12px 22px;color:var(--wave)}
-      .sidebar-nav{display:flex;flex-direction:column;gap:2px}
-      .sni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-decoration:none;transition:background .15s,color .15s}
-      .sni:hover{background:var(--shore);color:var(--ink)}
-      .sni.on{background:var(--wave);color:#fff}
-      .sni-ico{font-size:16px;line-height:1}
-      .app-main{margin-left:212px}
-      .nav{display:none}
-      .hdr{padding:0 40px;height:76px}
-      .hdr-inner{max-width:900px}
-      .hdr-title{font-size:26px}
-      .container{max-width:900px;padding:32px 40px}
-      .stats-row{max-width:900px}
-    }
+    
   </style>
 </head>
 <body>
