@@ -240,9 +240,11 @@ async function germinarEsalvarPombito(dadosFicha) {
       });
     }
 
-    // Vai pro germinar.html gerar a arte/avatar do Pombito ANTES do feed
-    // (antes ia direto pro feed.html, pulando a geração do avatar)
-    window.location.href = "germinar.html";
+    // FIX: esta função não decide mais pra onde navegar — antes ela
+    // sempre mandava de volta pro germinar.html, o que causava um loop
+    // infinito quando era o PRÓPRIO germinar.html quem a chamava (a
+    // página se recarregava pra sempre). Agora só confirma sucesso;
+    // quem chamou decide o próximo passo.
     return true;
 
   } catch (e) {
@@ -286,4 +288,3 @@ async function obterDadosMembro() {
     return null;
   }
 }
-
