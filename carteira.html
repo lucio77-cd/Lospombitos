@@ -48,7 +48,7 @@
     .rb-pct.pos{color:var(--green)}.rb-pct.neg{color:var(--red)}
 
     /* ── Charts ── */
-    .charts-row{display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px;align-items:start}
+    .charts-row{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
     .chart-card{background:var(--card);border:1.5px solid var(--shore);border-radius:var(--radius);padding:16px;animation:fadeUp .35s ease}
     .chart-card.donut-card{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px}
     .chart-title{font-family:var(--display);font-size:13px;letter-spacing:2px;color:var(--ink);margin-bottom:10px}
@@ -135,7 +135,7 @@
       .hdr-title{font-size:24px}
       .pat-card{padding:28px 30px}
       .pat-valor{font-size:46px}
-      .charts-row{grid-template-columns:1fr 200px}
+      .charts-row{display:grid;grid-template-columns:1fr 200px;align-items:start}
     }
 
     /* ── Desktop: ≥1024px — sidebar fixa + grid de dashboard ── */
@@ -1078,4 +1078,3 @@
   </script>
 </body>
 </html>
-
