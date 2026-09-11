@@ -198,7 +198,7 @@
   };
   const RkSigned = v => (v >= 0 ? '+' : '') + Rk(v);
   const R$  = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+  const pct = v => (v >= 0 ? '+' : '') + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
 
   let db, uid;
   let userData = {}, carteiraData = {};
@@ -628,7 +628,7 @@
             <p class="ticker-big">${escHtml(ticker)}</p>
             <div class="trade-grid">
               <div class="tc"><p class="tg-lbl">QUANTIDADE</p><p class="tg-val">${qtd}</p></div>
-              <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toFixed(2)}</p></div>
+              <div class="tc"><p class="tg-lbl">PREÇO</p><p class="tg-val">R$ ${Number(preco).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</p></div>
               <div class="tc"><p class="tg-lbl">TOTAL</p><p class="tg-val">${R$(total)}</p></div>
             </div>
             ${p.texto ? `<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px">${escHtml(p.texto)}</p>` : ''}

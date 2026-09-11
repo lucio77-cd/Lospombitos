@@ -315,7 +315,7 @@
   }
 
   const R$ = v => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const pct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+  const pct = v => (v >= 0 ? '+' : '') + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
   const unit = () => TIPO === 'tesouro' ? 'títulos' : TIPO === 'cripto' ? 'unidades' : 'cotas';
 
   // ── Mercado status ──

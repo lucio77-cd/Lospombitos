@@ -462,8 +462,8 @@ function toast(msg, dur=2800) {
 
 /* ── FORMATADORES ── */
 const BRL = v => 'R$\u202f' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const pct = v => (v>=0?'+':'')+Number(v).toFixed(2)+'%';
-const bigNum = v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?v.toLocaleString('pt-BR',{maximumFractionDigits:0}):Number(v).toFixed(2);
+const pct = v => (v>=0?'+':'')+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+const bigNum = v => v>=1e6?(v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+'M':v>=1e3?v.toLocaleString('pt-BR',{maximumFractionDigits:0}):Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 function tempoRelativo(segundos) {
   if (!segundos) return '···';
@@ -509,11 +509,11 @@ function aplicarCotacao(sym, preco, variacao) {
     });
   };
   if(sym==='IBOV')  {const v=bigNum(preco);      setIdx('idx-ibov','idx-ibov-c',v);       setTk('ibov',v);}
-  if(sym==='USD')   {const v='R$ '+preco.toFixed(2); setIdx('idx-usd','idx-usd-c',v);     setTk('usd',v);}
+  if(sym==='USD')   {const v='R$ '+preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); setIdx('idx-usd','idx-usd-c',v);     setTk('usd',v);}
   if(sym==='BTC')   {const v='$'+bigNum(preco);   setIdx('idx-btc','idx-btc-c',v);        setTk('btc',v);}
-  if(sym==='PETR4') {setTk('petr','R$'+preco.toFixed(2));}
-  if(sym==='VALE3') {setTk('vale','R$'+preco.toFixed(2));}
-  if(sym==='ITUB4') {setTk('itub','R$'+preco.toFixed(2));}
+  if(sym==='PETR4') {setTk('petr','R$'+preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));}
+  if(sym==='VALE3') {setTk('vale','R$'+preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));}
+  if(sym==='ITUB4') {setTk('itub','R$'+preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));}
 }
 
 function aplicarFallback() {
@@ -763,7 +763,7 @@ function renderPosts(posts) {
           <div class="trade-grid">
             <div class="tc"><p class="tc-l">ATIVO</p><p class="tc-v blue">${escHtml(post.ticker||'—')}</p></div>
             <div class="tc"><p class="tc-l">QTD</p><p class="tc-v">${post.quantidade||'—'}</p></div>
-            <div class="tc"><p class="tc-l">PREÇO</p><p class="tc-v">R$${Number(post.preco||0).toFixed(2)}</p></div>
+            <div class="tc"><p class="tc-l">PREÇO</p><p class="tc-v">R$${Number(post.preco||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</p></div>
             <div class="tc span3"><p class="tc-l">TOTAL OPERAÇÃO</p><p class="tc-v big">${BRL(post.total||0)}</p></div>
           </div>
           <a class="btn-rel" href="relatorio.html?ticker=${encodeURIComponent(post.ticker||'')}&tipo=${encodeURIComponent(post.tipo_ativo||'acoes')}">Ver relatório →</a>

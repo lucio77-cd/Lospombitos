@@ -248,7 +248,7 @@
 
     // ── HELPERS ──
     const R$ = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const pct = v => (v>=0?'+':'') + (v||0).toFixed(2) + '%';
+    const pct = v => (v>=0?'+':'') + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
     function item(label, valor, cls='') {
       return `<div class="relatorio-item"><span class="item-label">${label}</span><span class="item-valor ${cls}">${valor}</span></div>`;
     }
@@ -403,7 +403,7 @@
             const el = document.getElementById(`cot-${d.ticker}`);
             if (!el) return;
             const pos = (d.variacao_pct||0) >= 0;
-            el.innerHTML = `<p class="lista-preco">R$ ${(d.preco||0).toFixed(2)}</p><p class="lista-var ${pos?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</p>`;
+            el.innerHTML = `<p class="lista-preco">R$ ${(d.preco||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</p><p class="lista-var ${pos?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</p>`;
           });
         } catch(e) {}
         await new Promise(r => setTimeout(r, 500));
@@ -505,7 +505,7 @@
             <div>
               <p class="mpb-label">${isPos?'📈 MINHA POSIÇÃO — GANHO':'📉 MINHA POSIÇÃO — PERDA'}</p>
               <p class="mpb-valor">${isPos?'+':''}${R$(ganho)}</p>
-              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${posicao.quantidade} ${TIPO==='cripto'?'unidades':'cotas'} · PM R$ ${(posicao.preco_medio||0).toFixed(2)}</p>
+              <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${posicao.quantidade} ${TIPO==='cripto'?'unidades':'cotas'} · PM R$ ${(posicao.preco_medio||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
             </div>
             <p class="mpb-pct">${pct(ganhoP)}</p>`;
           conteudo.appendChild(banner);
@@ -587,7 +587,7 @@
             <p class="ativo-nome">${(dadosAtivo?.nome || dadosDetalhe?.industria || '').substring(0,50)}</p>
           </div>
           <div style="text-align:right">
-            <p class="ativo-preco">R$ ${preco.toFixed(2)}</p>
+            <p class="ativo-preco">R$ ${preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
             <span class="ativo-var ${pos?'pos':'neg'}">${varVal}</span>
           </div>
         </div>
@@ -604,9 +604,9 @@
             <div class="range-dot" style="left:${posRange}%"></div>
           </div>
           <div class="range-val-row">
-            <span class="range-val">R$ ${min52.toFixed(2)}</span>
+            <span class="range-val">R$ ${min52.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
             <span class="range-val" style="color:var(--wave)">${posRange.toFixed(0)}%</span>
-            <span class="range-val">R$ ${max52.toFixed(2)}</span>
+            <span class="range-val">R$ ${max52.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
           </div>
         </div>` : ''}
 
@@ -740,12 +740,12 @@
 
       const fundItems = [];
       if (d.market_cap)    fundItems.push({ label:'MARKET CAP', valor: MercadoAPI.bigNum(d.market_cap), sub:'', cls:'' });
-      if (d.pl)            fundItems.push({ label:'P/L',         valor: d.pl.toFixed(2), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
-      if (d.pvp)           fundItems.push({ label:'P/VP',        valor: d.pvp.toFixed(2), sub: d.pvp<1?'Abaixo do patrimônio':'Acima do patrimônio', cls: d.pvp<1?'pos':'' });
+      if (d.pl)            fundItems.push({ label:'P/L',         valor: d.pl.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
+      if (d.pvp)           fundItems.push({ label:'P/VP',        valor: d.pvp.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub: d.pvp<1?'Abaixo do patrimônio':'Acima do patrimônio', cls: d.pvp<1?'pos':'' });
       if (d.dy)            fundItems.push({ label:'DIV. YIELD',  valor: pct(d.dy), sub: d.dy>6?'Yield alto':'', cls: d.dy>6?'pos':'' });
       if (d.roe)           fundItems.push({ label:'ROE',         valor: pct(d.roe), sub: d.roe>15?'Eficiente':'', cls: d.roe>15?'pos':'' });
       if (d.margem_lucro)  fundItems.push({ label:'MARGEM LÍQ.', valor: pct(d.margem_lucro), sub:'', cls: d.margem_lucro>0?'pos':'neg' });
-      if (d.ev_ebitda)     fundItems.push({ label:'EV/EBITDA',   valor: d.ev_ebitda.toFixed(2), sub:'', cls:'' });
+      if (d.ev_ebitda)     fundItems.push({ label:'EV/EBITDA',   valor: d.ev_ebitda.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub:'', cls:'' });
       if (d.margem_ebitda) fundItems.push({ label:'MARGEM EBITDA', valor: pct(d.margem_ebitda), sub:'', cls:'' });
 
       el.innerHTML = `
@@ -777,7 +777,7 @@
           <div class="conc-item" onclick="location.href='relatorio.html?ticker=${d.ticker}&tipo=${TIPO}'">
             <span class="conc-ticker">${d.ticker}</span>
             <span class="conc-nome">${d.nome||d.ticker}</span>
-            <span class="conc-preco">R$ ${(d.preco||0).toFixed(2)}</span>
+            <span class="conc-preco">R$ ${(d.preco||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
             <span class="conc-var ${(d.variacao_pct||0)>=0?'pos':'neg'}">${MercadoAPI.pct(d.variacao_pct||0)}</span>
           </div>`).join('');
       }).catch(()=>{});
@@ -851,15 +851,15 @@
     function riscosDinamicos(d, var6m, var1y) {
       const extras = [];
       if (d?.pl) {
-        if (d.pl > 30) extras.push(`Negocia a múltiplo de lucro elevado (P/L de ${d.pl.toFixed(1)}x) — mais sensível a frustração de resultados.`);
+        if (d.pl > 30) extras.push(`Negocia a múltiplo de lucro elevado (P/L de ${d.pl.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}x) — mais sensível a frustração de resultados.`);
         else if (d.pl < 0) extras.push('Empresa reportou prejuízo no período mais recente (P/L negativo).');
       }
       if (d?.roe && d.roe > 0 && d.roe < 5) {
-        extras.push(`Retorno sobre patrimônio (ROE) de ${d.roe.toFixed(1)}% está abaixo da média histórica do mercado brasileiro (~15%).`);
+        extras.push(`Retorno sobre patrimônio (ROE) de ${d.roe.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% está abaixo da média histórica do mercado brasileiro (~15%).`);
       }
       const maiorVar = Math.max(Math.abs(var6m || 0), Math.abs(var1y || 0));
       if (maiorVar > 30) {
-        extras.push(`Alta volatilidade recente: variação de ${maiorVar.toFixed(1)}% no período analisado.`);
+        extras.push(`Alta volatilidade recente: variação de ${maiorVar.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% no período analisado.`);
       }
       return extras;
     }
@@ -993,10 +993,10 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         el.innerHTML = `
           <div class="ia-header"><span class="ia-badge">ANÁLISE</span><p class="ia-titulo">DADOS DO ATIVO</p></div>
           <p class="ia-texto">
-            ${TICKER_DISPLAY} negocia a R$ ${preco.toFixed(2)}${(temVar1y && var1yVal !== 0) ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toFixed(1)}% em 12 meses${temVar6m?` e ${Math.abs(var6mVal).toFixed(1)}% em 6 meses`:''}` : ''}.
-            ${posRange !== null ? `Está a ${posRange}% da sua faixa de preços recente (mín R$ ${min52.toFixed(2)}, máx R$ ${max52.toFixed(2)}).` : ''}
-            ${pl > 0 ? `P/L de ${pl.toFixed(1)}${pl<15?' indica valuation atrativo':pl>30?' está elevado':' está em linha com o setor'}.` : ''}
-            ${dy > 4 ? `Dividend Yield de ${dy.toFixed(1)}% é um ponto positivo para renda passiva.` : ''}
+            ${TICKER_DISPLAY} negocia a R$ ${preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}${(temVar1y && var1yVal !== 0) ? `, com ${var1yVal>0?'valorização':'queda'} de ${Math.abs(var1yVal).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% em 12 meses${temVar6m?` e ${Math.abs(var6mVal).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% em 6 meses`:''}` : ''}.
+            ${posRange !== null ? `Está a ${posRange}% da sua faixa de preços recente (mín R$ ${min52.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}, máx R$ ${max52.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}).` : ''}
+            ${pl > 0 ? `P/L de ${pl.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}${pl<15?' indica valuation atrativo':pl>30?' está elevado':' está em linha com o setor'}.` : ''}
+            ${dy > 4 ? `Dividend Yield de ${dy.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% é um ponto positivo para renda passiva.` : ''}
           </p>
           ${temVar6m ? item('Variação 6 meses', pct(var6mVal), var6mVal>=0?'pos':'neg') : item('Variação 6 meses', 'Indisponível', '')}
           ${temVar1y ? item('Variação 1 ano', pct(var1yVal), var1yVal>=0?'pos':'neg') : item('Variação 1 ano', 'Indisponível', '')}
@@ -1081,7 +1081,7 @@ Responda APENAS com JSON válido (sem markdown, sem texto fora do JSON):
         <div class="relatorio-secao">
           <p class="secao-titulo">🧮 SIMULAÇÃO — R$ 10.000,00</p>
           <div class="sim-grid">${sim}</div>
-          <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px">Simulação a ${isCDB?'110%':'90%'} do CDI · CDI aprox. ${cdiAnual.toFixed(2)}% a.a.${taxas?.cdi_anual_aprox?' (Selic atual)':' (estimativa — Selic indisponível no momento)'}</p>
+          <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px">Simulação a ${isCDB?'110%':'90%'} do CDI · CDI aprox. ${cdiAnual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}% a.a.${taxas?.cdi_anual_aprox?' (Selic atual)':' (estimativa — Selic indisponível no momento)'}</p>
         </div>`;
     }
   </script>

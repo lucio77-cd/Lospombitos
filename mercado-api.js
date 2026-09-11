@@ -618,16 +618,22 @@ const MercadoAPI = {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   },
 
+  // FIX: usava .toFixed() puro, que sempre gera ponto decimal
+  // ("19.08%"), mesmo com o resto do app em formato brasileiro
+  // ("R$ 19,08"). Trocado por toLocaleString('pt-BR', ...), que
+  // sempre usa vírgula.
   pct(valor, casas = 2) {
     if (typeof valor !== 'number' || isNaN(valor)) return '+0,00%';
-    return `${valor >= 0 ? '+' : ''}${valor.toFixed(casas)}%`;
+    const num = valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+    return `${valor >= 0 ? '+' : ''}${num}%`;
   },
 
   bigNum(valor) {
     if (!valor || isNaN(valor)) return 'R$ —';
-    if (valor >= 1e12) return `R$ ${(valor / 1e12).toFixed(2)}T`;
-    if (valor >= 1e9)  return `R$ ${(valor / 1e9).toFixed(2)}B`;
-    if (valor >= 1e6)  return `R$ ${(valor / 1e6).toFixed(2)}M`;
+    const fmt = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (valor >= 1e12) return `R$ ${fmt(valor / 1e12)}T`;
+    if (valor >= 1e9)  return `R$ ${fmt(valor / 1e9)}B`;
+    if (valor >= 1e6)  return `R$ ${fmt(valor / 1e6)}M`;
     return this.R$(valor);
   },
 

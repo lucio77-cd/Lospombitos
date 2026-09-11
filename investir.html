@@ -639,7 +639,7 @@
 
     function formatarValorIndice(idx) {
       const t = idx.ticker;
-      if (t === 'BRL=X' || t === 'EURUSD=X') return `R$ ${(idx.preco || 0).toFixed(2)}`;
+      if (t === 'BRL=X' || t === 'EURUSD=X') return `R$ ${(idx.preco || 0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
       if (t === 'BTC-USD') return `R$ ${Number(((idx.preco||0)*5.2).toFixed(0)).toLocaleString('pt-BR')}`;
       if (t === '^BVSP')   return Number((idx.preco||0).toFixed(0)).toLocaleString('pt-BR');
       return (idx.preco || 0).toLocaleString('pt-BR');
@@ -676,7 +676,7 @@
               </div>
             </div>
             <div class="destaque-dir">
-              <p class="destaque-preco">R$ ${(cot.preco || 0).toFixed(2)}</p>
+              <p class="destaque-preco">R$ ${(cot.preco || 0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
               <p class="destaque-var ${pos ? 'pos' : 'neg'}">${MercadoAPI.pct(cot.variacao_pct || 0)}</p>
             </div>`;
 
