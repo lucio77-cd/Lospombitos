@@ -454,7 +454,7 @@
   // ═══════════════════════════════════════
   function renderGraficos() {
     if (!posicoes.length) return;
-    document.getElementById('charts-row').style.display = 'grid';
+    document.getElementById('charts-row').style.display = 'flex';
     renderBarras();
     renderDonut();
     document.getElementById('chart-timeline').style.display = 'block';
@@ -481,17 +481,23 @@
 
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement.getBoundingClientRect();
+    // FIX: getBoundingClientRect() do .chart-card devolve a largura com o
+    // padding incluso (box-sizing:border-box) — usar isso direto deixava
+    // o canvas 32px mais largo que o espaço disponível de verdade, e as
+    // barras vazavam pra fora do card (e da tela, no celular).
+    const rect  = canvas.parentElement.getBoundingClientRect();
+    const PAD_CARD = 32; // 16px de padding do .chart-card de cada lado
+    const rectW = rect.width - PAD_CARD;
     const H_ROW   = 42;
     const H_TOTAL = ativos.length * H_ROW + 8;
 
-    canvas.width  = rect.width * dpr;
+    canvas.width  = rectW * dpr;
     canvas.height = H_TOTAL * dpr;
-    canvas.style.width  = rect.width + 'px';
+    canvas.style.width  = rectW + 'px';
     canvas.style.height = H_TOTAL + 'px';
     ctx.scale(dpr, dpr);
 
-    const W   = rect.width;
+    const W   = rectW;
     const PAD = { l: 56, r: 12, t: 4, b: 4 };
     const BW  = W - PAD.l - PAD.r;
     const maxVal = Math.max(...ativos.map(a => Math.max(a.custo, a.valorAtual))) * 1.02;
@@ -537,13 +543,25 @@
       ctx.fill();
       ctx.globalAlpha = 1;
 
-      // Valor label
-      const vStr = 'R$' + (a.valorAtual / 1000).toFixed(1) + 'K';
-      const lx   = PAD.l + wA + 4;
-      ctx.fillStyle = cor;
+      // Valor label — se não couber do lado de fora da barra (ativo
+      // com valor perto do máximo), desenha por DENTRO dela (texto
+      // branco) em vez de vazar pra fora da tela. Antes usava uma
+      // margem fixa de 36px "no chute", que era menor que a largura
+      // real de números com 8-9 caracteres (ex: "R$105.3K").
+      const vStr  = 'R$' + (a.valorAtual / 1000).toFixed(1) + 'K';
+      const lx    = PAD.l + wA + 4;
+      const yLbl  = y + bH + gap + bH - 1;
       ctx.font = '9px DM Mono,monospace';
-      ctx.textAlign = 'left';
-      if (lx + 36 < W) ctx.fillText(vStr, lx, y + bH + gap + bH - 1);
+      const labelW = ctx.measureText(vStr).width;
+      if (lx + labelW <= W - PAD.r) {
+        ctx.fillStyle = cor;
+        ctx.textAlign = 'left';
+        ctx.fillText(vStr, lx, yLbl);
+      } else if (wA > labelW + 8) {
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'right';
+        ctx.fillText(vStr, PAD.l + wA - 4, yLbl);
+      }
 
       // variação %
       if (a.temCotacao && a.custo > 0) {
@@ -772,8 +790,11 @@
     // ── 3) Desenha ──
     const ctx  = canvas.getContext('2d');
     const dpr  = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const W_CSS = rect.width, H_CSS = 190;
+    // FIX: mesmo problema do gráfico de barras — descontar o padding do
+    // .chart-card pra não vazar da tela.
+    const rect  = canvas.parentElement.getBoundingClientRect();
+    const PAD_CARD = 32;
+    const W_CSS = rect.width - PAD_CARD, H_CSS = 190;
     canvas.width  = W_CSS * dpr;
     canvas.height = H_CSS * dpr;
     canvas.style.width  = W_CSS + 'px';
