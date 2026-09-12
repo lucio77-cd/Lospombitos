@@ -217,6 +217,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
+  <script src="glossario.js"></script>
 
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -740,12 +741,12 @@
 
       const fundItems = [];
       if (d.market_cap)    fundItems.push({ label:'MARKET CAP', valor: MercadoAPI.bigNum(d.market_cap), sub:'', cls:'' });
-      if (d.pl)            fundItems.push({ label:'P/L',         valor: d.pl.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
-      if (d.pvp)           fundItems.push({ label:'P/VP',        valor: d.pvp.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub: d.pvp<1?'Abaixo do patrimônio':'Acima do patrimônio', cls: d.pvp<1?'pos':'' });
-      if (d.dy)            fundItems.push({ label:'DIV. YIELD',  valor: pct(d.dy), sub: d.dy>6?'Yield alto':'', cls: d.dy>6?'pos':'' });
-      if (d.roe)           fundItems.push({ label:'ROE',         valor: pct(d.roe), sub: d.roe>15?'Eficiente':'', cls: d.roe>15?'pos':'' });
+      if (d.pl)            fundItems.push({ label:'P/L', termo:'pl',        valor: d.pl.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub: d.pl<15?'Atrativo':d.pl>30?'Elevado':'Neutro', cls: d.pl<15?'pos':d.pl>30?'neg':'' });
+      if (d.pvp)           fundItems.push({ label:'P/VP', termo:'pvp',      valor: d.pvp.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub: d.pvp<1?'Abaixo do patrimônio':'Acima do patrimônio', cls: d.pvp<1?'pos':'' });
+      if (d.dy)            fundItems.push({ label:'DIV. YIELD', termo:'dy', valor: pct(d.dy), sub: d.dy>6?'Yield alto':'', cls: d.dy>6?'pos':'' });
+      if (d.roe)           fundItems.push({ label:'ROE', termo:'roe',       valor: pct(d.roe), sub: d.roe>15?'Eficiente':'', cls: d.roe>15?'pos':'' });
       if (d.margem_lucro)  fundItems.push({ label:'MARGEM LÍQ.', valor: pct(d.margem_lucro), sub:'', cls: d.margem_lucro>0?'pos':'neg' });
-      if (d.ev_ebitda)     fundItems.push({ label:'EV/EBITDA',   valor: d.ev_ebitda.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub:'', cls:'' });
+      if (d.ev_ebitda)     fundItems.push({ label:'EV/EBITDA', termo:'ev_ebitda', valor: d.ev_ebitda.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}), sub:'', cls:'' });
       if (d.margem_ebitda) fundItems.push({ label:'MARGEM EBITDA', valor: pct(d.margem_ebitda), sub:'', cls:'' });
 
       el.innerHTML = `
@@ -754,7 +755,7 @@
         <div class="fund-grid">
           ${fundItems.map(f => `
             <div class="fund-item">
-              <span class="fund-label">${f.label}</span>
+              <span class="fund-label${f.termo ? ' glossario-termo' : ''}"${f.termo ? ` data-termo="${f.termo}"` : ''}>${f.label}</span>
               <span class="fund-valor ${f.cls}">${f.valor}</span>
               ${f.sub ? `<span class="fund-sub">${f.sub}</span>` : ''}
             </div>`).join('')}
