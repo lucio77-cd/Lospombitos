@@ -153,7 +153,7 @@
   <div class="container">
     <!-- Patrimônio -->
     <div class="pat-card">
-      <p class="pat-label">PATRIMÔNIO TOTAL</p>
+      <p class="pat-label"><span class="glossario-termo" data-termo="patrimonio_total">PATRIMÔNIO TOTAL</span></p>
       <p class="pat-valor" id="pat-total">R$ ···</p>
       <p class="pat-rentab" id="pat-rentab">···</p>
       <div class="pat-grid">
@@ -250,6 +250,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="glossario.js"></script>
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>
@@ -979,10 +980,10 @@
         ${resultadoHtml}
         <div class="pos-grid">
           <div class="pos-stat"><span class="pos-stat-lbl">QUANTIDADE</span><span class="pos-stat-val">${qtd} ${unit}</span></div>
-          <div class="pos-stat"><span class="pos-stat-lbl">PREÇO MÉDIO</span><span class="pos-stat-val">${R$(pm)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl glossario-termo" data-termo="preco_medio">PREÇO MÉDIO</span><span class="pos-stat-val">${R$(pm)}</span></div>
           <div class="pos-stat"><span class="pos-stat-lbl">PREÇO ATUAL</span>${precoAtualHtml}</div>
-          <div class="pos-stat"><span class="pos-stat-lbl">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
-          <div class="pos-stat"><span class="pos-stat-lbl">VALOR HOJE</span>${valorHojeHtml}</div>
+          <div class="pos-stat"><span class="pos-stat-lbl glossario-termo" data-termo="valor_pago">VALOR PAGO</span><span class="pos-stat-val">${R$(valorPago)}</span></div>
+          <div class="pos-stat"><span class="pos-stat-lbl glossario-termo" data-termo="valor_hoje">VALOR HOJE</span>${valorHojeHtml}</div>
           <div class="pos-stat"><span class="pos-stat-lbl">DESDE</span><span class="pos-stat-val">${dataFmt}</span></div>
         </div>
         <div class="pos-actions">
