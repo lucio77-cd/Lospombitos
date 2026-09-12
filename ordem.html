@@ -213,15 +213,15 @@
         <label class="field-label">TIPO DE ORDEM</label>
         <div class="tipo-opts">
           <div class="tipo-opt on" id="opt-mercado" onclick="setTipo('mercado',this)">
-            <p class="tipo-opt-name">A MERCADO</p>
+            <p class="tipo-opt-name glossario-termo" data-termo="ordem_mercado">A MERCADO</p>
             <p class="tipo-opt-desc">Executa imediatamente ao preço atual de mercado</p>
           </div>
           <div class="tipo-opt" onclick="setTipo('limitada',this)">
-            <p class="tipo-opt-name">LIMITADA</p>
+            <p class="tipo-opt-name glossario-termo" data-termo="ordem_limite">LIMITADA</p>
             <p class="tipo-opt-desc">Executa somente se o preço atingir o valor que você definir</p>
           </div>
           <div class="tipo-opt" onclick="setTipo('stop',this)">
-            <p class="tipo-opt-name">STOP</p>
+            <p class="tipo-opt-name glossario-termo" data-termo="ordem_stop">STOP</p>
             <p class="tipo-opt-desc">Vende automaticamente se o preço cair abaixo do limite</p>
           </div>
         </div>
@@ -285,6 +285,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="glossario.js"></script>
   <script src="firebase.js"></script>
   <script src="mercado-api.js"></script>
   <script>

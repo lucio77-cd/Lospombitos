@@ -80,6 +80,10 @@
       titulo: 'Ordem limite',
       texto: 'Você escolhe o preço máximo (pra comprar) ou mínimo (pra vender) que aceita. A ordem só executa se o mercado chegar nesse preço — pode demorar ou nunca acontecer, mas você tem controle sobre o valor.'
     },
+    ordem_stop: {
+      titulo: 'Ordem stop',
+      texto: 'Uma proteção: você define um preço mínimo, e se a cotação cair até ele, a venda acontece automaticamente. Serve pra limitar prejuízo sem precisar ficar olhando o preço o dia inteiro.'
+    },
     fii: {
       titulo: 'FII — Fundo de Investimento Imobiliário',
       texto: 'Um fundo que junta o dinheiro de vários investidores pra comprar imóveis (shoppings, galpões, prédios comerciais) ou papéis ligados a imóveis. Em troca, costuma distribuir o aluguel recebido como rendimento mensal aos cotistas.'
@@ -177,6 +181,11 @@
     const termoEl = e.target.closest('.glossario-termo');
 
     if (termoEl) {
+      // preventDefault + stopPropagation: alguns termos ficam dentro de
+      // links inteiros clicáveis (ex: os cards de categoria do
+      // investir.html) — sem isso, o toque abriria o balão E navegaria
+      // pro link ao mesmo tempo.
+      e.preventDefault();
       e.stopPropagation();
       const chave = termoEl.dataset.termo;
       const jaEstaAberto = popoverAtual && popoverAtual.dataset.termoAberto === chave;
