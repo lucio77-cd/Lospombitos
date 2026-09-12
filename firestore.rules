@@ -19,12 +19,15 @@
 //    escritos pelo servidor (Firebase Admin SDK em api/executar-ordem.js),
 //    que ignora estas regras. Por isso as regras abaixo NEGAM escrita
 //    direta do client nesses campos/coleções.
-//  - pombcoins (em "usuarios") AINDA é escrito direto pelo client em
-//    pomb-economy.js — as regras abaixo permitem isso por enquanto
-//    (senão o $POMB quebra), mas isso significa que o $POMB continua
-//    vulnerável a alguém rodar POMB._creditar() manualmente no
-//    console. Se o $POMB importa pra valer (ele decide lances de
-//    leilão), esse é o próximo passo a mover pro servidor.
+//  - galeria, leiloes/lances, arte-semanal e o leilão semanal do $POMB
+//    eram do projeto antigo (rede social de pombos) e foram removidos —
+//    por isso não têm mais match aqui. Se ainda existirem no Firestore,
+//    dados velhos nessas coleções ficam inacessíveis (o catch-all no
+//    fim do arquivo fecha tudo que não tem match explícito).
+//  - pombcoins (em "usuarios") continua sem trava — hoje só importa
+//    pro modo Etapas (05-seed-etapas.js). Falta mover a concessão do
+//    prêmio pra uma function server-side quando esse modo for ao ar,
+//    do jeito que fizemos com saldo_disponivel em executar-ordem.js.
 // ============================================================
 
 rules_version = '2';
@@ -82,15 +85,6 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ── posicoes_daytrade/{id} (PIT 24H) ──
-    // Faltava por completo nesta versão — o game-estudo.html não
-    // conseguia nem LER as próprias posições. Escrita continua só do
-    // servidor (api/daytrade-fechar.js, mesmo padrão de ordens).
-    match /posicoes_daytrade/{id} {
-      allow read: if logado() && resource.data.uid == request.auth.uid;
-      allow write: if false;
-    }
-
     // ── ordens/{id} ──
     // Só o servidor cria (via api/executar-ordem.js). O client só lê as
     // próprias ordens.
@@ -133,58 +127,24 @@ service cloud.firestore {
         request.resource.data.uid == request.auth.uid &&
         request.resource.data.tipo != 'trade';
 
-      // Curtidas: permite só incrementar 'likes' em 1, mais nada.
-      // (REVISAR: confirme contra a implementação real de darLike()
-      // em feed.html antes de publicar — hoje eu não tracei esse fluxo.)
+      // Curtir/descurtir: só pode mexer nos campos likes e curtido_por,
+      // e só pode adicionar/remover o PRÓPRIO uid de curtido_por — nunca
+      // o de outra pessoa, e o contador tem que andar junto em 1.
       allow update: if logado() &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'curtido_por']) &&
+        (
+          (!(resource.data.get('curtido_por', []).hasAny([request.auth.uid])) &&
+            request.resource.data.curtido_por.hasAny([request.auth.uid]) &&
+            request.resource.data.curtido_por.size() == resource.data.get('curtido_por', []).size() + 1 &&
+            request.resource.data.likes == resource.data.get('likes', 0) + 1)
+          ||
+          (resource.data.get('curtido_por', []).hasAny([request.auth.uid]) &&
+            !(request.resource.data.curtido_por.hasAny([request.auth.uid])) &&
+            request.resource.data.curtido_por.size() == resource.data.get('curtido_por', []).size() - 1 &&
+            request.resource.data.likes == resource.data.get('likes', 0) - 1)
+        );
 
       allow delete: if logado() && resource.data.uid == request.auth.uid;
-    }
-
-    // ── REVISAR: coleções que eu não auditei em profundidade ──
-    // Deixei fechadas por padrão (allow: if false) até você confirmar
-    // o fluxo real de cada uma — abrir demais aqui é o tipo de coisa
-    // que vaza dado ou permite escrita indevida sem ninguém perceber.
-    // Auditado contra galeria.html e arte-semanal.js: o dono só mexe em
-    // a_venda/preco/colocada_venda_em da própria obra; a compra (feita
-    // pelo comprador) troca dono_uid/a_venda/preco/adquirida_em/historico.
-    // Continua sem validar o valor do pombcoins do lado do servidor —
-    // mesma limitação do $POMB já registrada no ANTI-CHEAT-E-REGRAS.md.
-    match /galeria/{id} {
-      allow read: if logado();
-
-      allow create: if logado() &&
-        request.resource.data.a_venda == false &&
-        request.resource.data.preco == 0;
-
-      allow update: if logado() && (
-        (resource.data.dono_uid == request.auth.uid &&
-          request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['a_venda', 'preco', 'colocada_venda_em'])) ||
-        (resource.data.a_venda == true &&
-          request.resource.data.dono_uid == request.auth.uid &&
-          request.resource.data.a_venda == false)
-      );
-
-      allow delete: if false;
-    }
-
-    // Leilão semanal (arte-semanal.js): qualquer membro pode criar o
-    // leilão da semana se não houver um ativo, e o timer de qualquer
-    // membro pode encerrá-lo/registrar lances (mesma ressalva de
-    // confiança client-side do $POMB citada acima).
-    match /leiloes/{id} {
-      allow read: if logado();
-      allow create: if logado() && request.resource.data.status == 'ativo';
-      allow update: if logado();
-      allow delete: if false;
-
-      match /lances/{lanceId} {
-        allow read: if logado();
-        allow create: if logado() && request.resource.data.uid == request.auth.uid;
-        allow update, delete: if false;
-      }
     }
 
     match /pagamentos/{id} {
@@ -192,16 +152,9 @@ service cloud.firestore {
       allow write: if false; // REVISAR — nenhum arquivo enviado escreve aqui ainda
     }
 
-    // Criado em galeria.html (comprarArte) dentro da mesma transação que
-    // transfere a obra.
-    match /transacoes/{id} {
-      allow read: if logado() &&
-        (resource.data.comprador == request.auth.uid || resource.data.vendedor == request.auth.uid);
-      allow create: if logado() && request.resource.data.comprador == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // Qualquer coisa não listada acima: fechada por padrão.
+    // Qualquer coisa não listada acima (inclui galeria, leiloes, lances,
+    // transacoes, posicoes_daytrade — removidos do projeto): fechada por
+    // padrão.
     match /{document=**} {
       allow read, write: if false;
     }
