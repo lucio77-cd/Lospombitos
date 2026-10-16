@@ -1,0 +1,207 @@
+// ============================================================
+// Lospombitos — Firestore Security Rules (CANDIDATA PARA REVISÃO)
+// Não publicar antes dos testes no Firebase Emulator e da confirmação
+// das regras atualmente publicadas no projeto de produção.
+//
+// Premissas:
+// - Escritas financeiras e ordens são feitas por endpoints server-side
+//   autenticados com Firebase Admin SDK; o Admin SDK ignora estas regras.
+// - O cliente nunca pode criar/alterar carteira, ordem ou pagamento.
+// - Perfis públicos contêm apenas campos de apresentação.
+// - Histórico de patrimônio: dono pode ler; cliente não pode escrever.
+// - Caminhos desconhecidos são negados por padrão.
+//
+// ATENÇÃO: o fluxo atual de convites não foi localizado no cliente ativo.
+// Por segurança, esta candidata bloqueia convites até que o esquema e o
+// fluxo legítimo sejam confirmados. Se ainda houver cadastro por convite,
+// criar testes e ajustar explicitamente antes de publicar.
+// ============================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function ehDono(uid) {
+      return logado() && request.auth.uid == uid;
+    }
+
+    function camposPerfilPrivadoPermitidos() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'nome',
+        'foto_perfil',
+        'perfil_completo',
+        'data_germina',
+        'username',
+        'bio',
+        'perfil_investidor',
+        'musica',
+        'filme',
+        'cor'
+      ]);
+    }
+
+    function camposPerfilPublicoValidos(uid) {
+      return request.resource.data.keys().hasOnly([
+        'uid',
+        'nome',
+        'username',
+        'foto_perfil',
+        'perfil_completo',
+        'perfil_investidor',
+        'bio',
+        'musica',
+        'filme',
+        'cor',
+        'data_adesao',
+        'data_germina'
+      ]) &&
+      request.resource.data.keys().hasAll(['uid', 'perfil_completo']) &&
+      request.resource.data.uid == uid &&
+      request.resource.data.perfil_completo is bool;
+    }
+
+    // Perfil privado: somente o dono pode ler.
+    match /usuarios/{uid} {
+      allow get: if ehDono(uid);
+      allow list: if false;
+      // Criação do perfil privado exclusivamente pelo endpoint server-side.
+      allow create: if false;
+      allow update: if ehDono(uid) && camposPerfilPrivadoPermitidos();
+      allow delete: if false;
+
+      // Histórico legado do $POMB: dono lê/cria; cliente não altera/remove.
+      match /pomb_historico/{docId} {
+        allow read: if ehDono(uid);
+        allow create: if ehDono(uid);
+        allow update, delete: if false;
+      }
+    }
+
+    // Diretório social; nunca armazenar e-mail ou dados financeiros aqui.
+    match /perfis_publicos/{uid} {
+      allow read: if logado();
+      allow create: if ehDono(uid) && camposPerfilPublicoValidos(uid);
+      allow update: if ehDono(uid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nome',
+          'username',
+          'foto_perfil',
+          'perfil_completo',
+          'perfil_investidor',
+          'bio',
+          'musica',
+          'filme',
+          'cor',
+          'data_adesao',
+          'data_germina'
+        ]) &&
+        camposPerfilPublicoValidos(uid);
+      allow delete: if false;
+    }
+
+    // Carteira e valores financeiros: cliente autenticado somente lê a sua.
+    match /carteiras/{uid} {
+      allow read: if ehDono(uid);
+      allow create, update, delete: if false;
+
+      // Snapshot diário de patrimônio. O endpoint cron escreve com Admin SDK.
+      // O cliente pode ler apenas os snapshots da própria carteira.
+      match /historico_valor/{dataId} {
+        allow read: if ehDono(uid);
+        allow create, update, delete: if false;
+      }
+    }
+
+    // Ordens: cliente lê somente as próprias; escrita só pelo servidor.
+    match /ordens/{ordemId} {
+      allow read: if logado() && resource.data.uid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // Posts sociais. O formato permitido é alinhado ao payload de feed.html.
+    match /posts/{postId} {
+      allow read: if logado();
+
+      allow create: if logado() &&
+        request.resource.data.keys().hasOnly([
+          'uid',
+          'username',
+          'foto_perfil',
+          'texto',
+          'mood',
+          'tipo',
+          'likes',
+          'curtido_por',
+          'data_post'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'uid',
+          'texto',
+          'tipo',
+          'likes',
+          'curtido_por',
+          'data_post'
+        ]) &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.tipo == 'texto' &&
+        request.resource.data.texto is string &&
+        request.resource.data.texto.size() > 0 &&
+        request.resource.data.texto.size() <= 2000 &&
+        request.resource.data.likes == 0 &&
+        request.resource.data.curtido_por is list &&
+        request.resource.data.curtido_por.size() == 0;
+
+      // Curtir: mantém todos os likes existentes e adiciona somente o UID atual.
+      // Descurtir: mantém todos os demais e remove somente o UID atual.
+      allow update: if logado() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['likes', 'curtido_por']) &&
+        resource.data.curtido_por is list &&
+        request.resource.data.curtido_por is list &&
+        resource.data.likes is int &&
+        request.resource.data.likes is int &&
+        (
+          (
+            !resource.data.curtido_por.hasAny([request.auth.uid]) &&
+            request.resource.data.curtido_por.hasAny([request.auth.uid]) &&
+            request.resource.data.curtido_por.hasAll(resource.data.curtido_por) &&
+            request.resource.data.curtido_por.size() ==
+              resource.data.curtido_por.size() + 1 &&
+            request.resource.data.likes == resource.data.likes + 1
+          ) ||
+          (
+            resource.data.curtido_por.hasAny([request.auth.uid]) &&
+            !request.resource.data.curtido_por.hasAny([request.auth.uid]) &&
+            resource.data.curtido_por.hasAll(request.resource.data.curtido_por) &&
+            request.resource.data.curtido_por.size() ==
+              resource.data.curtido_por.size() - 1 &&
+            request.resource.data.likes == resource.data.likes - 1
+          )
+        );
+
+      allow delete: if logado() && resource.data.uid == request.auth.uid;
+    }
+
+    // Pagamentos: leitura do próprio documento; escrita server-side apenas.
+    match /pagamentos/{pagamentoId} {
+      allow read: if logado() && resource.data.uid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // Convites bloqueados temporariamente: nenhum consumidor ativo foi
+    // localizado na revisão. Reavaliar se o cadastro por convite ainda existir.
+    match /convites/{codigo} {
+      allow read, write: if false;
+    }
+
+    // Nenhum caminho não declarado pode ser lido ou alterado pelo cliente.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
