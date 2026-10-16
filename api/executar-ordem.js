@@ -113,13 +113,17 @@ module.exports = async (req, res) => {
 
   const db = getDb();
   const cRef = db.collection('carteiras').doc(uid);
-  const uRef = db.collection('usuarios').doc(uid);
 
   try {
     const resultado = await db.runTransaction(async (t) => {
       const cSnap = await t.get(cRef);
-      const c = cSnap.exists ? cSnap.data() : {};
-      let saldo = c.saldo_disponivel ?? 500000;
+      if (!cSnap.exists) {
+        const erro = new Error('Carteira não inicializada. Não é permitido presumir saldo inicial.');
+        erro.status = 409;
+        throw erro;
+      }
+      const c = cSnap.data();
+      let saldo = c.saldo_disponivel;
       let posicoes = [...(c.posicoes || [])];
 
       if (lado === 'compra') {
@@ -196,19 +200,12 @@ module.exports = async (req, res) => {
         data_post: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // FIX: t.update() exige que o doc já exista — se por algum motivo
-      // usuarios/{uid} ainda não tiver sido criado quando a primeira ordem
-      // chega, a transação inteira quebrava com "No document to update".
-      // t.set(...,{merge:true}) faz a mesma coisa quando o doc já existe,
-      // e não quebra quando não existe.
-      t.set(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio }, { merge: true });
-
       return { saldo, patrimonio, preco, status };
     });
 
     res.status(200).json({ ok: true, ...resultado });
   } catch (e) {
     console.error('[api/executar-ordem]', uid, tickerSalvo, e.message);
-    res.status(400).json({ error: e.message || 'Erro ao executar a ordem.' });
+    res.status(e.status || 400).json({ error: e.message || 'Erro ao executar a ordem.' });
   }
 };

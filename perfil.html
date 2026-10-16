@@ -135,19 +135,19 @@
       </div>
     </div>
 
-    <div class="stats-row">
+    <div class="stats-row" id="stats-row">
       <div class="stat-box"><p class="stat-val" id="st-pat">···</p><p class="stat-lbl">PATRIMÔNIO</p></div>
       <div class="stat-box"><p class="stat-val" id="st-res">···</p><p class="stat-lbl">RESULTADO</p></div>
       <div class="stat-box"><p class="stat-val" id="st-atv">···</p><p class="stat-lbl">ATIVOS</p></div>
     </div>
 
-    <p class="secao-lbl">ALOCAÇÃO</p>
+    <p class="secao-lbl" id="secao-alocacao">ALOCAÇÃO</p>
     <div class="treemap-card" id="treemap-card" style="display:none">
       <canvas class="treemap" id="treemap-canvas"></canvas>
       <div class="treemap-leg" id="treemap-leg"></div>
     </div>
 
-    <p class="secao-lbl">DESEMPENHO</p>
+    <p class="secao-lbl" id="secao-desempenho">DESEMPENHO</p>
     <div class="perf-card" id="perf-card" style="display:none">
       <div class="perf-top">
         <div>
@@ -162,7 +162,7 @@
       <div class="ativo-rows" id="ativo-rows"></div>
     </div>
 
-    <p class="secao-lbl">COMPARTILHADO</p>
+    <p class="secao-lbl" id="secao-compartilhado">COMPARTILHADO</p>
     <div id="posts-list">
       <div><div class="sk-line" style="width:55%"></div><div class="sk-line"></div><div class="sk-line" style="width:35%"></div></div>
     </div>
@@ -200,27 +200,61 @@
   const R$  = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = v => (v >= 0 ? '+' : '') + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
 
-  let db, uid;
+  let db, uid, meuUid;
+  let vendoProprioPerfil = true;
   let userData = {}, carteiraData = {};
   let posicoes = [], cotacoes = {};
   let saldoDisp = 0, patrimonioTotal = 0;
 
   firebase.auth().onAuthStateChanged(async user => {
     if (!user) { location.href = 'login.html'; return; }
-    uid = user.uid;
+    meuUid = user.uid;
+    const uidSolicitado = new URLSearchParams(location.search).get('uid');
+    uid = uidSolicitado || user.uid;
+    vendoProprioPerfil = uid === user.uid;
     db  = window.db || firebase.firestore();
     await carregar();
   });
 
   async function carregar() {
-    const [uS, cS, ordSnap] = await Promise.all([
+    if (!vendoProprioPerfil) {
+      // Perfis de terceiros são montados exclusivamente a partir do diretório
+      // público. Nunca buscar carteira, ordens ou o documento privado alheio.
+      const perfilSnap = await db.collection('perfis_publicos').doc(uid).get();
+      if (!perfilSnap.exists) {
+        document.getElementById('p-nome').textContent = 'Perfil não encontrado';
+        document.getElementById('p-username').textContent = '';
+        document.getElementById('p-bio').textContent = '';
+        document.getElementById('stats-row').style.display = 'none';
+        document.getElementById('secao-alocacao').style.display = 'none';
+        document.getElementById('secao-desempenho').style.display = 'none';
+        document.getElementById('secao-compartilhado').style.display = 'none';
+        document.getElementById('posts-list').innerHTML = '';
+        return;
+      }
+
+      userData = perfilSnap.data() || {};
+      document.getElementById('stats-row').style.display = 'none';
+      document.getElementById('secao-alocacao').style.display = 'none';
+      document.getElementById('treemap-card').style.display = 'none';
+      document.getElementById('secao-desempenho').style.display = 'none';
+      document.getElementById('perf-card').style.display = 'none';
+      renderHero();
+      await renderPosts();
+      return;
+    }
+
+    const [uS, pS, cS, ordSnap] = await Promise.all([
       db.collection('usuarios').doc(uid).get(),
+      db.collection('perfis_publicos').doc(uid).get(),
       db.collection('carteiras').doc(uid).get(),
       db.collection('ordens').where('uid', '==', uid).get()
         .catch(() => db.collection('ordens').where('uid', '==', uid).limit(200).get())
     ]);
 
-    userData     = uS.data() || {};
+    // O diretório público é a fonte dos campos de apresentação; o documento
+    // usuarios permanece privado e serve apenas aos fluxos do próprio dono.
+    userData     = { ...(uS.data() || {}), ...(pS.exists ? pS.data() : {}) };
     carteiraData = cS.exists ? cS.data() : {};
     posicoes     = carteiraData.posicoes || [];
 
