@@ -51,11 +51,23 @@ service cloud.firestore {
     match /usuarios/{uid} {
       allow read: if logado();
 
-      allow create: if ehDono(uid);
+      // Perfis novos e campos financeiros são criados pelo servidor (Admin SDK).
+      allow create: if false;
 
+      // O cliente só pode alterar campos de perfil explicitamente autorizados.
+      // Dados financeiros, UID, e-mail e campos administrativos ficam fora
+      // da lista. O servidor Admin SDK não é limitado por estas regras.
       allow update: if ehDono(uid) &&
-        !request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['saldo_disponivel', 'patrimonio_total', 'rentabilidade_pct']);
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            'nome',
+            'foto_perfil',
+            'perfil_completo',
+            'data_germina',
+            'username',
+            'bio',
+            'perfil_investidor'
+          ]);
 
       // Subcoleção de histórico do $POMB — só o dono lê/escreve
       match /pomb_historico/{docId} {
@@ -74,15 +86,9 @@ service cloud.firestore {
     match /carteiras/{uid} {
       allow read: if ehDono(uid);
 
-      allow create: if ehDono(uid) &&
-        request.resource.data.uid == uid &&
-        request.resource.data.saldo_disponivel == 500000 &&
-        request.resource.data.saldo_investido == 0 &&
-        request.resource.data.patrimonio_total == 500000 &&
-        request.resource.data.posicoes == [] &&
-        request.resource.data.historico_ordens == [];
-
-      allow update, delete: if false;
+      // A inicialização é feita exclusivamente por api/inicializar-carteira.js
+      // com Firebase Admin SDK. O cliente não cria nem altera carteiras.
+      allow create, update, delete: if false;
     }
 
     // ── ordens/{id} ──
