@@ -24,10 +24,9 @@
 //    por isso não têm mais match aqui. Se ainda existirem no Firestore,
 //    dados velhos nessas coleções ficam inacessíveis (o catch-all no
 //    fim do arquivo fecha tudo que não tem match explícito).
-//  - pombcoins (em "usuarios") continua sem trava — hoje só importa
-//    pro modo Etapas (05-seed-etapas.js). Falta mover a concessão do
-//    prêmio pra uma function server-side quando esse modo for ao ar,
-//    do jeito que fizemos com saldo_disponivel em executar-ordem.js.
+//  - Campos financeiros legados que ainda existam em "usuarios" ficam
+//    privados e não podem ser alterados pelo cliente. A migração/limpeza
+//    desses campos legados exige rotina server-side auditada.
 // ============================================================
 
 rules_version = '2';
@@ -120,12 +119,8 @@ service cloud.firestore {
     }
 
     // ── carteiras/{uid} ──
-    // Atualizações de saldo (comprar/vender) só o servidor (Admin SDK,
-    // api/executar-ordem.js) escreve. MAS a criação inicial da carteira
-    // (germinarEsalvarPombito, em auth.js) ainda roda no client — por
-    // isso liberamos SÓ a criação, travada nos valores exatos de capital
-    // inicial, pra não travar o cadastro. Update/delete continuam só do
-    // servidor.
+    // Criação e mutação financeira são exclusivas do servidor/Admin SDK.
+    // O cliente autenticado pode apenas ler a própria carteira.
     match /carteiras/{uid} {
       allow read: if ehDono(uid);
 
