@@ -44,36 +44,79 @@ service cloud.firestore {
     }
 
     // ── usuarios/{uid} ──
-    // Leitura: qualquer membro autenticado (necessário para o feed
-    // e para "Descobrir Membros" mostrarem outros perfis/saldos).
-    // Escrita: só o dono, e só em campos de perfil — nunca em saldo,
-    // patrimônio ou rentabilidade (isso é papel do servidor).
+    // Perfil privado: só o próprio membro pode ler. O documento pode conter
+    // metadados privados/legados; por isso nunca é usado como diretório público.
     match /usuarios/{uid} {
-      allow read: if logado();
+      allow read: if ehDono(uid);
 
-      // Perfis novos e campos financeiros são criados pelo servidor (Admin SDK).
+      // Criação do documento privado somente pelo servidor/Admin SDK.
       allow create: if false;
 
-      // O cliente só pode alterar campos de perfil explicitamente autorizados.
-      // Dados financeiros, UID, e-mail e campos administrativos ficam fora
-      // da lista. O servidor Admin SDK não é limitado por estas regras.
+      // O cliente pode alterar apenas campos de perfil aprovados.
+      // Campos financeiros, UID, e-mail e campos administrativos ficam protegidos.
       allow update: if ehDono(uid) &&
-        request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly([
-            'nome',
-            'foto_perfil',
-            'perfil_completo',
-            'data_germina',
-            'username',
-            'bio',
-            'perfil_investidor'
-          ]);
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nome',
+          'foto_perfil',
+          'perfil_completo',
+          'data_germina',
+          'username',
+          'bio',
+          'perfil_investidor',
+          'musica',
+          'filme',
+          'cor'
+        ]);
 
-      // Subcoleção de histórico do $POMB — só o dono lê/escreve
       match /pomb_historico/{docId} {
         allow read, create: if ehDono(uid);
         allow update, delete: if false;
       }
+    }
+
+    // ── perfis_publicos/{uid} ──
+    // Diretório social: campos estritamente públicos, sem carteira, e-mail,
+    // saldos, patrimônio, posições, ordens ou outros dados financeiros.
+    match /perfis_publicos/{uid} {
+      function camposPublicosValidos() {
+        return request.resource.data.keys().hasOnly([
+          'uid',
+          'nome',
+          'username',
+          'foto_perfil',
+          'perfil_completo',
+          'perfil_investidor',
+          'bio',
+          'musica',
+          'filme',
+          'cor',
+          'data_adesao',
+          'data_germina'
+        ]) &&
+        request.resource.data.uid == uid &&
+        request.resource.data.perfil_completo is bool;
+      }
+
+      allow read: if logado();
+      allow create: if ehDono(uid) &&
+        request.resource.data.keys().hasAll(['uid', 'perfil_completo']) &&
+        camposPublicosValidos();
+      allow update: if ehDono(uid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nome',
+          'username',
+          'foto_perfil',
+          'perfil_completo',
+          'perfil_investidor',
+          'bio',
+          'musica',
+          'filme',
+          'cor',
+          'data_adesao',
+          'data_germina'
+        ]) &&
+        camposPublicosValidos();
+      allow delete: if false;
     }
 
     // ── carteiras/{uid} ──
