@@ -118,8 +118,13 @@ module.exports = async (req, res) => {
   try {
     const resultado = await db.runTransaction(async (t) => {
       const cSnap = await t.get(cRef);
-      const c = cSnap.exists ? cSnap.data() : {};
-      let saldo = c.saldo_disponivel ?? 500000;
+      if (!cSnap.exists) {
+        const erro = new Error('Carteira não inicializada. Não é permitido presumir saldo inicial.');
+        erro.status = 409;
+        throw erro;
+      }
+      const c = cSnap.data();
+      let saldo = c.saldo_disponivel;
       let posicoes = [...(c.posicoes || [])];
 
       if (lado === 'compra') {
@@ -209,6 +214,6 @@ module.exports = async (req, res) => {
     res.status(200).json({ ok: true, ...resultado });
   } catch (e) {
     console.error('[api/executar-ordem]', uid, tickerSalvo, e.message);
-    res.status(400).json({ error: e.message || 'Erro ao executar a ordem.' });
+    res.status(e.status || 400).json({ error: e.message || 'Erro ao executar a ordem.' });
   }
 };
