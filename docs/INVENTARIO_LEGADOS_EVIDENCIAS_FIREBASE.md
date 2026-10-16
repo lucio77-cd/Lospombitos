@@ -124,3 +124,35 @@ Esta etapa somente pode ser marcada como concluída quando:
 ## 8. Próxima decisão
 
 Até que as evidências sejam reunidas, a migração permanece bloqueada. O próximo passo operacional é obter do responsável autorizado as regras publicadas e o resultado do inventário somente leitura, ou configurar acesso seguro e restrito para essa coleta. Não solicitar nem armazenar chaves privadas, tokens de serviço ou arquivos de credenciais no repositório.
+
+
+## 9. Coletor automatizado em modo somente leitura
+
+Foi adicionado `scripts/inventario-firestore-readonly.js`. O script consulta somente as coleções explicitamente declaradas, seleciona apenas campos necessários para classificação e imprime contagens/tipos agregados. Também cruza IDs de documentos de `usuarios` e `carteiras`, sem imprimir os IDs. Não é uma migração e não faz reparos.
+
+### Pré-condições para uma execução autorizada
+
+1. Revisar o código do coletor e os campos permitidos.
+2. Criar/usar uma identidade de serviço **com permissões de leitura apenas** no ambiente-alvo; não usar credencial administrativa ampla se uma identidade restrita puder ser usada.
+3. Guardar credenciais localmente, fora do repositório, e nunca as enviar ao chat/PR.
+4. Confirmar o Project ID com o responsável pelo ambiente.
+5. Preferir uma cópia isolada primeiro; a execução em produção exige autorização específica e registro de auditoria.
+
+Exemplo de comando local (não executado nesta etapa):
+
+```sh
+GOOGLE_APPLICATION_CREDENTIALS="/caminho/local/credencial-leitura.json" \
+  node scripts/inventario-firestore-readonly.js \
+  --project-id "PROJECT_ID_CONFIRMADO" \
+  --confirm-project-id "PROJECT_ID_CONFIRMADO"
+```
+
+O script bloqueia a execução se os dois IDs não forem iguais ou se `FIRESTORE_EMULATOR_HOST` estiver definido. Falhas de leitura são resumidas por coleção sem imprimir a mensagem bruta do erro. Mesmo assim, a proteção principal é a permissão **somente leitura** da identidade usada.
+
+### Limitações conhecidas
+
+- A lista de coleções e campos é explícita e precisa ser comparada com o esquema real; o script não descobre automaticamente todas as coleções/subcoleções.
+- O cruzamento de existência entre perfil e carteira não comprova que valores financeiros estejam corretos.
+- O relatório não calcula divergência de saldos campo a campo nem determina qual valor seria correto.
+- Nenhuma execução contra Firebase foi feita; os resultados reais permanecem pendentes.
+- Testes unitários do classificador foram adicionados, mas não há ainda resultado de CI confirmado para este commit.
