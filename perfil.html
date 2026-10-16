@@ -213,14 +213,17 @@
   });
 
   async function carregar() {
-    const [uS, cS, ordSnap] = await Promise.all([
+    const [uS, pS, cS, ordSnap] = await Promise.all([
       db.collection('usuarios').doc(uid).get(),
+      db.collection('perfis_publicos').doc(uid).get(),
       db.collection('carteiras').doc(uid).get(),
       db.collection('ordens').where('uid', '==', uid).get()
         .catch(() => db.collection('ordens').where('uid', '==', uid).limit(200).get())
     ]);
 
-    userData     = uS.data() || {};
+    // O diretório público é a fonte dos campos de apresentação; o documento
+    // usuarios permanece privado e serve apenas aos fluxos do próprio dono.
+    userData     = { ...(uS.data() || {}), ...(pS.exists ? pS.data() : {}) };
     carteiraData = cS.exists ? cS.data() : {};
     posicoes     = carteiraData.posicoes || [];
 
