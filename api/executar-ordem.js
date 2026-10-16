@@ -113,7 +113,6 @@ module.exports = async (req, res) => {
 
   const db = getDb();
   const cRef = db.collection('carteiras').doc(uid);
-  const uRef = db.collection('usuarios').doc(uid);
 
   try {
     const resultado = await db.runTransaction(async (t) => {
@@ -200,13 +199,6 @@ module.exports = async (req, res) => {
         auto: true,
         data_post: admin.firestore.FieldValue.serverTimestamp(),
       });
-
-      // FIX: t.update() exige que o doc já exista — se por algum motivo
-      // usuarios/{uid} ainda não tiver sido criado quando a primeira ordem
-      // chega, a transação inteira quebrava com "No document to update".
-      // t.set(...,{merge:true}) faz a mesma coisa quando o doc já existe,
-      // e não quebra quando não existe.
-      t.set(uRef, { saldo_disponivel: saldo, patrimonio_total: patrimonio }, { merge: true });
 
       return { saldo, patrimonio, preco, status };
     });
