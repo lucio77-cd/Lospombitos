@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Funções serverless e testes de segurança do Los Pombitos.",
   "scripts": {
-    "test": "node --test tests/carteiraInicial.test.js tests/inicializarCarteiraService.test.js",
+    "test": "node --test tests/carteiraInicial.test.js tests/inicializarCarteiraService.test.js tests/inventarioFirestoreReadonly.test.js",
     "test:rules": "firebase emulators:exec --only firestore --project demo-los-pombitos \"node --test tests/firestore.rules.test.js\"",
     "test:all": "npm test && npm run test:rules"
   },
