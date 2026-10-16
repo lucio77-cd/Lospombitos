@@ -557,7 +557,7 @@ async function carregarMembros() {
   const countEl = document.getElementById('membros-count');
 
   try {
-    const snap = await db.collection('usuarios')
+    const snap = await db.collection('perfis_publicos')
       .where('perfil_completo', '==', true)
       .orderBy('data_adesao', 'desc')
       .limit(30)
@@ -583,9 +583,6 @@ async function carregarMembros() {
 
       const foto = u.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
       const nome = u.username || 'pombito';
-      const saldo = u.saldo_atual ?? u.saldo ?? 500000;
-      const saldoFormatado = BRL(saldo);
-      const negativo = saldo < 500000;
 
       const card = document.createElement('a');
       card.className = 'membro-card';
@@ -595,7 +592,7 @@ async function carregarMembros() {
         <img class="membro-av" src="${escHtml(foto)}" alt=""
           onerror="this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${uid}'">
         <span class="membro-nome">@${escHtml(nome)}</span>
-        <span class="membro-saldo ${negativo ? 'negativo' : ''}">${saldoFormatado}</span>
+        <span class="membro-saldo">VER PERFIL</span>
       `;
       scroll.appendChild(card);
     });
@@ -604,7 +601,7 @@ async function carregarMembros() {
     console.warn('Erro ao carregar membros:', e);
     // Tenta sem orderBy se índice não existir
     try {
-      const snap = await db.collection('usuarios')
+      const snap = await db.collection('perfis_publicos')
         .where('perfil_completo', '==', true)
         .limit(30)
         .get();
@@ -618,8 +615,6 @@ async function carregarMembros() {
         if (uid === meuUid) return;
         const foto = u.foto_perfil || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}`;
         const nome = u.username || 'pombito';
-        const saldo = u.saldo_atual ?? u.saldo ?? 500000;
-        const negativo = saldo < 500000;
         const card = document.createElement('a');
         card.className = 'membro-card';
         card.href = `perfil.html?uid=${uid}`;
@@ -628,7 +623,7 @@ async function carregarMembros() {
           <img class="membro-av" src="${escHtml(foto)}" alt=""
             onerror="this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${uid}'">
           <span class="membro-nome">@${escHtml(nome)}</span>
-          <span class="membro-saldo ${negativo?'negativo':''}">${BRL(saldo)}</span>
+          <span class="membro-saldo">VER PERFIL</span>
         `;
         scroll.appendChild(card);
       });
