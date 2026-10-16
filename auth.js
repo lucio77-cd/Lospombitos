@@ -144,6 +144,8 @@ async function entrarComGoogle() {
     const usuarioSnap = await db.collection("usuarios").doc(user.uid).get();
 
     if (usuarioSnap.exists && usuarioSnap.data().perfil_completo === true) {
+      // Sincroniza somente campos permitidos para o diretório público.
+      await sincronizarPerfilPublico(user, usuarioSnap.data());
       exibirMensagem("Bem-vindo de volta, Pombito! 🪶", "ok");
       window.location.href = "feed.html";
       return;
@@ -237,6 +239,9 @@ async function germinarEsalvarPombito(dadosFicha) {
       data_germina:    firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
+    const perfilSnap = await db.collection("usuarios").doc(user.uid).get();
+    await sincronizarPerfilPublico(user, perfilSnap.data() || {});
+
     // FIX: esta função não decide mais pra onde navegar — antes ela
     // sempre mandava de volta pro germinar.html, o que causava um loop
     // infinito quando era o PRÓPRIO germinar.html quem a chamava (a
@@ -250,6 +255,35 @@ async function germinarEsalvarPombito(dadosFicha) {
     setBotaoCarregando(false, "Salvar");
     return false;
   }
+}
+
+/**
+ * Copia apenas campos explicitamente públicos para perfis_publicos/{uid}.
+ * Nunca envia e-mail, saldos, patrimônio, posições ou ordens.
+ */
+function montarPerfilPublico(user, perfil = {}) {
+  return {
+    uid: user.uid,
+    nome: perfil.nome || user.displayName || "Pombito",
+    username: perfil.username || null,
+    foto_perfil: perfil.foto_perfil || user.photoURL
+      || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
+    perfil_completo: perfil.perfil_completo === true,
+    perfil_investidor: perfil.perfil_investidor || null,
+    bio: perfil.bio || null,
+    musica: perfil.musica || null,
+    filme: perfil.filme || null,
+    cor: perfil.cor || null,
+    data_adesao: perfil.data_adesao || firebase.firestore.FieldValue.serverTimestamp(),
+    data_germina: perfil.data_germina || firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+
+async function sincronizarPerfilPublico(user, perfilPrivado = {}) {
+  if (!user) throw new Error("Sessão expirada. Faça login novamente.");
+  const perfilPublico = montarPerfilPublico(user, perfilPrivado);
+  await db.collection("perfis_publicos").doc(user.uid).set(perfilPublico);
+  return perfilPublico;
 }
 
 // ----------------------------------------------------------
