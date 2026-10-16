@@ -138,6 +138,9 @@ async function entrarComGoogle() {
   }
 
   try {
+    // A carteira só pode ser criada pelo servidor. Se houver dados legados
+    // parciais, o endpoint bloqueia o cadastro e exige reconciliação.
+    await garantirCarteiraInicializada(user);
     const usuarioSnap = await db.collection("usuarios").doc(user.uid).get();
 
     if (usuarioSnap.exists && usuarioSnap.data().perfil_completo === true) {
@@ -162,40 +165,45 @@ async function entrarComGoogle() {
 // ----------------------------------------------------------
 async function finalizarCadastroPombito(user) {
   try {
-    const docRef  = db.collection("usuarios").doc(user.uid);
+    const docRef = db.collection("usuarios").doc(user.uid);
     const docSnap = await docRef.get();
 
-    // Se perfil já existia e estava completo, vai direto ao feed
-    if (docSnap.exists && docSnap.data().perfil_completo === true) {
+    // O endpoint server-side deve ter criado o perfil e a carteira de uma
+    // conta nova. Não concedemos capital nem recriamos dados pelo cliente.
+    if (!docSnap.exists) {
+      throw new Error("O perfil não foi inicializado pelo servidor. Tente novamente ou solicite suporte.");
+    }
+
+    if (docSnap.data().perfil_completo === true) {
       window.location.href = "feed.html";
       return;
     }
 
-    // Salva dados iniciais do membro (sem sobrescrever campos existentes)
-    await docRef.set({
-      uid:                user.uid,
-      nome:               user.displayName || "Pombito",
-      email:              user.email,
-      foto_google:        user.photoURL || null,
-      // Capital inicial da corretora simulada
-      saldo_disponivel:   500000.00,
-      saldo_investido:    0,
-      patrimonio_total:   500000.00,
-      rentabilidade_pct:  0,
-      // Perfil de investidor (preenchido no setup)
-      perfil_investidor:  null,
-      // Controle
-      perfil_completo:    false,
-      data_adesao:        firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-
     window.location.href = "germinar.html";
-
   } catch (e) {
     console.error("Erro ao finalizar cadastro:", e);
-    // Propaga o erro para quem chamou tratar
     throw e;
   }
+}
+
+async function garantirCarteiraInicializada(user = auth.currentUser) {
+  if (!user) throw new Error("Sessão expirada. Faça login novamente.");
+
+  const idToken = await user.getIdToken();
+  const response = await fetch("/api/inicializar-carteira", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${idToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({})
+  });
+
+  const resultado = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(resultado.error || "Não foi possível validar a carteira.");
+  }
+  return resultado;
 }
 
 // ----------------------------------------------------------
@@ -215,30 +223,19 @@ async function germinarEsalvarPombito(dadosFicha) {
   exibirMensagem("Salvando seu perfil...", "info");
 
   try {
+    // Revalida a carteira antes de concluir o perfil. Carteiras ausentes
+    // de contas antigas não recebem capital automaticamente.
+    await garantirCarteiraInicializada(user);
+
     const fotoPadrao = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
     const fotoFinal  = user.photoURL || fotoPadrao;
 
     await db.collection("usuarios").doc(user.uid).set({
-      ...dadosFicha,
+      ...(dadosFicha || {}),
       foto_perfil:     fotoFinal,
       perfil_completo: true,
       data_germina:    firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
-
-    // Cria carteira no Firestore se não existir
-    const carteiraRef = db.collection("carteiras").doc(user.uid);
-    const carteiraSnap = await carteiraRef.get();
-    if (!carteiraSnap.exists) {
-      await carteiraRef.set({
-        uid:              user.uid,
-        saldo_disponivel: 500000.00,
-        saldo_investido:  0,
-        patrimonio_total: 500000.00,
-        posicoes:         [],
-        historico_ordens: [],
-        criada_em:        firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
 
     // FIX: esta função não decide mais pra onde navegar — antes ela
     // sempre mandava de volta pro germinar.html, o que causava um loop
