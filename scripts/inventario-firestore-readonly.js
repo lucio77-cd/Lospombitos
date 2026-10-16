@@ -133,8 +133,8 @@ async function inventariar(db) {
   // Comparação de existência por ID entre usuarios e carteiras, sem emitir IDs.
   try {
     const [usuarios, carteiras] = await Promise.all([
-      db.collection('usuarios').select().get(),
-      db.collection('carteiras').select().get(),
+      db.collection('usuarios').select(admin.firestore.FieldPath.documentId()).get(),
+      db.collection('carteiras').select(admin.firestore.FieldPath.documentId()).get(),
     ]);
     const idsUsuarios = new Set(usuarios.docs.map(doc => doc.id));
     const idsCarteiras = new Set(carteiras.docs.map(doc => doc.id));
