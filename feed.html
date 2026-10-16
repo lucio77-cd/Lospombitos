@@ -835,6 +835,28 @@ firebase.auth().onAuthStateChanged(async user => {
     }
     const u=uSnap.data();
     const foto=u.foto_perfil||`https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`;
+
+    // Migração progressiva: publica somente campos de apresentação permitidos.
+    // Falha de sincronização não bloqueia o feed, mas será visível no console.
+    try {
+      await db.collection('perfis_publicos').doc(user.uid).set({
+        uid: user.uid,
+        nome: u.nome || user.displayName || 'Pombito',
+        username: u.username || null,
+        foto_perfil: foto,
+        perfil_completo: u.perfil_completo === true,
+        perfil_investidor: u.perfil_investidor || null,
+        bio: u.bio || null,
+        musica: u.musica || null,
+        filme: u.filme || null,
+        cor: u.cor || null,
+        data_adesao: u.data_adesao || firebase.firestore.FieldValue.serverTimestamp(),
+        data_germina: u.data_germina || firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) {
+      console.warn('Não foi possível sincronizar o perfil público:', e);
+    }
+
     const hdrAv=document.getElementById('hdr-avatar');
     const postAv=document.getElementById('post-avatar');
     if(hdrAv){hdrAv.src=foto;hdrAv.style.display='block';}
